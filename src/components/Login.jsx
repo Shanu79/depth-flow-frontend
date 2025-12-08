@@ -1,7 +1,24 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'; 
+import { Zap, Box, CloudUpload, Check, Menu, X, Twitter, Facebook, Instagram, Youtube, Upload, Play, Download, Share2, Image as ImageIcon, CreditCard, ChevronDown, LogOut, Sliders, Layers } from 'lucide-react';
 
-const LoginPage = () => {
+const LoginPage = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Test Admin Login Logic
+    if (email === 'admin' && password === 'admin') {
+      onLogin(); // Update global state
+      navigate('/'); // Redirect to Home (which will now show Workspace)
+    } else {
+      setError('Invalid credentials. Try admin/admin');
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
       {/* Background Decor */}
@@ -19,44 +36,40 @@ const LoginPage = () => {
            <p className="text-gray-400 text-sm">Enter your credentials to access your 3D workspace.</p>
         </div>
 
-        <form className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Email</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">Username</label>
             <input 
-              type="email" 
-              placeholder="name@example.com" 
+              type="text" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Username" 
               className="w-full bg-slate-950/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-gray-600"
             />
           </div>
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">Password</label>
             <input 
-              type="password" 
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)} 
               placeholder="••••••••" 
               className="w-full bg-slate-950/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-gray-600"
             />
           </div>
+          
+          {error && <p className="text-red-400 text-xs text-center">{error}</p>}
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center text-gray-400 hover:text-gray-300 cursor-pointer">
-              <input type="checkbox" className="mr-2 rounded bg-slate-800 border-slate-700 text-purple-600 focus:ring-0" />
-              Remember me
-            </label>
-            <a href="#" className="text-cyan-400 hover:text-cyan-300">Forgot password?</a>
-          </div>
-
-          <button className="w-full py-3 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all">
+          <button type="submit" className="w-full py-3 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all">
             Sign In
           </button>
         </form>
 
         <div className="mt-6 pt-6 border-t border-slate-800 text-center">
-          <p className="text-gray-500 text-sm">
-            Don't have an account? <Link to="/" className="text-purple-400 hover:text-purple-300 font-medium">Sign up</Link>
-          </p>
-          <div className="mt-4 text-center">
-            <Link to="/" className="text-xs text-gray-600 hover:text-white">← Back to Home</Link>
-          </div>
+           <p className="text-xs text-gray-500">Hint: use admin / admin</p>
+           <div className="mt-4">
+             <Link to="/" className="text-xs text-gray-600 hover:text-white">← Back to Home</Link>
+           </div>
         </div>
       </div>
     </div>
