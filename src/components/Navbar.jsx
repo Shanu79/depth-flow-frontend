@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom'; 
 import { Menu, X, CreditCard, ChevronDown, LogOut } from 'lucide-react';
+import FullLogo from './FullLogo';
 
 const Navbar = ({ isLoggedIn, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,18 +10,13 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
   if (location.pathname === '/login') return null; 
 
   return (
-    <nav className="fixed top-0 w-full z-50 px-6 py-6 flex justify-between items-center bg-transparent backdrop-blur-sm">
-      
-      {/* Logo */}
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-          <span className="text-white font-bold text-lg">D</span>
-        </div>
-        <span className="text-white font-bold text-xl tracking-wide hidden md:block">DreamCraft 3D</span>
-      </div>
+    <nav className="fixed top-0 w-full z-50 px-6 h-20 flex justify-between items-center bg-transparent backdrop-blur-md border-b border-slate-800/50">
+
+      {/* Logo Wrapper */}
+      <FullLogo />
 
       {/* Center Navigation */}
-      <div className="hidden md:flex items-center bg-slate-800/50 backdrop-blur-md rounded-full px-8 py-3 border border-slate-700/50">
+      <div className="hidden md:flex items-center bg-slate-800/50 shadow-[0_0_15px_rgba(168,85,247,0.5)] rounded-full px-8 py-3 border border-slate-700/50">
         <a href="#features" className="text-slate-300 hover:text-white px-4 text-sm font-medium transition-colors">
           Features
         </a>
@@ -33,12 +29,12 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
       </div>
 
       {/* Right Side Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 shadow-[0_0_15px_rgba(168,85,247,0.5)] rounded-full">
         
         {/* --- CONDITIONAL RENDERING START --- */}
         {isLoggedIn ? (
           /* OPTION 1: LOGGED IN (Show Credits + Avatar) */
-          <div className="flex items-center gap-4">
+          <div className="flex gap-2">
             {/* The Credits Container is INSIDE this block, so it vanishes completely when logged out */}
             <div className="hidden md:flex items-center gap-2 bg-slate-900 border border-amber-500/30 px-3 py-1.5 rounded-full">
                <CreditCard className="w-4 h-4 text-amber-400" />
@@ -46,7 +42,7 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
             </div>
 
             {/* Profile Dropdown */}
-            <div className="flex items-center gap-3 pl-2 border-l border-slate-700">
+            <div className="flex items-center gap-3 border-l border-slate-700">
               <div className="flex items-center gap-2 cursor-pointer hover:bg-slate-800 p-1.5 rounded-lg transition-colors group relative">
                  <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100" alt="User" className="w-8 h-8 rounded-full border border-slate-600" />
                  <ChevronDown className="w-4 h-4 text-slate-400" />

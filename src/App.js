@@ -1,6 +1,7 @@
 import './App.css';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import LoginPage from './components/Login';
 import HomePage from './components/HomePage';
 import Workspace from './components/Workspace';
@@ -30,6 +31,7 @@ function App() {
         
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
       </Routes>
+      <Footer />
       </div>
   );
 }
