@@ -1,14 +1,20 @@
 import React from 'react';
+import video1 from '../assets/video1.mp4';
+import video2 from '../assets/video2.mp4';
+import video3 from '../assets/video3.mp4';
+import video4 from '../assets/video4.mp4';
+import video5 from '../assets/video5.mp4';
+import video6 from '../assets/video6.mp4';
 
 const Gallery = () => {
   // Placeholder images matching the 3D/Fantasy vibe
   const galleryImages = [
-    "https://images.unsplash.com/photo-1633412802994-5c058f151b66?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1614726365723-49faaa5bf20f?q=80&w=600&auto=format&fit=crop", 
-    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1558655146-d09347e0c766?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop"
+    video1,
+    video2,
+    video3,
+    video4,
+    video5,
+    video6,
   ];
 
   return (
@@ -23,7 +29,7 @@ const Gallery = () => {
             className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-lg hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] transition-all duration-300"
           >
             {/* Image */}
-            <img 
+            <video 
               src={src} 
               alt={`Gallery item ${idx + 1}`} 
               className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-500" 
