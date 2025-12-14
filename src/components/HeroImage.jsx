@@ -6,10 +6,7 @@ const HeroImage = () => {
     return (
         <>
             {/* Hero Image Section */}
-
             <div className="relative w-full max-w-3xl mx-auto p-12 flex justify-center items-center">
-
-
                 {/* --- Main Container for Cards --- */}
                 <div className="relative w-full flex justify-center items-center">
 
