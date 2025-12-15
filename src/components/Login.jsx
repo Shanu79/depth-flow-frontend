@@ -50,16 +50,10 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row relative overflow-hidden font-sans">
-
-      {/* Background Ambience */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-900/20 rounded-full blur-[100px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-cyan-900/20 rounded-full blur-[100px]"></div>
-      </div>
+    <div className="min-h-screen bg-slate-950 flex flex-col lg:flex-row relative overflow-hidden font-sans">
 
       {/* LEFT SIDE - FORM */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-24 z-10 py-10">
+      <div className="w-full min-w-[50%] min-h-screen flex flex-col items-center justify-center px-4 lg:px-8 justify-center py-16 z-10">
         <div className="max-w-md w-full mx-auto">
 
           {/* Dynamic Header */}
@@ -167,14 +161,14 @@ const LoginPage = ({ onLogin }) => {
       </div>
 
       {/* RIGHT SIDE - IMAGE/SHOWCASE (Unchanged) */}
-      <div className="hidden md:flex w-1/2 bg-slate-900/50 items-center p-8 justify-center relative m-8">
-        <div className="relative w-full h-[38rem] rounded-2xl m-4 p-2 bg-gradient-to-r from-cyan-400 to-purple-600 shadow-lg shadow-purple-500/20 overflow-hidden">
+      <div className="hidden w-full lg:w-1/2 md:flex flex-col items-center lg:pr-4 lg:pl-0 px-16 justify-center">
+        <div className="relative w-full h-fit rounded-2xl m-4 p-2 bg-gradient-to-r from-cyan-400 to-purple-600 shadow-lg shadow-purple-500/20 overflow-hidden">
           <div className="w-full h-full bg-slate-900 rounded-xl overflow-hidden relative">
-              <div className="flex justify-center mb-16">
+              <div className="flex justify-center mb-20 scale-[0.9] lg:scale-[0.67] xl:scale-[0.8]">
                 <HeroImage />
               </div>
               
-              <p className="text-white text-center font-medium tracking-wide">Experience the Power of DepthFlow AI</p>
+              <p className="text-white text-center font-medium tracking-wide pb-8">Experience the Power of DepthFlow AI</p>
               
           </div>
         </div>
