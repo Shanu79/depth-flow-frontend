@@ -62,12 +62,12 @@ const Pricing = () => {
   return (
     <section id="pricing" className="px-6 md:px-20 py-20 scroll-mt-2 relative">
        {/* Section Header */}
-       <div className="text-center mb-8">
+       <div className="text-center mb-12">
          <h2 className="text-3xl md:text-4xl font-bold text-white">Flexible Pricing Plans</h2>
          <p className="text-gray-400">Choose the perfect plan for your creative needs.</p>
          
          {/* Toggle Switch */}
-         <div className="flex justify-center items-center mt-4">
+         <div className="flex justify-center items-center mt-6 gap-4">
            <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-gray-500'}`}>
              Monthly Billing
            </span>
