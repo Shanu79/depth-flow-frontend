@@ -12,12 +12,12 @@ import { useState, useRef, useCallback, useEffect } from "react";
 
 const Workspace = () => {
   // --- UI State for Resizing ---
-  const [sidebarWidth, setSidebarWidth] = useState(450); // Default width in px
+  const [sidebarWidth, setSidebarWidth] = useState(450);
   const [isResizing, setIsResizing] = useState(false);
 
   // --- Logic State ---
   const [motionStyle, setMotionStyle] = useState("Dolly");
-  const [depth, setDepth] = useState(7); // Updated default to match your screenshot
+  const [depth, setDepth] = useState(7);
   const [speed, setSpeed] = useState(5);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -27,8 +27,19 @@ const Workspace = () => {
   const fileInputRef = useRef(null);
 
   // --- Resize Handlers ---
-  const startResizing = useCallback(() => setIsResizing(true), []);
-  const stopResizing = useCallback(() => setIsResizing(false), []);
+  const startResizing = useCallback(() => {
+    setIsResizing(true);
+    // Prevent text selection while dragging to stop visual glitches
+    document.body.style.userSelect = 'none'; 
+    document.body.style.cursor = 'col-resize';
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+    // Re-enable text selection
+    document.body.style.userSelect = ''; 
+    document.body.style.cursor = '';
+  }, []);
 
   const resize = useCallback(
     (mouseEvent) => {
@@ -44,13 +55,15 @@ const Workspace = () => {
   );
 
   useEffect(() => {
-    window.addEventListener("mousemove", resize);
-    window.addEventListener("mouseup", stopResizing);
+    if (isResizing) {
+      window.addEventListener("mousemove", resize);
+      window.addEventListener("mouseup", stopResizing);
+    }
     return () => {
       window.removeEventListener("mousemove", resize);
       window.removeEventListener("mouseup", stopResizing);
     };
-  }, [resize, stopResizing]);
+  }, [isResizing, resize, stopResizing]);
 
 
   const handleFileChange = (e) => {
@@ -100,8 +113,11 @@ const Workspace = () => {
       {/* LEFT PANEL - CONTROLS (RESIZABLE)           */}
       {/* ------------------------------------------- */}
       <div 
-        className="relative flex-shrink-0 flex flex-col pt-24 pb-10 px-6 space-y-6 overflow-y-auto scrollbar-hide border-r border-slate-800 bg-slate-950 z-10 w-full md:w-[var(--sidebar-width)] transition-[width]"
-        // FIX: Use CSS Variable instead of conditional JS logic
+        className={`
+            relative flex-shrink-0 flex flex-col pt-24 pb-10 px-6 space-y-6 overflow-y-auto scrollbar-hide border-r border-slate-800 bg-slate-950 z-10 w-full md:w-[var(--sidebar-width)]
+            /* PERFORMANCE FIX: Only apply transition when NOT dragging */
+            ${isResizing ? 'transition-none' : 'transition-[width] duration-300 ease-out'}
+        `}
         style={{ '--sidebar-width': `${sidebarWidth}px` }}
       >
         <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
@@ -191,8 +207,7 @@ const Workspace = () => {
             onClick={handleGenerate}
             disabled={isLoading || !selectedFile}
             className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 text-slate-900 font-extrabold text-lg shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all mt-4
-            ${isLoading || !selectedFile ? 'bg-slate-600 cursor-not-allowed' : 'bg-slate-600 hover:bg-slate-500 text-white'}`} 
-            // Note: Adjusted colors to match your dark theme screenshot
+            ${isLoading || !selectedFile ? 'bg-slate-600 cursor-not-allowed' : 'bg-slate-600 hover:bg-slate-500 text-white'}`}
         >
             {isLoading ? <Loader2 className="animate-spin" /> : "Generate 3D Video"}
         </button>
@@ -204,9 +219,11 @@ const Workspace = () => {
       {/* ------------------------------------------- */}
       <div 
         onMouseDown={startResizing}
-        className="hidden md:flex w-2 cursor-col-resize bg-slate-950 hover:bg-purple-500/50 hover:w-2 transition-all items-center justify-center z-20 group border-l border-slate-800"
+        className="hidden md:flex w-4 -ml-2 cursor-col-resize hover:bg-purple-500/10 transition-all items-center justify-center z-50 group absolute h-full"
+        // Positioned absolutely based on sidebar width
+        style={{ left: `${sidebarWidth}px` }}
       >
-        <GripVertical className="w-4 h-4 text-slate-700 group-hover:text-white transition-colors" />
+        <div className="w-[1px] h-full bg-slate-800 group-hover:bg-purple-500/50 transition-colors" />
       </div>
 
 
