@@ -10,7 +10,7 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
   if (location.pathname === '/login') return null;
 
   return (
-    <nav className="fixed top-0 w-full z-50 px-6 h-20 flex justify-between items-center bg-transparent backdrop-blur-md border-b border-slate-800/50">
+    <nav className="fixed top-0 w-full z-50 pr-6 h-20 flex justify-between items-center bg-transparent backdrop-blur-md border-b border-slate-800/50">
 
       {/* Logo Wrapper */}
       <Link to="/" className='h-20'>

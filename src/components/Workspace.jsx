@@ -1,34 +1,135 @@
 import {
   Upload,
-  Play,
   Download,
   Share2,
   Image as ImageIcon,
-  CreditCard,
   ChevronDown,
-  LogOut,
   Sliders,
-  Layers,
+  Loader2,
+  GripVertical
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const Workspace = () => {
+  // --- UI State for Resizing ---
+  const [sidebarWidth, setSidebarWidth] = useState(450); // Default width in px
+  const [isResizing, setIsResizing] = useState(false);
+
+  // --- Logic State ---
   const [motionStyle, setMotionStyle] = useState("Dolly");
+  const [depth, setDepth] = useState(7); // Updated default to match your screenshot
+  const [speed, setSpeed] = useState(5);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [resultVideoUrl, setResultVideoUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const fileInputRef = useRef(null);
+
+  // --- Resize Handlers ---
+  const startResizing = useCallback(() => setIsResizing(true), []);
+  const stopResizing = useCallback(() => setIsResizing(false), []);
+
+  const resize = useCallback(
+    (mouseEvent) => {
+      if (isResizing) {
+        const newWidth = mouseEvent.clientX;
+        // Constraint: Min 320px, Max 800px
+        if (newWidth > 320 && newWidth < 800) {
+            setSidebarWidth(newWidth);
+        }
+      }
+    },
+    [isResizing]
+  );
+
+  useEffect(() => {
+    window.addEventListener("mousemove", resize);
+    window.addEventListener("mouseup", stopResizing);
+    return () => {
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+    };
+  }, [resize, stopResizing]);
+
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setResultVideoUrl(null);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleGenerate = async () => {
+    if (!selectedFile) return alert("Please upload an image first!");
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("style", motionStyle);
+      formData.append("depth", depth);
+      formData.append("speed", speed);
+
+      const response = await fetch("http://localhost:8000/generate-3d", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Generation failed");
+      const data = await response.json();
+      setResultVideoUrl(data.video_url);
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to generate video.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen pt-24 pb-10 px-6 md:px-12 bg-slate-950 flex flex-col md:flex-row gap-6">
-      {/* LEFT PANEL - Controls */}
-      <div className="w-full md:w-1/3 space-y-6">
+    <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row overflow-hidden relative">
+      
+      {/* ------------------------------------------- */}
+      {/* LEFT PANEL - CONTROLS (RESIZABLE)           */}
+      {/* ------------------------------------------- */}
+      <div 
+        className="relative flex-shrink-0 flex flex-col pt-24 pb-10 px-6 space-y-6 overflow-y-auto scrollbar-hide border-r border-slate-800 bg-slate-950 z-10 w-full md:w-[var(--sidebar-width)] transition-[width]"
+        // FIX: Use CSS Variable instead of conditional JS logic
+        style={{ '--sidebar-width': `${sidebarWidth}px` }}
+      >
         <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
 
         {/* Upload Box */}
-        <div className="relative border-2 border-dashed border-cyan-400 bg-blue-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-blue-600/30 transition-all shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_25px_rgba(34,211,238,0.25)]">
-          <div className="mb-4 transform group-hover:-translate-y-1 transition-transform duration-300">
-            <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
-          </div>
-          <p className="text-white font-medium text-sm">
-            Click to Upload Image
-          </p>
-          <p className="text-white text-xs mt-1">JPG, PNG (Max 10MB)</p>
+        <div 
+            onClick={handleUploadClick}
+            className="relative border-2 border-dashed border-cyan-400 bg-blue-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-blue-600/30 transition-all shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_25px_rgba(34,211,238,0.25)]"
+        >
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            className="hidden" 
+            accept="image/png, image/jpeg"
+          />
+          
+          {previewUrl ? (
+            <img src={previewUrl} alt="Preview" className="h-full object-contain rounded-lg" />
+          ) : (
+            <>
+                <div className="mb-4 transform group-hover:-translate-y-1 transition-transform duration-300">
+                    <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
+                </div>
+                <p className="text-white font-medium text-sm">Click to Upload Image</p>
+                <p className="text-white text-xs mt-1">JPG, PNG (Max 10MB)</p>
+            </>
+          )}
         </div>
 
         {/* 3D Effect & Motion */}
@@ -44,39 +145,38 @@ const Workspace = () => {
           <div className="space-y-4">
             <div className="space-y-3">
               <div className="flex justify-between text-sm text-slate-300 font-medium">
-                <span>Depth Intensity</span>
+                <span>Depth Intensity ({depth})</span>
               </div>
               <input
-                type="range"
-                className="top-0 left-0 h-full w-full bg-blue-500 rounded-full cursor-pointer [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full"
+                type="range" min="1" max="10" value={depth}
+                onChange={(e) => setDepth(e.target.value)}
+                className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
               />
             </div>
             <div>
               <div className="flex justify-between text-sm text-slate-300 font-medium">
-                <span>Motion Speed</span>
+                <span>Motion Speed ({speed}s)</span>
               </div>
               <input
-                type="range"
-                className="top-0 left-0 h-full w-full bg-blue-500 rounded-full cursor-pointer [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full"
+                type="range" min="1" max="10" value={speed}
+                onChange={(e) => setSpeed(e.target.value)}
+                className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
               />
             </div>
           </div>
 
           {/* Motion Style - Segmented Control */}
-          {/* Motion Style - Segmented Control */}
           <div>
-            <label className="text-sm text-slate-300 block mb-3 font-medium">
-              Motion Style
-            </label>
+            <label className="text-sm text-slate-300 block mb-3 font-medium">Motion Style</label>
             <div className="flex bg-slate-950/50 p-1 rounded-xl border border-slate-800">
               {["Dolly", "Orbit", "Zoom"].map((style) => (
                 <button
                   key={style}
-                  onClick={() => setMotionStyle(style)} // 2. Updates state on click
+                  onClick={() => setMotionStyle(style)}
                   className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
                     motionStyle === style
-                      ? "bg-slate-700 text-white shadow-sm" // Active Styles
-                      : "text-slate-500 hover:text-white" // Inactive Styles
+                      ? "bg-slate-700 text-white shadow-sm"
+                      : "text-slate-500 hover:text-white"
                   }`}
                 >
                   {style}
@@ -86,92 +186,70 @@ const Workspace = () => {
           </div>
         </div>
 
-        {/* Render Settings */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-white font-medium flex items-center gap-2">
-              <Layers className="w-4 h-4" /> Render Settings
-            </span>
-            <ChevronDown className="w-4 h-4 text-slate-500" />
-          </div>
-
-          {/* Quality & Ratio Grid */}
-          <div className="space-y-5">
-            {/* Quality */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-300 font-medium">
-                Quality
-              </span>
-              <div className="flex bg-slate-950/50 border border-slate-800 p-1 rounded-lg gap-1">
-                <button className="px-4 py-1.5 text-xs font-bold text-white bg-slate-700 rounded-md shadow-sm">
-                  HD
-                </button>
-                <button className="px-4 py-1.5 text-xs font-medium text-slate-500 hover:text-white transition-colors">
-                  4K
-                </button>
-              </div>
-            </div>
-
-            {/* Aspect Ratio */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-300 font-medium">
-                Aspect Ratio
-              </span>
-              <div className="flex bg-slate-950/50 border border-slate-800 p-1 rounded-lg gap-1">
-                <button className="px-3 py-1.5 text-xs font-bold text-white bg-slate-700 rounded-md shadow-sm">
-                  16:9
-                </button>
-                <button className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-white transition-colors">
-                  1:1
-                </button>
-                <button className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-white transition-colors">
-                  9:16
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Generate Button */}
-          <button className="w-full py-4 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-900 font-extrabold text-lg shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transition-all mt-4">
-            Generate 3D Video
-          </button>
-        </div>
+        {/* Generate Button */}
+        <button 
+            onClick={handleGenerate}
+            disabled={isLoading || !selectedFile}
+            className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 text-slate-900 font-extrabold text-lg shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all mt-4
+            ${isLoading || !selectedFile ? 'bg-slate-600 cursor-not-allowed' : 'bg-slate-600 hover:bg-slate-500 text-white'}`} 
+            // Note: Adjusted colors to match your dark theme screenshot
+        >
+            {isLoading ? <Loader2 className="animate-spin" /> : "Generate 3D Video"}
+        </button>
       </div>
 
-      {/* RIGHT PANEL - Preview & Output */}
-      <div className="w-full md:w-2/3 flex flex-col gap-6">
-        {/* Main Preview Area */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex-1 flex flex-col">
+      
+      {/* ------------------------------------------- */}
+      {/* DRAG HANDLE (Desktop Only)                  */}
+      {/* ------------------------------------------- */}
+      <div 
+        onMouseDown={startResizing}
+        className="hidden md:flex w-2 cursor-col-resize bg-slate-950 hover:bg-purple-500/50 hover:w-2 transition-all items-center justify-center z-20 group border-l border-slate-800"
+      >
+        <GripVertical className="w-4 h-4 text-slate-700 group-hover:text-white transition-colors" />
+      </div>
+
+
+      {/* ------------------------------------------- */}
+      {/* RIGHT PANEL - PREVIEW (Fills remaining)     */}
+      {/* ------------------------------------------- */}
+      <div className="flex-1 flex flex-col gap-6 pt-24 pb-10 px-6 md:px-12 bg-slate-950 overflow-hidden min-w-0">
+        
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex-1 flex flex-col h-full">
           {/* Tabs */}
           <div className="flex gap-1 bg-slate-800 w-fit p-1 rounded-lg mb-6">
-            <button className="px-4 py-1.5 text-sm text-slate-400 hover:text-white">
+            <button className={`px-4 py-1.5 text-sm rounded-md transition-colors ${!resultVideoUrl ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>
               Input Image
             </button>
-            <button className="px-4 py-1.5 text-sm bg-purple-600 text-white rounded-md shadow-md">
-              3D Image Output
+            <button className={`px-4 py-1.5 text-sm rounded-md transition-colors ${resultVideoUrl ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>
+              3D Output
             </button>
           </div>
 
-          {/* Video Player Placeholder */}
-          <div className="flex-1 bg-black rounded-xl overflow-hidden relative group min-h-[300px]">
-            <img
-              src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000"
-              className="w-full h-full object-cover opacity-80"
-              alt="Space"
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <button className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:scale-110 transition-transform">
-                <Play className="fill-white text-white ml-1" />
-              </button>
-            </div>
-            {/* Timeline Bar */}
-            <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3">
-              <Play className="w-4 h-4 text-white fill-white" />
-              <div className="h-1 bg-slate-600 flex-1 rounded-full overflow-hidden">
-                <div className="h-full w-1/3 bg-purple-500"></div>
-              </div>
-              <span className="text-xs text-white">00:04</span>
-            </div>
+          {/* Video Player / Image Display */}
+          <div className="flex-1 bg-black rounded-xl overflow-hidden relative group min-h-[300px] flex items-center justify-center">
+            {isLoading ? (
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-2" />
+                    <p className="text-slate-400 text-sm">Generating AI Animation...</p>
+                </div>
+            ) : resultVideoUrl ? (
+                <video 
+                    src={resultVideoUrl} 
+                    controls 
+                    autoPlay 
+                    loop 
+                    className="w-full h-full object-contain" 
+                />
+            ) : previewUrl ? (
+                <img src={previewUrl} className="w-full h-full object-contain opacity-100" alt="Preview" />
+            ) : (
+                <div className="text-slate-600">No Image Selected</div>
+            )}
+            
+            {resultVideoUrl && !isLoading && (
+                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none" />
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -182,36 +260,10 @@ const Workspace = () => {
             <button className="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 flex items-center gap-2 transition-all">
               <Share2 className="w-4 h-4" /> Share
             </button>
-            <button className="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 flex items-center gap-2 transition-all">
-              <ImageIcon className="w-4 h-4" /> Save
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Creations */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
-          <h3 className="text-white font-medium mb-4">Recent Creations</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="aspect-video rounded-lg bg-slate-800 overflow-hidden relative group cursor-pointer"
-              >
-                <img
-                  src={`https://source.unsplash.com/random/400x300?3d&sig=${i}`}
-                  className="w-full h-full object-cover"
-                  alt="Recent"
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-xs text-white border border-white/50 px-2 py-1 rounded backdrop-blur-sm">
-                    View
-                  </span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>
+
     </div>
   );
 };
