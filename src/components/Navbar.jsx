@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, CreditCard, ChevronDown, LogOut } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X, CreditCard, ChevronDown, LogOut, LayoutGrid } from 'lucide-react';
 import FullLogo from './FullLogo';
 
 const Navbar = ({ isLoggedIn, onLogout }) => {
+  
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
@@ -44,15 +46,27 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
             </div>
 
             {/* Profile Dropdown */}
-            <div className="flex items-center gap-3 border-l border-slate-700">
+            <div className="flex items-center gap-3 border-l border-slate-700 pl-4"> {/* Added pl-4 for spacing */}
               <div className="flex items-center gap-2 cursor-pointer hover:bg-slate-800 p-1.5 rounded-lg transition-colors group relative">
                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100" alt="User" className="w-8 h-8 rounded-full border border-slate-600" />
                 <ChevronDown className="w-4 h-4 text-slate-400" />
 
-                <div className="absolute top-full right-0 mt-2 w-32 bg-slate-900 border border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                  <button onClick={onLogout} className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-800 flex items-center gap-2">
-                    <LogOut className="w-3 h-3" /> Logout
+                {/* Dropdown Menu */}
+                <div className="absolute top-full right-0 mt-2 w-40 bg-slate-900 border border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+
+                  {/* 1. New Workspace Button */}
+                  <button
+                    onClick={() => navigate('/workspace')}
+                    className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800"
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" /> Workspace
                   </button>
+
+                  {/* 2. Logout Button */}
+                  <button onClick={onLogout} className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-slate-800 flex items-center gap-2">
+                    <LogOut className="w-3.5 h-3.5" /> Logout
+                  </button>
+
                 </div>
               </div>
             </div>

@@ -25,7 +25,7 @@ const LoginPage = ({ onLogin }) => {
       // --- LOGIN LOGIC ---
       if (email === 'admin' && password === 'admin') {
         onLogin();
-        navigate('/');
+        navigate('/workspace');
       } else {
         setError('Invalid credentials. Try admin/admin');
       }
@@ -34,7 +34,7 @@ const LoginPage = ({ onLogin }) => {
       // In a real app, you would send data to backend here.
       if (email && password && fullName) {
         onLogin(); // Auto-login after signup for demo
-        navigate('/');
+        navigate('/workspace');
       } else {
         setError('Please fill in all fields');
       }

@@ -21,28 +21,30 @@ function App() {
   const handleLogin = () => setIsLoggedIn(true);
   const handleLogout = () => setIsLoggedIn(false);
   return (
-      <div className="bg-slate-950 min-h-screen font-sans selection:bg-purple-500/30">
-        <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} />
-        <ScrolltoTop />
-        <Routes>
-        <Route path="/" element={
+    <div className="bg-slate-950 min-h-screen font-sans selection:bg-purple-500/30">
+      <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} />
+      <ScrolltoTop />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+
+        <Route path="/workspace" element={
           isLoggedIn ? (
             /* IF LOGGED IN: SHOW WORKSPACE */
             <Workspace />
           ) : (
-            /* IF LOGGED OUT: SHOW LANDING PAGE */
-            <HomePage />
+            /* IF LOGGED OUT: REDIRECT TO LOGIN PAGE */
+            <LoginPage onLogin={handleLogin} />
           )
         } />
-        
+
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path='/contact' element={<ContactPage/>}/>
-        <Route path='/privacy' element={<PrivacyPolicy/>}/>
-        <Route path='/terms' element={<Terms/>}/>
+        <Route path='/contact' element={<ContactPage />} />
+        <Route path='/privacy' element={<PrivacyPolicy />} />
+        <Route path='/terms' element={<Terms />} />
       </Routes>
       <Footer />
-      </div>
+    </div>
   );
 }
 
