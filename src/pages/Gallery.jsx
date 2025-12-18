@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { galleryItems } from './HomeGallery'; // Import the shared data array from Gallery.jsx
+import { galleryItems } from '../components/HomeGallery'; // Import the shared data array from Gallery.jsx
 
 // Reuse Icons
 const PlayIcon = () => (

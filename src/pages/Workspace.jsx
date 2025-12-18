@@ -1,0 +1,221 @@
+import {
+  Upload,
+  Download,
+  Share2,
+  Image as ImageIcon,
+  ChevronDown,
+  Sliders,
+  Loader2,
+  MoveDiagonal2 // Updated icon for resizing
+} from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+
+const Workspace = () => {
+  // --- UI State ---
+  const [sidebarWidth, setSidebarWidth] = useState(450);
+  const [isResizing, setIsResizing] = useState(false);
+  const [previewHeight, setPreviewHeight] = useState(null); 
+  const [isVerticalResizing, setIsVerticalResizing] = useState(false);
+
+  // --- Logic State ---
+  const [motionStyle, setMotionStyle] = useState("Dolly");
+  const [depth, setDepth] = useState(7);
+  const [speed, setSpeed] = useState(5);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [resultVideoUrl, setResultVideoUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("input");
+  
+  // --- User State ---
+  const [credits, setCredits] = useState(null); // Track credits locally for UI
+
+  const fileInputRef = useRef(null);
+  const previewRef = useRef(null);
+
+  // 1. Fetch User Credits on Mount
+  useEffect(() => {
+    const fetchUser = async () => {
+        const token = localStorage.getItem("token"); // Assuming you store JWT here
+        if(!token) return;
+        
+        try {
+            const res = await fetch("http://localhost:8000/auth/me", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if(res.ok) {
+                const data = await res.json();
+                setCredits(data.credits);
+            }
+        } catch(e) { console.error(e); }
+    };
+    fetchUser();
+  }, []);
+
+  // ... (Keep your existing Resize Logic for Sidebar & Preview here) ...
+  // (Omitted for brevity, paste your previous resize handlers here)
+  const startResizing = useCallback(() => { setIsResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'col-resize'; }, []);
+  const stopResizing = useCallback(() => { setIsResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
+  const resize = useCallback((e) => { if (isResizing) { const newWidth = e.clientX; if (newWidth > 320 && newWidth < 800) setSidebarWidth(newWidth); } }, [isResizing]);
+  const startVerticalResizing = useCallback((e) => { e.preventDefault(); setIsVerticalResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'sw-resize'; if (!previewHeight && previewRef.current) setPreviewHeight(previewRef.current.offsetHeight); }, [previewHeight]);
+  const stopVerticalResizing = useCallback(() => { setIsVerticalResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
+  const resizeVertical = useCallback((e) => { if (isVerticalResizing && previewRef.current) { const rect = previewRef.current.getBoundingClientRect(); const newHeight = e.clientY - rect.top; if (newHeight > 300 && newHeight < 1200) setPreviewHeight(newHeight); } }, [isVerticalResizing]);
+
+  useEffect(() => {
+    if (isResizing) { window.addEventListener("mousemove", resize); window.addEventListener("mouseup", stopResizing); }
+    if (isVerticalResizing) { window.addEventListener("mousemove", resizeVertical); window.addEventListener("mouseup", stopVerticalResizing); }
+    return () => { window.removeEventListener("mousemove", resize); window.removeEventListener("mouseup", stopResizing); window.removeEventListener("mousemove", resizeVertical); window.removeEventListener("mouseup", stopVerticalResizing); };
+  }, [isResizing, resize, stopResizing, isVerticalResizing, resizeVertical, stopVerticalResizing]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setResultVideoUrl(null);
+      setActiveTab("input");
+      setPreviewHeight(null); 
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!selectedFile) return alert("Please upload an image first!");
+    
+    // 2. Client-side Check
+    if (credits !== null && credits < 20) {
+        return alert("❌ Insufficient credits! Please upgrade your plan.");
+    }
+
+    setIsLoading(true);
+
+    try {
+      const token = localStorage.getItem("token"); // Get JWT
+      if (!token) throw new Error("Please log in first.");
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("style", motionStyle);
+      formData.append("depth", depth);
+      formData.append("speed", speed);
+
+      // 3. UPDATED ENDPOINT & HEADERS
+      const response = await fetch("http://localhost:8000/ai/generate-3d", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${token}` // Send Token!
+        },
+        body: formData,
+      });
+
+      if (response.status === 402) {
+          throw new Error("❌ Out of Credits! Please top up.");
+      }
+      if (!response.ok) throw new Error("Generation failed.");
+      
+      const data = await response.json();
+      setResultVideoUrl(data.video_url);
+      setCredits(data.remaining_credits); // 4. Update local credit balance
+      setActiveTab("output");
+      setPreviewHeight(null);
+      
+    } catch (error) {
+      console.error("Error:", error);
+      alert(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row overflow-hidden relative">
+      
+      {/* LEFT PANEL */}
+      <div 
+        className={`relative flex-shrink-0 flex flex-col pt-24 pb-10 px-6 space-y-6 overflow-y-auto scrollbar-hide border-r border-slate-800 bg-slate-950 z-10 w-full md:w-[var(--sidebar-width)] ${isResizing ? 'transition-none' : 'transition-[width] duration-300 ease-out'}`}
+        style={{ '--sidebar-width': `${sidebarWidth}px` }}
+      >
+        <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
+        </div>
+
+        {/* Upload Box */}
+        <div onClick={() => fileInputRef.current.click()} className="relative border-2 border-dashed border-cyan-400 bg-blue-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-blue-600/30 transition-all">
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg" />
+          {previewUrl ? (
+            <img src={previewUrl} alt="Preview" className="h-full object-contain rounded-lg" />
+          ) : (
+            <>
+                <div className="mb-4 transform group-hover:-translate-y-1 transition-transform duration-300">
+                    <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
+                </div>
+                <p className="text-white font-medium text-sm">Click to Upload Image</p>
+            </>
+          )}
+        </div>
+
+        {/* Settings (Sliders etc) */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-3">
+               <span className="text-sm text-slate-300 font-medium flex justify-between">Depth<span>{depth}</span></span>
+               <input type="range" min="1" max="10" value={depth} onChange={(e) => setDepth(e.target.value)} className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400" />
+            </div>
+            <div className="space-y-3">
+               <span className="text-sm text-slate-300 font-medium flex justify-between">Motion Duration<span>{speed}s</span></span>
+               <input type="range" min="1" max="10" value={speed} onChange={(e) => setSpeed(e.target.value)} className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400" />
+            </div>
+          </div>
+          
+          <div className="flex bg-slate-950/50 p-1 rounded-xl border border-slate-800">
+             {["Dolly", "Orbit", "Zoom"].map((style) => (
+                <button key={style} onClick={() => setMotionStyle(style)} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${motionStyle === style ? "bg-slate-700 text-white shadow-sm" : "text-slate-500 hover:text-white"}`}>{style}</button>
+             ))}
+          </div>
+        </div>
+
+        <button onClick={handleGenerate} disabled={isLoading || !selectedFile} className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 font-extrabold text-lg transition-all mt-4 ${isLoading || !selectedFile ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20'}`}>
+            {isLoading ? <Loader2 className="animate-spin" /> : `Generate 3D Image`}
+        </button>
+      </div>
+
+      {/* DRAG HANDLE (Sidebar) */}
+      <div onMouseDown={startResizing} className="hidden md:flex w-4 -ml-2 cursor-col-resize hover:bg-purple-500/10 transition-all items-center justify-center z-50 group absolute h-full" style={{ left: `${sidebarWidth}px` }}><div className="w-[1px] h-full bg-slate-800 group-hover:bg-purple-500/50 transition-colors" /></div>
+
+      {/* RIGHT PANEL - PREVIEW */}
+      <div className="flex-1 flex flex-col gap-6 pt-24 pb-10 px-6 md:px-12 bg-slate-950 overflow-hidden min-w-0">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex-1 flex flex-col h-fill">
+          
+          {/* Tabs */}
+          <div className="flex gap-1 bg-slate-800 w-fit p-1 rounded-lg mb-6">
+            <button onClick={() => setActiveTab("input")} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === "input" ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>Input</button>
+            <button onClick={() => resultVideoUrl && setActiveTab("output")} disabled={!resultVideoUrl} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === 'output' ? 'bg-purple-600 text-white' : 'text-slate-400'} ${!resultVideoUrl ? 'opacity-50' : 'hover:text-white'}`}>Result</button>
+          </div>
+
+          {/* Viewer */}
+          <div 
+            ref={previewRef}
+            className="bg-black rounded-xl overflow-hidden relative group min-h-[50vh] flex items-center justify-center transition-all duration-75 ease-linear"
+            style={{ height: previewHeight ? `${previewHeight}px` : 'auto', maxHeight: previewHeight ? 'none' : '65vh' }}
+          >
+            {isLoading ? <Loader2 className="w-12 h-12 text-purple-400 animate-spin" /> : 
+             activeTab === 'output' && resultVideoUrl ? <video src={resultVideoUrl} controls autoPlay loop className="w-full h-full object-contain" /> :
+             previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
+             <div className="text-slate-600">No Image Selected</div>
+            }
+            
+            {/* Corner Resize Handle */}
+            <div onMouseDown={startVerticalResizing} className="absolute bottom-0 left-0 w-8 h-8 bg-black/50 hover:bg-purple-600 cursor-sw-resize flex items-end justify-start p-1 rounded-tr-xl transition-colors z-20"><MoveDiagonal2 className="w-4 h-4 text-white/70" /></div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 mt-6">
+            <a href={resultVideoUrl || "#"} target="_blank" rel="noopener noreferrer" className={`flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold flex items-center justify-center gap-2 ${!resultVideoUrl ? 'opacity-50 pointer-events-none' : ''}`}><Download className="w-5 h-5" /> Download</a>
+            <button className="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 flex items-center gap-2"><Share2 className="w-4 h-4" /> Share</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Workspace;

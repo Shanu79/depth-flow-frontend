@@ -28,7 +28,7 @@ const Pricing = () => {
       period: { monthly: "/ month", yearly: "/ year" },
       description: "Best for hobbyists",
       features: [
-        { text: "30 images per month", included: true, yearlyText: "360 images per year" },
+        { text: "600 credits per month", included: true, yearlyText: "7,200 credits per year" },
         {text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "MP4 upto HD (1080p) quality", included: true },
@@ -47,7 +47,7 @@ const Pricing = () => {
       period: { monthly: "/ month", yearly: "/ year" },
       description: "For professionals",
       features: [
-        { text: "60 images per month", included: true, yearlyText: "720 images per year" },
+        { text: "1,200 credits per month", included: true, yearlyText: "14,400 credits per year" },
         {text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "MP4 upto UHD quality", included: true },
