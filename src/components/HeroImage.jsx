@@ -1,6 +1,5 @@
 import heroImage from "../assets/Hero Section 2D image.png"
 import heroVideo from "../assets/Hero Section 3D image.mp4";
-import React from "react";
 
 const HeroImage = () => {
     return (
@@ -14,29 +13,33 @@ const HeroImage = () => {
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-blue-900/20 blur-[100px] rounded-full pointer-events-none" />
 
                     {/* --- Main Container --- */}
-                    <div className="relative z-10 flex items-center">
+                    <div className="relative z-10 flex items-center"
+                    style={{ perspective: "1000px" }}
+                    >
 
-                        {/* ================= LEFT CARD (Source) ================= */}
-                        <div className="group relative flex flex-col items-center">
-
-                            {/* Card Container */}
-                            <div className="relative w-44 h-60 md:w-72 md:h-96 rounded-2xl shadow-2xl transform transition-transform duration-500 hover:scale-105">
-                                {/* Inner Image */}
-                                <div className="w-full h-full rounded-xl overflow-hidden bg-slate-900 border border-cyan-600">
-                                    <img
-                                        src={heroImage}
-                                        alt="Original Landscape"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
+                        {/* ================= LEFT CARD (Source - 2D) ================= */}
+                        <div
+                            className="relative group w-48 h-64 md:w-72 md:h-96 transition-all duration-500 ease-out hover:scale-105 hover:-translate-y-2 hover:shadow-2xl"
+                            style={{ transform: "rotateY(20deg)" }} // Explicit CSS rotation
+                        >
+                            {/* Card Frame */}
+                            <div className="w-full h-full rounded-2xl border border-cyan-500/30 shadow-[0_0_30px_-5px_rgba(34,211,238,0.2)] overflow-hidden">
+                                <img
+                                    src={heroImage}
+                                    alt="Original"
+                                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                />
+                                {/* Scanline overlay effect */}
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent bg-[length:100%_4px] pointer-events-none" />
                             </div>
 
-
+                            {/* Bottom Connection Point (Visual anchor for the line) */}
+                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-cyan-500 rounded-full blur-[2px] shadow-[0_0_10px_#22d3ee]" />
                         </div>
 
                         {/* ================= CENTER (Energy Beam) ================= */}
                         {/* This SVG creates the electric wave effect between the cards */}
-                        <div className="relative  w-24 md:w-32  h-32  opacity-80">
+                        <div className="relative  w-20 md:w-24  h-32  opacity-80">
                             <div className="absolute inset-0 flex items-center justify-center opacity-80 mix-blend-screen">
                                 {/* Simulated Energy Waves using blurred gradients */}
                                 <div className="w-48 h-1 bg-cyan-400 blur-md rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_30px_#22d3ee]"></div>
@@ -64,72 +67,43 @@ const HeroImage = () => {
                                     </defs>
                                 </svg>
                             </div>
-                            <svg
-                                viewBox="0 0 200 100"
-                                className="w-full h-full drop-shadow-[0_0_8px_rgba(100,200,255,0.8)]"
-                                preserveAspectRatio="none"
-                            >
-                                <defs>
-                                    <linearGradient id="beamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#22d3ee" /> {/* Cyan */}
-                                        <stop offset="50%" stopColor="#ffffff" /> {/* White Center */}
-                                        <stop offset="100%" stopColor="#d946ef" /> {/* Fuchsia */}
-                                    </linearGradient>
-                                </defs>
-                                {/* Multiple paths to create the "chaotic energy" look */}
-                                <path
-                                    d="M0,50 C50,30 150,70 200,50"
-                                    fill="none"
-                                    stroke="url(#beamGradient)"
-                                    strokeWidth="4"
-                                    className="animate-pulse"
-                                />
-                                <path
-                                    d="M0,50 C60,20 140,80 200,50"
-                                    fill="none"
-                                    stroke="url(#beamGradient)"
-                                    strokeWidth="2"
-                                    className="opacity-60 blur-[1px]"
-                                />
-                                <path
-                                    d="M0,50 C40,60 160,40 200,50"
-                                    fill="none"
-                                    stroke="url(#beamGradient)"
-                                    strokeWidth="2"
-                                    className="opacity-40 blur-[2px]"
-                                />
-                            </svg>
-
 
                         </div>
 
-                        {/* ================= RIGHT CARD (Hologram/Result) ================= */}
-                        <div className="group relative flex flex-col items-center">
+                        {/* ================= RIGHT CARD (Result - Holographic) ================= */}
+                        <div
+                            className="relative group w-48 h-64 md:w-72 md:h-96 transition-all duration-500 ease-out hover:scale-105 hover:-translate-y-2 hover:shadow-2xl"
+                            style={{ transform: "rotateY(-20deg)" }} // Explicit CSS rotation
+                        >
+                            {/* 1. The Holographic "Container" (Glass Shell) */}
+                            {/* Note: This is larger than the content to create the 'glass edge' effect */}
+                            <div className="absolute -inset-4 rounded-3xl border border-purple-500/40 bg-purple-900/10 backdrop-blur-sm shadow-[0_0_50px_-10px_rgba(168,85,247,0.5)] z-0"></div>
 
-                            {/* Holographic Outer Glass Frame */}
-                            {/* We use a larger padding here to create the 'glass edge' effect seen in the image */}
-                            <div className="relative w-44 h-60 md:w-72 md:h-96 rounded-2xl border border-purple-500/30 bg-purple-500/5 backdrop-blur-sm shadow-[0_0_40px_-10px_rgba(168,85,247,0.4)] transform transition-transform duration-500 hover:scale-105">
-
-                                {/* Floating particles/sparkles (Simulated with absolute divs) */}
-                                <div className="absolute -top-4 -right-4 w-2 h-2 bg-purple-400 rounded-full blur-[1px] animate-ping" />
-                                <div className="absolute top-1/2 -left-2 w-1 h-1 bg-pink-400 rounded-full blur-[0px]" />
-                                <div className="absolute bottom-10 -right-2 w-1.5 h-1.5 bg-purple-300 rounded-full blur-[1px]" />
-
-                                {/* Inner Video Container */}
-                                <div className="relative w-full h-full rounded-lg overflow-hidden border border-purple-400/50 shadow-inner">
-                                    <video
-                                        src={heroVideo}
-                                        className="w-full h-full object-cover opacity-90"
-                                        autoPlay
-                                        loop
-                                        muted
-                                        playsInline
-                                    />
-                                    {/* Overlay Gradient for that "magical" sheen */}
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/20 via-transparent to-pink-500/20 pointer-events-none mix-blend-screen" />
-                                </div>
+                            {/* 2. Magical Swirl Particles (Simulated via gradient/divs) */}
+                            <div className="absolute inset-0 rounded-2xl z-20 pointer-events-none">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 blur-[40px] rounded-full animate-pulse" />
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rounded-full border border-purple-400/20 shadow-[0_0_30px_inset_rgba(168,85,247,0.2)] opacity-50" />
+                                {/* Sparkles */}
+                                <div className="absolute top-0 right-0 w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white] animate-ping" />
+                                <div className="absolute bottom-10 -left-4 w-1.5 h-1.5 bg-pink-400 rounded-full shadow-[0_0_10px_pink] animate-pulse" />
                             </div>
 
+                            {/* 3. The Content (Video) */}
+                            <div className="relative w-full h-full rounded-2xl overflow-hidden border border-purple-400/60 z-10">
+                                <video
+                                    src={heroVideo}
+                                    className="w-full h-full object-cover opacity-90 mix-blend-screen"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                />
+                                {/* Gradient Overlay for blending */}
+                                <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/40 to-transparent mix-blend-overlay" />
+                            </div>
+
+                            {/* Bottom Connection Point */}
+                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-purple-500 rounded-full blur-[2px] shadow-[0_0_10px_#d946ef]" />
                         </div>
 
                     </div>
@@ -240,10 +214,6 @@ const HeroImage = () => {
                 </div>
 
             </div>
-
-            {/* Background Glows */}
-            <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none"></div>
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
         </>
     )

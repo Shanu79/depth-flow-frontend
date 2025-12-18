@@ -53,7 +53,7 @@ const LoginPage = ({ onLogin }) => {
     <div className="min-h-screen bg-slate-950 flex flex-col lg:flex-row relative overflow-hidden font-sans">
 
       {/* LEFT SIDE - FORM */}
-      <div className="w-full min-w-[50%] min-h-screen flex flex-col items-center justify-center px-4 lg:px-8 justify-center py-16 z-10">
+      <div className="w-full min-w-[40%] min-h-screen flex flex-col items-center justify-center px-8 justify-center py-16 z-10">
         <div className="max-w-md w-full mx-auto">
 
           {/* Dynamic Header */}

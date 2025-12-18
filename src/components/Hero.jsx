@@ -2,9 +2,9 @@ import HeroImage from "./HeroImage";
 
 const Hero = () => {
   return (
-    <section className="relative pt-32 pb-20 px-6 md:px-12 lg:px-20 flex flex-col lg:flex-row items-center justify-between min-h-screen overflow-hidden">
+    <section className="relative pt-32 pb-16 px-6 md:px-12 lg:px-16 flex flex-col lg:flex-row items-center justify-between min-h-screen overflow-hidden">
       {/* Text Content */}
-      <div className="lg:w-1/2 z-10 space-y-6 text-center lg:text-left">
+      <div className="w-full min-w-[40%] flex flex-col justify-center space-y-6 text-center lg:text-left p-8">
         <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight">
           Turn Images into <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
@@ -26,9 +26,13 @@ const Hero = () => {
       </div>
 
       {/* Hero Image */}
-      <div className="lg:w-1/2 mt-12 lg:mt-0 flex justify-center lg:justify-end w-full z-10">
-        {/* Assuming HeroImage is another component that renders the image */}
-        <HeroImage />
+      <div className="hidden w-full md:flex flex-col items-center justify-center">
+        <div className="w-full h-full overflow-hidden relative">
+              <div className="flex justify-center mb-20 scale-[0.9] lg:scale-[0.67] xl:scale-[0.8]">
+                <HeroImage />
+              </div>
+              
+          </div>
       </div>
 
       

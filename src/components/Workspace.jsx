@@ -24,19 +24,20 @@ const Workspace = () => {
   const [resultVideoUrl, setResultVideoUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
+  // 1. NEW STATE for Toggling Views
+  const [activeTab, setActiveTab] = useState("input");
+  
   const fileInputRef = useRef(null);
 
   // --- Resize Handlers ---
   const startResizing = useCallback(() => {
     setIsResizing(true);
-    // Prevent text selection while dragging to stop visual glitches
     document.body.style.userSelect = 'none'; 
     document.body.style.cursor = 'col-resize';
   }, []);
 
   const stopResizing = useCallback(() => {
     setIsResizing(false);
-    // Re-enable text selection
     document.body.style.userSelect = ''; 
     document.body.style.cursor = '';
   }, []);
@@ -72,6 +73,7 @@ const Workspace = () => {
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
       setResultVideoUrl(null);
+      setActiveTab("input");
     }
   };
 
@@ -95,12 +97,19 @@ const Workspace = () => {
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Generation failed");
+      // --- NEW: Specific Error Handling for Credits ---
+      if (response.status === 402) {
+          throw new Error("❌ Out of Credits! Please top up your Immersity AI account.");
+      }
+      if (!response.ok) throw new Error("Generation failed. Check server logs.");
+      
       const data = await response.json();
       setResultVideoUrl(data.video_url);
+      setActiveTab("output");
+      
     } catch (error) {
       console.error("Error:", error);
-      alert("Failed to generate video.");
+      alert(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -207,7 +216,7 @@ const Workspace = () => {
             onClick={handleGenerate}
             disabled={isLoading || !selectedFile}
             className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 text-slate-900 font-extrabold text-lg shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all mt-4
-            ${isLoading || !selectedFile ? 'bg-slate-600 cursor-not-allowed' : 'bg-slate-600 hover:bg-slate-500 text-white'}`}
+            ${isLoading || !selectedFile ? 'bg-slate-600 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white'}`}
         >
             {isLoading ? <Loader2 className="animate-spin" /> : "Generate 3D Video"}
         </button>
@@ -232,25 +241,29 @@ const Workspace = () => {
       {/* ------------------------------------------- */}
       <div className="flex-1 flex flex-col gap-6 pt-24 pb-10 px-6 md:px-12 bg-slate-950 overflow-hidden min-w-0">
         
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex-1 flex flex-col h-full">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex-1 flex flex-col h-fill">
           {/* Tabs */}
           <div className="flex gap-1 bg-slate-800 w-fit p-1 rounded-lg mb-6">
-            <button className={`px-4 py-1.5 text-sm rounded-md transition-colors ${!resultVideoUrl ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>
+            <button
+            onClick={() => setActiveTab("input")}
+            className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === "input" ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>
               Input Image
             </button>
-            <button className={`px-4 py-1.5 text-sm rounded-md transition-colors ${resultVideoUrl ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>
+            <button onClick={() => resultVideoUrl && setActiveTab("output")} 
+            disabled={!resultVideoUrl}
+            className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === 'output' ? 'bg-purple-600 text-white' : 'text-slate-400'} ${!resultVideoUrl ? 'opacity-50 cursor-not-allowed' : 'hover:text-white'}`}>
               3D Output
             </button>
           </div>
 
           {/* Video Player / Image Display */}
-          <div className="flex-1 bg-black rounded-xl overflow-hidden relative group min-h-[300px] flex items-center justify-center">
+          <div className="flex-1 bg-black rounded-xl overflow-hidden relative group min-h-[50vh] max-h-[65vh] flex items-center justify-center">
             {isLoading ? (
                 <div className="text-center">
                     <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-2" />
                     <p className="text-slate-400 text-sm">Generating AI Animation...</p>
                 </div>
-            ) : resultVideoUrl ? (
+            ) : activeTab === 'output' && resultVideoUrl ? (
                 <video 
                     src={resultVideoUrl} 
                     controls 
@@ -271,9 +284,16 @@ const Workspace = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3 mt-6">
-            <button className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-purple-900/20 hover:shadow-purple-600/40 transition-all">
+            {/* UPDATED: Download now works using the server URL */}
+            <a 
+                href={resultVideoUrl || "#"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-purple-900/20 hover:shadow-purple-600/40 transition-all ${!resultVideoUrl ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+            >
               <Download className="w-5 h-5" /> Download
-            </button>
+            </a>
+            
             <button className="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 flex items-center gap-2 transition-all">
               <Share2 className="w-4 h-4" /> Share
             </button>
