@@ -1,56 +1,111 @@
-import React from 'react';
-import video1 from '../assets/video1.mp4';
-import video2 from '../assets/video2.mp4';
-import video3 from '../assets/video3.mp4';
-import video4 from '../assets/video4.mp4';
-import video5 from '../assets/video5.mp4';
-import video6 from '../assets/video6.mp4';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { galleryItems } from './HomeGallery'; // Import the shared data array from Gallery.jsx
+
+// Reuse Icons
+const PlayIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor" className="text-white drop-shadow-lg">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+    <path d="M7 4v16l13 -8z" />
+  </svg>
+);
+
+const XIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+    <path d="M18 6l-12 12" />
+    <path d="M6 6l12 12" />
+  </svg>
+);
 
 const Gallery = () => {
-  // Placeholder images matching the 3D/Fantasy vibe
-  const galleryImages = [
-    video1,
-    video2,
-    video3,
-    video4,
-    video5,
-    video6,
-  ];
+    const [selectedVideo, setSelectedVideo] = useState(null);
 
-  return (
-    <section id="gallery" className="px-6 md:px-20 py-20 bg-slate-950 scroll-mt-3">
-      <h3 className="text-2xl text-white font-bold mb-8">Gallery</h3>
-      
-      {/* Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {galleryImages.map((src, idx) => (
-          <div 
-            key={idx} 
-            className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-lg hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] transition-all duration-300"
-          >
-            {/* Image */}
-            <video 
-              src={src} 
-              alt={`Gallery item ${idx + 1}`} 
-              className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-500" 
-            />
+    useEffect(() => {
+        // Scroll to top when page loads
+        window.scrollTo(0, 0);
+        
+        const handleEsc = (e) => {
+          if (e.key === 'Escape') setSelectedVideo(null);
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
+
+    return (
+        <div className="min-h-screen bg-slate-950 pt-24 pb-20 px-6 md:px-20">
             
-            {/* Hover Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-              <span className="text-white text-sm font-medium">View Project</span>
+            {/* Header & Back Button */}
+            <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+                <div>
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Gallery</h1>
+                    <p className="text-slate-400">Explore our complete collection of works</p>
+                </div>
+                <Link to="/">
+                    <button className="px-6 py-2 rounded-full border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white transition-all flex items-center gap-2">
+                        ← Back to Home
+                    </button>
+                </Link>
             </div>
-          </div>
-        ))}
-      </div>
 
-      {/* See More Button */}
-      <div className="flex justify-center mt-12">
-        <button className="px-8 py-3 rounded-full bg-slate-900 border border-slate-700 text-gray-300 hover:text-white hover:bg-slate-800 hover:border-slate-600 transition-all">
-          See More
-        </button>
-      </div>
-    </section>
-  );
+            {/* Grid Layout (SHOWS ALL ITEMS) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {galleryItems.map((item) => (
+                    <div 
+                        key={item.id} 
+                        onClick={() => setSelectedVideo(item)}
+                        className="group relative cursor-pointer rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden shadow-lg transition-all duration-300 hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] hover:-translate-y-1"
+                    >
+                        <div className="relative w-full h-64 overflow-hidden">
+                            <video 
+                                src={item.src} 
+                                muted 
+                                loop 
+                                onMouseOver={(e) => e.target.play()}
+                                onMouseOut={(e) => { e.target.pause(); e.target.currentTime = 0; }}
+                                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" 
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="bg-purple-600/20 backdrop-blur-sm p-4 rounded-full border border-purple-400/30 group-hover:bg-purple-600/80 group-hover:scale-110 transition-all duration-300">
+                                    <PlayIcon />
+                                </div>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent p-6 pt-12">
+                                <p className="text-white font-medium translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                                    {item.title}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* --- VIDEO MODAL (Identical Logic) --- */}
+            {selectedVideo && (
+                <div 
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
+                    onClick={() => setSelectedVideo(null)}
+                >
+                    <button 
+                        onClick={() => setSelectedVideo(null)}
+                        className="absolute top-6 right-6 text-gray-400 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all z-50"
+                    >
+                        <XIcon />
+                    </button>
+
+                    <div 
+                        className="relative w-full max-w-5xl rounded-xl overflow-hidden shadow-2xl bg-black border border-slate-800"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <video src={selectedVideo.src} controls autoPlay className="w-full max-h-[85vh] object-contain" />
+                        <div className="p-4 bg-slate-900 border-t border-slate-800">
+                            <h4 className="text-lg text-white font-semibold">{selectedVideo.title}</h4>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default Gallery;

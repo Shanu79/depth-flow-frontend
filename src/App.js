@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoginPage from './components/Login';
 import HomePage from './components/HomePage';
+import Gallery from './components/Gallery';
 import Workspace from './components/Workspace';
 import { useState } from 'react';
 import AboutPage from './components/AboutPage';
@@ -42,6 +43,7 @@ function App() {
         <Route path='/contact' element={<ContactPage />} />
         <Route path='/privacy' element={<PrivacyPolicy />} />
         <Route path='/terms' element={<Terms />} />
+        <Route path="/gallery" element={<Gallery />} />
       </Routes>
       <Footer />
     </div>

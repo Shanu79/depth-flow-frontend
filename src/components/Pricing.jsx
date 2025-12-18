@@ -9,11 +9,11 @@ const Pricing = () => {
       name: "Free",
       price: { monthly: "0", yearly: "0" },
       period: { monthly: "/ month", yearly: "/ month" },
-      description: "2 images per month",
+      description: "1 image only",
       features: [
-        { text: "2 images per month", included: true },
-        { text: "720p quality / No download", included: true, info: true }, // Added info icon placeholder logic if needed
-        { text: "Watermarked output", included: false },
+        { text: "1 image only", included: true },
+        { text: "720p quality", included: true, info: true },
+        { text: "No download", included: false },
         { text: "Slow processing queue", included: true, icon: "clock" }, // Custom handling for 'clock' icon if strictly needed, otherwise sticking to check/x
         { text: "No commercial usage", included: false },
       ],
@@ -28,9 +28,10 @@ const Pricing = () => {
       period: { monthly: "/ month", yearly: "/ year" },
       description: "Best for hobbyists",
       features: [
-        { text: "50 images per month", included: true, yearlyText: "600 images per year" },
-        { text: "HD (1080p) quality", included: true },
+        { text: "30 images per month", included: true, yearlyText: "360 images per year" },
+        {text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
+        { text: "MP4 upto HD (1080p) quality", included: true },
         { text: "Standard processing", included: true },
         { text: "Commercial use allowed", included: true },
       ],
@@ -46,11 +47,12 @@ const Pricing = () => {
       period: { monthly: "/ month", yearly: "/ year" },
       description: "For professionals",
       features: [
-        { text: "120 images per month", included: true, yearlyText: "1,440 images per year" },
-        { text: "4K UHD quality", included: true },
+        { text: "60 images per month", included: true, yearlyText: "720 images per year" },
+        {text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
-        { text: "Fast processing queue", included: true, rocket: true },
-        { text: "Commercial license included", included: true },
+        { text: "MP4 upto UHD quality", included: true },
+        { text: "Fast processing queue", included: true, icon: "rocket" }, // Custom handling for 'rocket' icon if strictly needed
+        { text: "Commercial use allowed", included: true },
       ],
       highlight: false, // Pro has a specific purple border logic in styling
       isPro: true, // Custom flag for purple styling
@@ -74,7 +76,7 @@ const Pricing = () => {
            
            <button 
              onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-             className="w-14 h-7 bg-slate-800 rounded-full p-1 relative transition-colors border border-slate-700 cursor-pointer"
+             className={`w-14 h-7 ${billingCycle === 'yearly' ? 'bg-cyan-400' : 'bg-slate-800'} rounded-full p-1 relative transition-colors border border-slate-700 cursor-pointer`}
            >
              <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-300 ${billingCycle === 'yearly' ? 'translate-x-7' : 'translate-x-0'}`}></div>
            </button>

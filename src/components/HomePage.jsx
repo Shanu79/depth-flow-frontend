@@ -1,13 +1,13 @@
 import Hero from "./Hero";
 import Features from "./Features";
-import Gallery from "./Gallery";
 import Pricing from "./Pricing";
+import HomeGallery from "./HomeGallery";
 
 const HomePage = () => (
   <>
     <Hero />
     <Features />
-    <Gallery />
+    <HomeGallery />
     <Pricing />
   </>
 );
