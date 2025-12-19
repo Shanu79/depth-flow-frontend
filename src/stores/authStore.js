@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_BASE_URL } from '../config.js';
 
 const useAuthStore = create((set) => ({
   user: null,
@@ -9,7 +10,7 @@ const useAuthStore = create((set) => ({
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const res = await fetch("http://localhost:8000/auth/me", {
+        const res = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -34,7 +35,7 @@ const useAuthStore = create((set) => ({
 
     // Fetch full profile immediately
     try {
-      const res = await fetch("http://localhost:8000/auth/me", {
+      const res = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const profile = await res.json();
@@ -51,7 +52,7 @@ const useAuthStore = create((set) => ({
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:8000/auth/me", {
+      const res = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {

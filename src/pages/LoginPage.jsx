@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-do
 import { Eye, EyeOff } from 'lucide-react';
 import HeroImage from '../components/HeroImage';
 import useAuthStore from '../stores/authStore.js';
+import { API_BASE_URL } from '../config.js';
 
 const LoginPage = () => {
 
@@ -33,7 +34,7 @@ const LoginPage = () => {
     localStorage.setItem('redirectAfterLogin', from);
     // Simply redirect browser to the Backend's Google Login route
     // The backend will handle the OAuth dance and redirect back to localhost:3000
-    window.location.href = "http://localhost:8000/auth/google/login";
+    window.location.href = `${API_BASE_URL}/auth/google/login`;
   };
 
   const handleSubmit = async (e) => {
@@ -56,7 +57,7 @@ const LoginPage = () => {
       };
 
     try {
-      const response = await fetch(`http://localhost:8000/auth${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}/auth${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

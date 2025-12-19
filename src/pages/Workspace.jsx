@@ -7,6 +7,7 @@ import {
   MoveDiagonal2 // Updated icon for resizing
 } from "lucide-react";
 import { useState, useRef, useCallback, useEffect } from "react";
+import { API_BASE_URL } from '../config.js';
 
 const Workspace = () => {
   // --- UI State ---
@@ -46,7 +47,7 @@ const Workspace = () => {
       if (!token) return;
 
       try {
-        const res = await fetch("http://localhost:8000/auth/me", {
+        const res = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (res.ok) {
@@ -103,7 +104,7 @@ const Workspace = () => {
       formData.append("speed", speed);
 
       // 3. UPDATED ENDPOINT & HEADERS
-      const response = await fetch("http://localhost:8000/ai/generate-3d", {
+      const response = await fetch(`${API_BASE_URL}/ai/generate-3d`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}` // Send Token!

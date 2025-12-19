@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { CreditCard, CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
 import { DodoPayments } from "dodopayments-checkout"; // Ensure this package is installed
+import { API_BASE_URL } from '../config.js';
 
 const PaymentPage = () => {
   const { state } = useLocation();
@@ -62,7 +63,7 @@ const PaymentPage = () => {
       const token = localStorage.getItem("token");
       
       // B. Create Session on Backend
-      const response = await fetch("http://localhost:8000/payments/create-checkout-session", {
+      const response = await fetch(`${API_BASE_URL}/payments/create-checkout-session`, {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
