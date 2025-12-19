@@ -78,7 +78,7 @@ function App() {
             <LoginPage />
           )
         } />
-
+         
         <Route path="/about" element={<AboutPage />} />
         <Route path='/contact' element={<ContactPage />} />
         <Route path='/privacy' element={<PrivacyPolicy />} />

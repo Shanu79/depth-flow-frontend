@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Check, X } from 'lucide-react';
-
+import { useAuth } from './hooks/useAuth';
+import { Routes, Route, Navigate } from 'react-router-dom';
 const Pricing = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
-
+  
   const plans = [
     {
       name: "Free",
@@ -60,6 +63,14 @@ const Pricing = () => {
       buttonStyle: "bg-purple-600 text-white hover:bg-purple-500 border-none shadow-[0_0_20px_rgba(168,85,247,0.4)]"
     }
   ];
+
+  const handlePricingClick = () => {
+  if (user) {
+    navigate("/payment");
+  } else {
+    navigate("/login");
+  }
+};
 
   return (
     <section id="pricing" className="px-6 md:px-20 py-20 scroll-mt-2 relative">
@@ -150,9 +161,13 @@ const Pricing = () => {
              </ul>
 
              {/* Button */}
-             <button className={`w-full py-3.5 rounded-full font-semibold transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] border ${plan.buttonStyle}`}>
-               {plan.buttonText}
-             </button>
+            <button
+              onClick={handlePricingClick}
+              disabled={loading}
+              className={`w-full py-3.5 rounded-full font-semibold transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] border ${plan.buttonStyle}`}
+            >
+              {loading ? "Please wait..." : plan.buttonText}
+            </button>
            </div>
          ))}
        </div>
