@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CreditCard, CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
+import { DodoPayments } from "dodopayments-checkout"; // Ensure this package is installed
 
 const PaymentPage = () => {
   const { state } = useLocation();
@@ -9,7 +10,38 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Redirect if accessed directly without selecting a plan
+  // 1. Initialize SDK on Component Mount
+  useEffect(() => {
+    DodoPayments.Initialize({
+      mode: "test", // Change to "live" in production
+      onEvent: (event) => {
+        console.log("Dodo Event:", event);
+        switch (event.event_type) {
+          case "checkout.opened":
+            // The overlay is visible
+            setIsProcessing(false); 
+            break;
+          case "checkout.closed":
+            // User closed the popup without paying
+            setIsProcessing(false);
+            break;
+          case "checkout.succeeded":
+            // Payment success!
+            navigate("/workspace");
+            break;
+          case "checkout.error":
+            console.error("Checkout Error:", event.data?.message);
+            setIsProcessing(false);
+            alert("Payment failed: " + event.data?.message);
+            break;
+          default:
+            break;
+        }
+      },
+    });
+  }, [navigate]);
+
+  // 2. Redirect if accessed directly
   useEffect(() => {
     if (!state) navigate('/#pricing');
   }, [state, navigate]);
@@ -18,97 +50,42 @@ const PaymentPage = () => {
 
   const { planName, price, billingCycle, credits } = state;
 
-  // 1. Load Razorpay Script Dynamically
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  // 2. Handle Payment Click
+  // 3. Handle Payment
   const handlePayment = async () => {
     setIsProcessing(true);
-    
-    const res = await loadRazorpayScript();
-    if (!res) {
-      alert("Razorpay SDK failed to load. Are you online?");
-      setIsProcessing(false);
-      return;
-    }
-
     try {
-      // A. Create Order on Backend
+      // A. Get Token
       const token = localStorage.getItem("token");
-      const orderRes = await fetch("http://localhost:8000/payments/create-order", {
+      
+      // B. Create Session on Backend
+      const response = await fetch("http://localhost:8000/payments/create-checkout-session", {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ plan_name: planName, billing_cycle: billingCycle })
+        body: JSON.stringify({ 
+            plan_name: planName, 
+            billing_cycle: billingCycle,
+            quantity: 1 
+        })
       });
-      
-      const orderData = await orderRes.json();
-      if (!orderRes.ok) throw new Error(orderData.detail);
 
-      // B. Configure Razorpay Options
-      const options = {
-        key: orderData.key_id, // Key ID from Backend
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: "DepthFlow AI",
-        description: `${planName} Plan - ${billingCycle}`,
-        order_id: orderData.order_id, // Order ID from Backend
-        handler: async function (response) {
-            // C. Verify Payment on Backend
-            try {
-                const verifyRes = await fetch("http://localhost:8000/payments/verify", {
-                    method: "POST",
-                    headers: { 
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_signature: response.razorpay_signature,
-                        plan_name: planName // To know how many credits to add
-                    })
-                });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Failed to create session");
 
-                const verifyData = await verifyRes.json();
-                if (verifyData.status === "success") {
-                    navigate("/workspace");
-                    alert("Payment Successful! Credits Added.");
-                } else {
-                    alert("Payment Verification Failed.");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Server error verifying payment.");
-            }
-        },
-        prefill: {
-          name: user?.full_name,
-          email: user?.email,
-        },
-        theme: {
-          color: "#06b6d4" // Cyan-500
-        }
-      };
-
-      // D. Open Checkout
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
+      // C. Open the Overlay with the REAL URL from backend
+      if (data.checkout_url) {
+        await DodoPayments.Checkout.open({
+          checkoutUrl: data.checkout_url
+        });
+      } else {
+        throw new Error("No checkout URL returned from backend");
+      }
 
     } catch (error) {
-      console.error(error);
-      alert("Error initiating payment: " + error.message);
-    } finally {
+      console.error("Payment Initiation Failed:", error);
+      alert("Error: " + error.message);
       setIsProcessing(false);
     }
   };
@@ -156,11 +133,11 @@ const PaymentPage = () => {
         {/* RIGHT: Action */}
         <div className="bg-slate-950 p-8 md:p-12 md:w-[400px] flex flex-col justify-center border-l border-slate-800">
            <div className="mb-8 text-center">
-              <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                 <CreditCard className="w-8 h-8 text-cyan-400" />
-              </div>
-              <h3 className="text-white font-semibold">Proceed to Payment</h3>
-              <p className="text-slate-500 text-sm mt-2">Secured by Razorpay</p>
+             <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CreditCard className="w-8 h-8 text-cyan-400" />
+             </div>
+             <h3 className="text-white font-semibold">Proceed to Payment</h3>
+             <p className="text-slate-500 text-sm mt-2">Secured by Dodo Payments</p>
            </div>
 
            <button 
@@ -172,7 +149,7 @@ const PaymentPage = () => {
            </button>
            
            <button onClick={() => navigate(-1)} className="w-full mt-4 py-3 text-slate-500 hover:text-white text-sm font-medium transition-colors">
-              Cancel & Go Back
+             Cancel & Go Back
            </button>
         </div>
 
