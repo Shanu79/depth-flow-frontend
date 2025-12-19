@@ -73,8 +73,22 @@ const LoginPage = () => {
         // we use navigate to keep the SPA smooth and go to the correct previous page.
         navigate(from, { replace: true });
       } else {
+        // --- FIX: Handle Pydantic Error Objects ---
+        let errorMessage = "An error occurred.";
+
+        if (typeof data.detail === "string") {
+            // Case 1: Simple string error (e.g. "Incorrect password")
+            errorMessage = data.detail;
+        } else if (Array.isArray(data.detail)) {
+            // Case 2: Pydantic Validation Error (List of objects)
+            // e.g. [{loc: ['email'], msg: 'value is not a valid email', ...}]
+            errorMessage = data.detail.map(err => err.msg).join(", ");
+        } else if (typeof data.detail === "object") {
+            // Case 3: Single object error
+            errorMessage = JSON.stringify(data.detail);
+        }
         // FIX 2: FastAPI sends errors in 'detail', not 'message'
-        setError(data.detail || "An error occurred.");
+        setError(errorMessage);
       }
     } catch (err) {
       console.error(err);

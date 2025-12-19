@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Check, X } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
-import { useNavigate, useLocation  } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 const Pricing = () => {
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
   const location = useLocation();
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
-  
+
   const plans = [
     {
       name: "Free",
@@ -34,7 +34,7 @@ const Pricing = () => {
       description: "Best for hobbyists",
       features: [
         { text: "600 credits per month", included: true, yearlyText: "7,200 credits per year" },
-        {text: "2D to 3D Depth Motion", included: true },
+        { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "MP4 upto HD (1080p) quality", included: true },
         { text: "Standard processing", included: true },
@@ -53,7 +53,7 @@ const Pricing = () => {
       description: "For professionals",
       features: [
         { text: "1,200 credits per month", included: true, yearlyText: "14,400 credits per year" },
-        {text: "2D to 3D Depth Motion", included: true },
+        { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "MP4 upto UHD quality", included: true },
         { text: "Fast processing queue", included: true, icon: "rocket" }, // Custom handling for 'rocket' icon if strictly needed
@@ -66,123 +66,112 @@ const Pricing = () => {
     }
   ];
 
-  const handlePricingClick = (plan) => { 
-  if (user) {
-    // User is logged in: Go straight to Payment with plan details
-    navigate("/payment", { 
-      state: { 
-        planName: plan.name, 
-        price: plan.price[billingCycle], 
-        billingCycle: billingCycle,
-        credits: plan.features[0].text.split(' ')[0] 
-      } 
-    });
-  } else {
-    // User is NOT logged in: Go to Login, BUT remember we came from here
-    // FIX: Add { state: { from: location } }
-    navigate("/login", { state: { from: location } });
-  }
-};
-
   return (
     <section id="pricing" className="px-6 md:px-20 py-20 scroll-mt-2 relative">
-       {/* Section Header */}
-       <div className="text-center mb-12">
-         <h2 className="text-3xl md:text-4xl font-bold text-white">Flexible Pricing Plans</h2>
-         <p className="text-gray-400">Choose the perfect plan for your creative needs.</p>
-         
-         {/* Toggle Switch */}
-         <div className="flex justify-center items-center mt-6 gap-4">
-           <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-gray-500'}`}>
-             Monthly Billing
-           </span>
-           
-           <button 
-             onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-             className={`w-14 h-7 ${billingCycle === 'yearly' ? 'bg-cyan-400' : 'bg-slate-800'} rounded-full p-1 relative transition-colors border border-slate-700 cursor-pointer`}
-           >
-             <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-300 ${billingCycle === 'yearly' ? 'translate-x-7' : 'translate-x-0'}`}></div>
-           </button>
-           
-           <span className={`text-sm font-medium ${billingCycle === 'yearly' ? 'text-white' : 'text-gray-500'}`}>
-             Yearly Billing <span className="text-cyan-400 text-xs ml-1">(Save ~20%)</span>
-           </span>
-         </div>
-       </div>
+      {/* Section Header */}
+      <div className="text-center mb-12">
+        <h2 className="text-3xl md:text-4xl font-bold text-white">Flexible Pricing Plans</h2>
+        <p className="text-gray-400">Choose the perfect plan for your creative needs.</p>
 
-       {/* Cards Grid */}
-       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-         {plans.map((plan, idx) => (
-           <div key={idx} className={`relative rounded-3xl p-8 flex flex-col border transition-all duration-300 group
-             ${plan.highlight 
-                ? 'bg-slate-900/80 border-cyan-500/50 shadow-[0_0_30px_rgba(34,211,238,0.15)]' 
-                : plan.isPro 
-                  ? 'bg-slate-900/80 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.15)]'
-                  : 'bg-slate-900/50 border-slate-700 hover:border-slate-600'
-             }
+        {/* Toggle Switch */}
+        <div className="flex justify-center items-center mt-6 gap-4">
+          <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-gray-500'}`}>
+            Monthly Billing
+          </span>
+
+          <button
+            onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
+            className={`w-14 h-7 ${billingCycle === 'yearly' ? 'bg-cyan-400' : 'bg-slate-800'} rounded-full p-1 relative transition-colors border border-slate-700 cursor-pointer`}
+          >
+            <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-300 ${billingCycle === 'yearly' ? 'translate-x-7' : 'translate-x-0'}`}></div>
+          </button>
+
+          <span className={`text-sm font-medium ${billingCycle === 'yearly' ? 'text-white' : 'text-gray-500'}`}>
+            Yearly Billing <span className="text-cyan-400 text-xs ml-1">(Save ~20%)</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
+        {plans.map((plan, idx) => (
+          <div key={idx} className={`relative rounded-3xl p-8 flex flex-col border transition-all duration-300 group
+             ${plan.highlight
+              ? 'bg-slate-900/80 border-cyan-500/50 shadow-[0_0_30px_rgba(34,211,238,0.15)]'
+              : plan.isPro
+                ? 'bg-slate-900/80 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.15)]'
+                : 'bg-slate-900/50 border-slate-700 hover:border-slate-600'
+            }
            `}>
-             
-             {/* Most Popular Badge */}
-             {plan.badge && (
-               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-cyan-400 text-black text-xs font-bold px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.6)]">
-                 {plan.badge}
-               </div>
-             )}
 
-             {/* Header */}
-             <div className="text-center mb-8 border-b border-slate-800 pb-8">
-                <h3 className="text-xl font-medium text-gray-300 mb-4">{plan.name}</h3>
-                
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                    ${plan.price[billingCycle]}
-                  </span>
-                  
-                  {/* Strikethrough Price (Only for Yearly) */}
-                  {billingCycle === 'yearly' && plan.originalPrice?.yearly && (
-                    <span className="text-xl text-gray-500 line-through font-medium">
-                      ${plan.originalPrice.yearly}
-                    </span>
-                  )}
-                </div>
-                
-                <span className="text-gray-500 text-sm mt-2 block">
-                  {plan.period[billingCycle]}
+            {/* Most Popular Badge */}
+            {plan.badge && (
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-cyan-400 text-black text-xs font-bold px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.6)]">
+                {plan.badge}
+              </div>
+            )}
+
+            {/* Header */}
+            <div className="text-center mb-8 border-b border-slate-800 pb-8">
+              <h3 className="text-xl font-medium text-gray-300 mb-4">{plan.name}</h3>
+
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+                  ${plan.price[billingCycle]}
                 </span>
-             </div>
 
-             {/* Features List */}
-             <ul className="space-y-4 mb-8 flex-1">
-               {plan.features.map((feature, fIdx) => (
-                 <li key={fIdx} className="flex items-start gap-3 text-sm">
-                   {/* Icons Logic */}
-                   {feature.included ? (
-                      <Check className={`w-5 h-5 shrink-0 ${plan.isPro ? 'text-purple-400' : 'text-cyan-400'}`} />
-                   ) : (
-                      <X className="w-5 h-5 shrink-0 text-gray-600" />
-                   )}
-                   
-                   <span className={feature.included ? 'text-gray-300' : 'text-gray-500'}>
-                     {/* Switch text for Yearly if applicable (e.g. 600 images/year) */}
-                     {billingCycle === 'yearly' && feature.yearlyText 
-                        ? feature.yearlyText 
-                        : feature.text}
-                   </span>
-                 </li>
-               ))}
-             </ul>
+                {/* Strikethrough Price (Only for Yearly) */}
+                {billingCycle === 'yearly' && plan.originalPrice?.yearly && (
+                  <span className="text-xl text-gray-500 line-through font-medium">
+                    ${plan.originalPrice.yearly}
+                  </span>
+                )}
+              </div>
 
-             {/* Button */}
+              <span className="text-gray-500 text-sm mt-2 block">
+                {plan.period[billingCycle]}
+              </span>
+            </div>
+
+            {/* Features List */}
+            <ul className="space-y-4 mb-8 flex-1">
+              {plan.features.map((feature, fIdx) => (
+                <li key={fIdx} className="flex items-start gap-3 text-sm">
+                  {/* Icons Logic */}
+                  {feature.included ? (
+                    <Check className={`w-5 h-5 shrink-0 ${plan.isPro ? 'text-purple-400' : 'text-cyan-400'}`} />
+                  ) : (
+                    <X className="w-5 h-5 shrink-0 text-gray-600" />
+                  )}
+
+                  <span className={feature.included ? 'text-gray-300' : 'text-gray-500'}>
+                    {/* Switch text for Yearly if applicable (e.g. 600 images/year) */}
+                    {billingCycle === 'yearly' && feature.yearlyText
+                      ? feature.yearlyText
+                      : feature.text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {/* Button */}
             <button
-              onClick={() => handlePricingClick(plan)}
+              onClick={() => navigate('/payment', {
+                state: {
+                  planName: plan.name,
+                  price: plan.price[billingCycle],
+                  billingCycle: billingCycle,
+                  credits: plan.features[0].text.split(' ')[0]
+                }
+              })}
               disabled={loading}
               className={`w-full py-3.5 rounded-full font-semibold transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] border ${plan.buttonStyle}`}
             >
               {loading ? "Please wait..." : plan.buttonText}
             </button>
-           </div>
-         ))}
-       </div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 };

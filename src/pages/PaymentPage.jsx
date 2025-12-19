@@ -50,9 +50,10 @@ const PaymentPage = () => {
 
   const { planName, price, billingCycle, credits } = state;
 
-  // 3. Handle Payment
+ // 3. Handle Payment
   const handlePayment = async () => {
     setIsProcessing(true);
+
     try {
       // A. Get Token
       const token = localStorage.getItem("token");
@@ -72,7 +73,25 @@ const PaymentPage = () => {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || "Failed to create session");
+
+      if (!response.ok) {
+        // --- FIX: Parse Pydantic Errors Safely ---
+        let errorMessage = "Failed to create session";
+
+        if (typeof data.detail === "string") {
+            // Case 1: Simple string error (e.g., "Invalid token")
+            errorMessage = data.detail;
+        } else if (Array.isArray(data.detail)) {
+            // Case 2: Pydantic Validation Error (List of objects)
+            // e.g., [{loc: ['plan_name'], msg: 'field required'}]
+            errorMessage = data.detail.map(err => err.msg).join(", ");
+        } else if (typeof data.detail === "object") {
+            // Case 3: Single object error
+            errorMessage = JSON.stringify(data.detail);
+        }
+
+        throw new Error(errorMessage);
+      }
 
       // C. Open the Overlay with the REAL URL from backend
       if (data.checkout_url) {
@@ -85,7 +104,8 @@ const PaymentPage = () => {
 
     } catch (error) {
       console.error("Payment Initiation Failed:", error);
-      alert("Error: " + error.message);
+      // Now 'error.message' is guaranteed to be a clean string
+      alert("Error: " + error.message); 
       setIsProcessing(false);
     }
   };
