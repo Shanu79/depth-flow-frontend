@@ -1,5 +1,6 @@
 import {
   Upload,
+  X,
   Download,
   Share2,
   Loader2,
@@ -29,6 +30,14 @@ const Workspace = () => {
 
   const fileInputRef = useRef(null);
   const previewRef = useRef(null);
+
+  const handleRemoveImage = (e) => {
+    e.stopPropagation(); // Prevent opening the file dialog again
+    setPreviewUrl(null); // Clear the preview state
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Reset the actual file input
+    }
+  };
 
   // 1. Fetch User Credits on Mount
   useEffect(() => {
@@ -133,20 +142,45 @@ const Workspace = () => {
           <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
         </div>
 
-        {/* Upload Box */}
-        <div onClick={() => fileInputRef.current.click()} className="relative border-2 border-dashed border-cyan-400 bg-blue-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-blue-600/30 transition-all">
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg" />
-          {previewUrl ? (
-            <img src={previewUrl} alt="Preview" className="h-full object-contain rounded-lg" />
-          ) : (
-            <>
-              <div className="mb-4 transform group-hover:-translate-y-1 transition-transform duration-300">
-                <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
-              </div>
-              <p className="text-white font-medium text-sm">Click to Upload Image</p>
-            </>
-          )}
+        /* Upload Box */
+    <div 
+      onClick={() => fileInputRef.current.click()} 
+      className="relative border-2 border-dashed border-cyan-400 bg-blue-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-blue-600/30 transition-all overflow-hidden"
+    >
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        className="hidden" 
+        accept="image/png, image/jpeg" 
+      />
+      
+      {previewUrl ? (
+        <div className="relative h-full w-full flex items-center justify-center">
+          <img 
+            src={previewUrl} 
+            alt="Preview" 
+            className="h-full object-contain rounded-lg" 
+          />
+          
+          {/* --- NEW: Remove/Upload Another Button --- */}
+          <button 
+            onClick={handleRemoveImage}
+            className="absolute top-0 right-0 p-1.5 bg-slate-900/80 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg border border-slate-700"
+            title="Remove and upload another"
+          >
+            <X size={16} />
+          </button>
         </div>
+      ) : (
+        <>
+          <div className="mb-4 transform group-hover:-translate-y-1 transition-transform duration-300">
+            <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
+          </div>
+          <p className="text-white font-medium text-sm">Click to Upload Image</p>
+        </>
+      )}
+    </div>
 
         {/* Settings (Sliders etc) */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">

@@ -9,12 +9,13 @@ const PaymentPage = () => {
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const refreshUser = useAuthStore((state) => state.refreshUser); 
 
   // 1. Initialize SDK on Component Mount
   useEffect(() => {
     DodoPayments.Initialize({
       mode: "test", // Change to "live" in production
-      onEvent: (event) => {
+      onEvent: async (event) => {
         console.log("Dodo Event:", event);
         switch (event.event_type) {
           case "checkout.opened":
@@ -27,6 +28,8 @@ const PaymentPage = () => {
             break;
           case "checkout.succeeded":
             // Payment success!
+            await refreshUser(); // Update user data (e.g., credits)
+            alert("Payment Successful! Thank you for your purchase.");
             navigate("/workspace");
             break;
           case "checkout.error":
@@ -39,7 +42,7 @@ const PaymentPage = () => {
         }
       },
     });
-  }, [navigate]);
+  }, [navigate, refreshUser]);
 
   // 2. Redirect if accessed directly
   useEffect(() => {

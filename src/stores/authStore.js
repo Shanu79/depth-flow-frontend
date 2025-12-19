@@ -46,6 +46,24 @@ const useAuthStore = create((set) => ({
     }
   },
 
+  refreshUser: async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await fetch("http://localhost:8000/auth/me", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const profile = await res.json();
+        // Merge new profile data (like updated credits) into existing user state
+        set({ user: { token, ...profile } });
+      }
+    } catch (err) {
+      console.error("Failed to refresh user profile", err);
+    }
+  },
+
   // Action: Logout
   logout: () => {
     localStorage.removeItem("token");
