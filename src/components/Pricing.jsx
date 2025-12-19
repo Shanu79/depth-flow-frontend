@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Check, X } from 'lucide-react';
-import { useAuth } from './hooks/useAuth';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.jsx';
+import { useNavigate } from 'react-router-dom';
 const Pricing = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -64,9 +64,16 @@ const Pricing = () => {
     }
   ];
 
-  const handlePricingClick = () => {
+  const handlePricingClick = (plan) => { 
   if (user) {
-    navigate("/payment");
+    navigate("/payment", { 
+      state: { 
+        planName: plan.name, 
+        price: plan.price[billingCycle], 
+        billingCycle: billingCycle,
+        credits: plan.features[0].text.split(' ')[0] // Extract number of credits from feature text
+      } 
+    });
   } else {
     navigate("/login");
   }
@@ -162,7 +169,7 @@ const Pricing = () => {
 
              {/* Button */}
             <button
-              onClick={handlePricingClick}
+              onClick={() => handlePricingClick(plan)}
               disabled={loading}
               className={`w-full py-3.5 rounded-full font-semibold transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] border ${plan.buttonStyle}`}
             >

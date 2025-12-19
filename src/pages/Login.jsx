@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import HeroImage from '../components/HeroImage';
 
 const LoginPage = () => {
   // State to toggle between Login and Signup views
   const [isLoginView, setIsLoginView] = useState(true);
+  const [searchParams] = useSearchParams(); // 2. Hook to read URL params
 
   // Form States
   const [fullName, setFullName] = useState('');
@@ -13,6 +14,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -23,14 +25,50 @@ const LoginPage = () => {
     window.location.href = "http://localhost:8000/auth/google/login";
   };
 
-  // --- 2. EMAIL LOGIN LOGIC (Placeholder) ---
-  const handleSubmit = (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    // NOTE: Your current backend only supports Google Auth. 
-    // To support Email/Password, you would need to add JWT logic to your backend.
-    setError("Please use Google Login (Email/Password backend not yet configured)");
+    const endpoint = isLoginView ? "/login" : "/register";
+    
+    // 3. Get plan from URL (default to "free")
+    const selectedPlan = searchParams.get("plan") || "free";
+
+    const payload = isLoginView 
+        ? { email, password } 
+        : { 
+            email, 
+            password, 
+            full_name: fullName, 
+            plan: selectedPlan 
+          };
+
+    try {
+        const response = await fetch(`http://localhost:8000/auth${endpoint}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+
+        if (response.ok) {
+            // FIX 1: Backend sends 'access_token', not 'token'
+            localStorage.setItem("token", data.access_token);
+            
+            // Redirect to Workspace (so they can see their credits immediately)
+            window.location.href = "/workspace";
+        } else {
+            // FIX 2: FastAPI sends errors in 'detail', not 'message'
+            setError(data.detail || "An error occurred.");
+        }
+    } catch (err) {
+        console.error(err);
+        setError("Network error. Is the backend running?");
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   const toggleView = () => {

@@ -12,6 +12,7 @@ import ScrolltoTop from './components/ScrollToTop';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import AuthSuccess from './pages/AuthSuccess';
+import PaymentPage from './pages/PaymentPage';
 
 // Import your custom hook
 import { useAuth } from './hooks/useAuth';
@@ -76,6 +77,15 @@ function App() {
           ) : (
             /* SHOW LOGIN PAGE */
             <LoginPage />
+          )
+        } />
+        <Route path="/payment" element={
+          user ? (
+            /* IF LOGGED IN: SHOW PAYMENT PAGE */
+            <PaymentPage />
+          ) : (
+            /* IF LOGGED OUT: REDIRECT TO LOGIN */  
+            <Navigate to="/login" replace />
           )
         } />
          
