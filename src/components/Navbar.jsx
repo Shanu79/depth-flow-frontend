@@ -2,13 +2,26 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, CreditCard, ChevronDown, LogOut, LayoutGrid } from 'lucide-react';
 import FullLogo from './FullLogo';
+import useAuthStore from '../stores/authStore.js';
 
-const Navbar = ({ user, onLogout }) => {
+const Navbar = () => {
+
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  
+  // 1. Get current location so we can pass it to the Login page
   const location = useLocation();
 
+  // Helper to handle logout
+  const handleLogout = () => {
+     logout();
+     setIsOpen(false);
+  };
+
+  // Condition is checked AFTER all hooks are called
   if (location.pathname === '/login') return null;
 
   return (
@@ -56,7 +69,7 @@ const Navbar = ({ user, onLogout }) => {
                   <button onClick={() => navigate('/workspace')} className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800">
                     <LayoutGrid className="w-3.5 h-3.5" /> Workspace
                   </button>
-                  <button onClick={onLogout} className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-slate-800 flex items-center gap-2">
+                  <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-slate-800 flex items-center gap-2">
                     <LogOut className="w-3.5 h-3.5" /> Logout
                   </button>
                 </div>
@@ -65,23 +78,28 @@ const Navbar = ({ user, onLogout }) => {
           </div>
         ) : (
           <div className="hidden md:block">
-            <Link to="/login">
-              <button className="bg-transparent border border-slate-600 hover:border-slate-400 text-white px-6 py-2 rounded-full transition-all">Login</button>
+            {/* 2. UPDATE: Pass 'state' here. 
+                When clicked, it tells Login Page: "I came from [Current Page]" 
+            */}
+            <Link to="/login" state={{ from: location }}>
+              <button className="bg-transparent border border-slate-600 hover:border-slate-400 text-white px-6 py-2 rounded-full transition-all">
+                Login
+              </button>
             </Link>
           </div>
         )}
 
         {/* --- MOBILE VIEW --- */}
         
-        {/* 1. NEW: Mobile Credits Badge (Visible on top bar) */}
+        {/* Mobile Credits Badge */}
         {user && (
           <div className="md:hidden flex items-center gap-1.5 bg-slate-900/80 border border-amber-500/30 px-3 py-1.5 rounded-full ml-2">
-             <CreditCard className="w-3.5 h-3.5 text-amber-400" />
-             <span className="text-amber-400 text-xs font-bold">{user.credits}</span>
+              <CreditCard className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-amber-400 text-xs font-bold">{user.credits}</span>
           </div>
         )}
 
-        {/* 2. Mobile Menu Toggle */}
+        {/* Mobile Menu Toggle */}
         <button className="md:hidden text-white p-4 pl-2" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X /> : <Menu />}
         </button>
@@ -106,10 +124,19 @@ const Navbar = ({ user, onLogout }) => {
                 <button onClick={() => { navigate('/workspace'); setIsOpen(false); }} className="text-purple-400 text-left font-medium">
                     Go to Workspace
                 </button>
-                <button onClick={onLogout} className="text-red-400 text-left pt-2">Logout</button>
+                <button onClick={handleLogout} className="text-red-400 text-left pt-2">Logout</button>
              </>
           ) : (
-            <Link to="/login" className="text-cyan-400 font-bold" onClick={() => setIsOpen(false)}>Login</Link>
+            /* 3. UPDATE: Pass 'state' here for mobile too. 
+            */
+            <Link 
+              to="/login" 
+              state={{ from: location }} 
+              className="text-cyan-400 font-bold" 
+              onClick={() => setIsOpen(false)}
+            >
+              Login
+            </Link>
           )}
         </div>
       )}

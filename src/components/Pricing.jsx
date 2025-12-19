@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Check, X } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth.jsx';
-import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../stores/authStore.js';
+import { useNavigate, useLocation  } from 'react-router-dom';
 const Pricing = () => {
-  const { user, loading } = useAuth();
+  const user = useAuthStore((state) => state.user);
+  const loading = useAuthStore((state) => state.loading);
+  const location = useLocation();
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
   
@@ -66,16 +68,19 @@ const Pricing = () => {
 
   const handlePricingClick = (plan) => { 
   if (user) {
+    // User is logged in: Go straight to Payment with plan details
     navigate("/payment", { 
       state: { 
         planName: plan.name, 
         price: plan.price[billingCycle], 
         billingCycle: billingCycle,
-        credits: plan.features[0].text.split(' ')[0] // Extract number of credits from feature text
+        credits: plan.features[0].text.split(' ')[0] 
       } 
     });
   } else {
-    navigate("/login");
+    // User is NOT logged in: Go to Login, BUT remember we came from here
+    // FIX: Add { state: { from: location } }
+    navigate("/login", { state: { from: location } });
   }
 };
 

@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import HeroImage from '../components/HeroImage';
+import useAuthStore from '../stores/authStore.js';
 
 const LoginPage = () => {
+
+  const login = useAuthStore((state) => state.login);
+
   // State to toggle between Login and Signup views
   const [isLoginView, setIsLoginView] = useState(true);
   const [searchParams] = useSearchParams(); // 2. Hook to read URL params
@@ -18,56 +22,65 @@ const LoginPage = () => {
 
   const navigate = useNavigate();
 
+  // Get the location state and the login function
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
+
   // --- 1. GOOGLE LOGIN LOGIC ---
   const handleGoogleLogin = () => {
+    
+    localStorage.setItem('redirectAfterLogin', from);
     // Simply redirect browser to the Backend's Google Login route
     // The backend will handle the OAuth dance and redirect back to localhost:3000
     window.location.href = "http://localhost:8000/auth/google/login";
   };
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     const endpoint = isLoginView ? "/login" : "/register";
-    
+
     // 3. Get plan from URL (default to "free")
     const selectedPlan = searchParams.get("plan") || "free";
 
-    const payload = isLoginView 
-        ? { email, password } 
-        : { 
-            email, 
-            password, 
-            full_name: fullName, 
-            plan: selectedPlan 
-          };
+    const payload = isLoginView
+      ? { email, password }
+      : {
+        email,
+        password,
+        full_name: fullName,
+        plan: selectedPlan
+      };
 
     try {
-        const response = await fetch(`http://localhost:8000/auth${endpoint}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        
-        const data = await response.json();
+      const response = await fetch(`http://localhost:8000/auth${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-        if (response.ok) {
-            // FIX 1: Backend sends 'access_token', not 'token'
-            localStorage.setItem("token", data.access_token);
-            
-            // Redirect to Workspace (so they can see their credits immediately)
-            window.location.href = "/workspace";
-        } else {
-            // FIX 2: FastAPI sends errors in 'detail', not 'message'
-            setError(data.detail || "An error occurred.");
-        }
+      const data = await response.json();
+
+      if (response.ok) {
+        
+        await login(data); // Store token in Zustand
+
+        // 6. SMART REDIRECT
+        // Instead of window.location.href (which reloads the page), 
+        // we use navigate to keep the SPA smooth and go to the correct previous page.
+        navigate(from, { replace: true });
+      } else {
+        // FIX 2: FastAPI sends errors in 'detail', not 'message'
+        setError(data.detail || "An error occurred.");
+      }
     } catch (err) {
-        console.error(err);
-        setError("Network error. Is the backend running?");
+      console.error(err);
+      setError("Network error. Is the backend running?");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -159,7 +172,7 @@ const LoginPage = () => {
             {/* --- GOOGLE BUTTON (Modified) --- */}
             <button
               type="button"
-              onClick={handleGoogleLogin} 
+              onClick={handleGoogleLogin}
               className="w-full py-4 rounded-xl border border-slate-700 bg-transparent text-white font-medium hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -193,10 +206,10 @@ const LoginPage = () => {
       <div className="hidden w-full lg:w-1/2 md:flex flex-col items-center lg:pr-4 lg:pl-0 px-16 justify-center">
         <div className="relative w-full h-fit rounded-2xl m-4 p-2 bg-gradient-to-r from-cyan-400 to-purple-600 shadow-lg shadow-purple-500/20 overflow-hidden">
           <div className="w-full h-full bg-slate-900 rounded-xl overflow-hidden relative">
-              <div className="flex justify-center mb-20 scale-[0.9] lg:scale-[0.67] xl:scale-[0.8]">
-                <HeroImage />
-              </div>
-              <p className="text-white text-center font-medium tracking-wide pb-8">Experience the Power of DepthFlow AI</p>
+            <div className="flex justify-center mb-20 scale-[0.9] lg:scale-[0.67] xl:scale-[0.8]">
+              <HeroImage />
+            </div>
+            <p className="text-white text-center font-medium tracking-wide pb-8">Experience the Power of DepthFlow AI</p>
           </div>
         </div>
       </div>

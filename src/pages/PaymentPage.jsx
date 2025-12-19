@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CreditCard, CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import useAuthStore from '../stores/authStore.js';
 
 const PaymentPage = () => {
   const { state } = useLocation();
-  const { user } = useAuth();
+  const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
 
