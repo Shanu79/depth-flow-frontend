@@ -61,7 +61,7 @@ function App() {
       {isLoading && <PageLoader />}
 
       {/* Only show Public Navbar if NOT on Admin pages */}
-      {!isAdminRoute && <Navbar />}
+      {<Navbar />}
       
       <ScrolltoTop />
 

@@ -4,10 +4,56 @@ import {
   Download,
   Share2,
   Loader2,
-  MoveDiagonal2 // Updated icon for resizing
+  MoveDiagonal2,
+  AlertCircle // Added Icon
 } from "lucide-react";
 import { useState, useRef, useCallback, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { API_BASE_URL } from '../config.js';
+
+// --- NEW: Credit Alert Modal Component ---
+const CreditAlertModal = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+        
+        <div className="flex justify-between items-start mb-4">
+          <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-2">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <h3 className="text-xl font-bold text-white mb-2">Out of Credits</h3>
+        <p className="text-slate-400 mb-6 leading-relaxed">
+          You have reached your credit limit. To continue generating stunning 3D videos, please upgrade your plan or purchase a credit pack.
+        </p>
+
+        <div className="flex gap-3">
+          <button 
+            onClick={onClose}
+            className="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={() => navigate('/pricing')}
+            className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+          >
+            Upgrade Plan
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+};
 
 const Workspace = () => {
   // --- UI State ---
@@ -25,25 +71,29 @@ const Workspace = () => {
   const [resultVideoUrl, setResultVideoUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("input");
+  
+  // --- New: Modal State ---
+  const [showCreditModal, setShowCreditModal] = useState(false);
 
   // --- User State ---
-  const [credits, setCredits] = useState(null); // Track credits locally for UI
+  const [credits, setCredits] = useState(null);
 
   const fileInputRef = useRef(null);
   const previewRef = useRef(null);
+  const navigate = useNavigate(); // Hook for navigation
 
   const handleRemoveImage = (e) => {
-    e.stopPropagation(); // Prevent opening the file dialog again
-    setPreviewUrl(null); // Clear the preview state
+    e.stopPropagation();
+    setPreviewUrl(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""; // Reset the actual file input
+      fileInputRef.current.value = "";
     }
   };
 
   // 1. Fetch User Credits on Mount
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem("token"); // Assuming you store JWT here
+      const token = localStorage.getItem("token");
       if (!token) return;
 
       try {
@@ -59,6 +109,7 @@ const Workspace = () => {
     fetchUser();
   }, []);
 
+  // ... (Resizing Logic remains same) ...
   const startResizing = useCallback(() => { setIsResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'col-resize'; }, []);
   const stopResizing = useCallback(() => { setIsResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
   const resize = useCallback((e) => { if (isResizing) { const newWidth = e.clientX; if (newWidth > 320 && newWidth < 800) setSidebarWidth(newWidth); } }, [isResizing]);
@@ -86,15 +137,17 @@ const Workspace = () => {
   const handleGenerate = async () => {
     if (!selectedFile) return alert("Please upload an image first!");
 
-    // 2. Client-side Check
-    if (credits !== null && credits < 20) {
-      return alert("❌ Insufficient credits! Please upgrade your plan.");
+    // 2. Client-side Check: Open Modal instead of alert
+    // Assuming each generation costs e.g., 5 credits. Adjust logic as needed.
+    if (credits !== null && credits <= 0) {
+      setShowCreditModal(true);
+      return;
     }
 
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("token"); // Get JWT
+      const token = localStorage.getItem("token");
       if (!token) throw new Error("Please log in first.");
 
       const formData = new FormData();
@@ -103,23 +156,26 @@ const Workspace = () => {
       formData.append("depth", depth);
       formData.append("speed", speed);
 
-      // 3. UPDATED ENDPOINT & HEADERS
       const response = await fetch(`${API_BASE_URL}/ai/generate-3d`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}` // Send Token!
+          "Authorization": `Bearer ${token}`
         },
         body: formData,
       });
 
+      // 3. Server-side Check: Open Modal on 402 Payment Required
       if (response.status === 402) {
-        throw new Error("❌ Out of Credits! Please top up.");
+        setShowCreditModal(true); // Trigger Popup
+        setIsLoading(false);      // Stop Loading
+        return;                   // Stop execution
       }
+
       if (!response.ok) throw new Error("Generation failed.");
 
       const data = await response.json();
       setResultVideoUrl(data.video_url);
-      setCredits(data.remaining_credits); // 4. Update local credit balance
+      setCredits(data.remaining_credits);
       setActiveTab("output");
       setPreviewHeight(null);
 
@@ -133,6 +189,12 @@ const Workspace = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row overflow-hidden relative">
+      
+      {/* --- MOUNT THE MODAL --- */}
+      <CreditAlertModal 
+        isOpen={showCreditModal} 
+        onClose={() => setShowCreditModal(false)} 
+      />
 
       {/* LEFT PANEL */}
       <div
@@ -141,49 +203,53 @@ const Workspace = () => {
       >
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
+          {/* Display credits in header for better UX */}
+          {credits !== null && (
+             <div className="bg-slate-900 px-3 py-1 rounded-full border border-slate-800 text-xs font-mono text-cyan-400">
+               {credits} Credits
+             </div>
+          )}
         </div>
 
-        /* Upload Box */
-    <div 
-      onClick={() => fileInputRef.current.click()} 
-      className="relative border-2 border-dashed border-cyan-400 bg-blue-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-blue-600/30 transition-all overflow-hidden"
-    >
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileChange} 
-        className="hidden" 
-        accept="image/png, image/jpeg" 
-      />
-      
-      {previewUrl ? (
-        <div className="relative h-full w-full flex items-center justify-center">
-          <img 
-            src={previewUrl} 
-            alt="Preview" 
-            className="h-full object-contain rounded-lg" 
+        {/* Upload Box */}
+        <div 
+          onClick={() => fileInputRef.current.click()} 
+          className="relative border-2 border-dashed border-cyan-400 bg-blue-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-blue-600/30 transition-all overflow-hidden"
+        >
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            className="hidden" 
+            accept="image/png, image/jpeg" 
           />
           
-          {/* --- NEW: Remove/Upload Another Button --- */}
-          <button 
-            onClick={handleRemoveImage}
-            className="absolute top-0 right-0 p-1.5 bg-slate-900/80 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg border border-slate-700"
-            title="Remove and upload another"
-          >
-            <X size={16} />
-          </button>
+          {previewUrl ? (
+            <div className="relative h-full w-full flex items-center justify-center">
+              <img 
+                src={previewUrl} 
+                alt="Preview" 
+                className="h-full object-contain rounded-lg" 
+              />
+              <button 
+                onClick={handleRemoveImage}
+                className="absolute top-0 right-0 p-1.5 bg-slate-900/80 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg border border-slate-700"
+                title="Remove and upload another"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="mb-4 transform group-hover:-translate-y-1 transition-transform duration-300">
+                <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
+              </div>
+              <p className="text-white font-medium text-sm">Click to Upload Image</p>
+            </>
+          )}
         </div>
-      ) : (
-        <>
-          <div className="mb-4 transform group-hover:-translate-y-1 transition-transform duration-300">
-            <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
-          </div>
-          <p className="text-white font-medium text-sm">Click to Upload Image</p>
-        </>
-      )}
-    </div>
 
-        {/* Settings (Sliders etc) */}
+        {/* Settings */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
           <div className="space-y-4">
             <div className="space-y-3">
@@ -208,7 +274,7 @@ const Workspace = () => {
         </button>
       </div>
 
-      {/* DRAG HANDLE (Sidebar) */}
+      {/* DRAG HANDLE */}
       <div onMouseDown={startResizing} className="hidden md:flex w-4 -ml-2 cursor-col-resize hover:bg-purple-500/10 transition-all items-center justify-center z-50 group absolute h-full" style={{ left: `${sidebarWidth}px` }}><div className="w-[1px] h-full bg-slate-800 group-hover:bg-purple-500/50 transition-colors" /></div>
 
       {/* RIGHT PANEL - PREVIEW */}

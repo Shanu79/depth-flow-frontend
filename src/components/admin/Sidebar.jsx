@@ -1,7 +1,13 @@
 import { NavLink } from "react-router-dom";
 import { Users, LayoutDashboard, Settings, LogOut } from "lucide-react";
+import { Navigate } from "react-router-dom";
 
 export default function Sidebar() {
+
+  const navigate = Navigate();
+  const handleLogout = () => {
+    navigate("/");
+  }
   const navItems = [
     { name: "Users", path: "/admin/users", icon: <Users className="w-5 h-5" /> },
     // Add more links here later (e.g., Settings, Analytics)
@@ -39,7 +45,7 @@ export default function Sidebar() {
 
       {/* Footer / Logout */}
       <div className="p-4 border-t border-slate-800">
-        <button className="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-500/10 hover:text-red-400 text-slate-500 transition-all">
+        <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-500/10 hover:text-red-400 text-slate-500 transition-all">
           <LogOut className="w-5 h-5" />
           <span>Exit Admin</span>
         </button>
