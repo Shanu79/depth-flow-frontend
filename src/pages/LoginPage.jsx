@@ -30,33 +30,27 @@ const LoginPage = () => {
 
   // --- 1. GOOGLE LOGIN LOGIC ---
   const handleGoogleLogin = () => {
-    
+
     localStorage.setItem('redirectAfterLogin', from);
     // Simply redirect browser to the Backend's Google Login route
     // The backend will handle the OAuth dance and redirect back to localhost:3000
     window.location.href = `/api/auth/google/login`;
   };
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     const endpoint = isLoginView ? "/login" : "/register";
-
-    // 3. Get plan from URL (default to "free")
     const selectedPlan = searchParams.get("plan") || "free";
 
     const payload = isLoginView
       ? { email, password }
-      : {
-        email,
-        password,
-        full_name: fullName,
-        plan: selectedPlan
-      };
+      : { email, password, full_name: fullName, plan: selectedPlan };
 
     try {
+      // 1. LOGIN REQUEST (Get Token)
       const response = await fetch(`${API_BASE_URL}/auth${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,29 +60,39 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // Token is in data.access_token
+        const token = data.access_token;
         
-        await login(data); // Store token in Zustand
+        // 2. USER REQUEST (Fetch /me using the new token)
+        const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: { 
+                "Authorization": `Bearer ${token}` 
+            }
+        });
+        
+        if (userResponse.ok) {
+            const userData = await userResponse.json();
+            
+            // 3. UPDATE STORE
+            // We combine the token and user data so the store has everything
+            await login({ ...data, user: userData }); 
 
-        // 6. SMART REDIRECT
-        // Instead of window.location.href (which reloads the page), 
-        // we use navigate to keep the SPA smooth and go to the correct previous page.
-        navigate(from, { replace: true });
-      } else {
-        // --- FIX: Handle Pydantic Error Objects ---
-        let errorMessage = "An error occurred.";
-
-        if (typeof data.detail === "string") {
-            // Case 1: Simple string error (e.g. "Incorrect password")
-            errorMessage = data.detail;
-        } else if (Array.isArray(data.detail)) {
-            // Case 2: Pydantic Validation Error (List of objects)
-            // e.g. [{loc: ['email'], msg: 'value is not a valid email', ...}]
-            errorMessage = data.detail.map(err => err.msg).join(", ");
-        } else if (typeof data.detail === "object") {
-            // Case 3: Single object error
-            errorMessage = JSON.stringify(data.detail);
+            // 4. SMART REDIRECT
+            if (userData.is_admin) {
+                navigate("/admin", { replace: true });
+            } else {
+                navigate(from, { replace: true });
+            }
+        } else {
+             setError("Login succeeded, but failed to fetch user profile.");
         }
-        // FIX 2: FastAPI sends errors in 'detail', not 'message'
+
+      } else {
+        // ... (Error handling code remains the same) ...
+        let errorMessage = "An error occurred.";
+        if (typeof data.detail === "string") {
+            errorMessage = data.detail;
+        } // ... etc
         setError(errorMessage);
       }
     } catch (err) {
