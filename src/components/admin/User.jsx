@@ -8,7 +8,7 @@ export default function Users() {
 
   useEffect(() => {
     // Now we can use the relative path because of your Rewrite Rule!
-    fetch("/api/admin/users", { 
+    fetch("https://depth-flow-ai-backend-hhmx5.ondigitalocean.app/admin/users", { 
       headers: {
         "Authorization": `Bearer ${token}`, // Must send Admin Token
         "Content-Type": "application/json"
