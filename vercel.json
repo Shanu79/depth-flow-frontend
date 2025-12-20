@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "https://depth-flow-ai-backend-hhmx5.ondigitalocean.app/:match*"
+    }
+  ]
+}
