@@ -60,7 +60,6 @@ function App() {
       {/* Global Page Loader */}
       {isLoading && <PageLoader />}
 
-      {/* Only show Public Navbar if NOT on Admin pages */}
       {<Navbar />}
       
       <ScrolltoTop />
@@ -127,7 +126,7 @@ function App() {
       </Routes>
 
       {/* Only show Footer if NOT on Admin pages */}
-      {!isAdminRoute && <Footer />}
+      {<Footer />}
     </div>
   );
 }

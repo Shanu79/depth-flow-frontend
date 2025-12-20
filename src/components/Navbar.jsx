@@ -116,8 +116,8 @@ const Navbar = () => {
       {/* Mobile Dropdown Content */}
       {isOpen && (
         <div className="absolute top-20 left-0 w-full bg-slate-900 border-b border-slate-800 p-4 flex flex-col gap-4 md:hidden animate-in slide-in-from-top-5">
-          <a href="#features" className="text-gray-300">Features</a>
-          <a href="#gallery" className="text-gray-300">Gallery</a>
+          <a href="/#features" className="text-gray-300">Features</a>
+          <a href="/#gallery" className="text-gray-300">Gallery</a>
           <Link to="/pricing" className="text-gray-300">Pricing</Link>
 
           {user ? (
