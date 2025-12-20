@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import useAuthStore from "../../stores/authStore"; 
+import { API_BASE_URL } from '../config.js';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -8,7 +9,7 @@ export default function Users() {
 
   useEffect(() => {
     // Now we can use the relative path because of your Rewrite Rule!
-    fetch("/api/admin/users", { 
+    fetch(`${API_BASE_URL}/admin/users`, { 
       headers: {
         "Authorization": `Bearer ${token}`, // Must send Admin Token
         "Content-Type": "application/json"
