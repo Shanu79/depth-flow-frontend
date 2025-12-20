@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import useAuthStore from "../../stores/authStore"; 
-import { API_BASE_URL } from '../config.js';
+import { API_BASE_URL } from "../../config";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
