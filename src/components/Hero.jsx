@@ -8,7 +8,7 @@ const Hero = () => {
   const navigate = useNavigate();
   
   return (
-    <section className="relative pt-32 pb-16 md:px-12 lg:px-16 flex flex-col lg:flex-row items-center justify-between min-h-screen overflow-hidden">
+    <section className="relative pt-32 pb-16 md:px-8 lg:px-16 flex flex-col lg:flex-row items-center justify-between min-h-screen overflow-hidden">
       {/* Text Content */}
       <div className="w-full min-w-[40%] flex flex-col justify-center space-y-6 text-center lg:text-left p-8">
         <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight">

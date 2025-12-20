@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, X } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
 import { useNavigate, useLocation } from 'react-router-dom';
+
 const PricingPage = () => {
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
@@ -19,7 +20,7 @@ const PricingPage = () => {
         { text: "1 image only", included: true },
         { text: "720p quality", included: true, info: true },
         { text: "No download", included: false },
-        { text: "Slow processing queue", included: true, icon: "clock" }, // Custom handling for 'clock' icon if strictly needed, otherwise sticking to check/x
+        { text: "Slow processing queue", included: true, icon: "clock" },
         { text: "No commercial usage", included: false },
       ],
       highlight: false,
@@ -29,7 +30,7 @@ const PricingPage = () => {
     {
       name: "Basic",
       price: { monthly: "9.99", yearly: "99" },
-      originalPrice: { monthly: null, yearly: "120" }, // For strikethrough
+      originalPrice: { monthly: null, yearly: "120" }, 
       period: { monthly: "/ month", yearly: "/ year" },
       description: "Best for hobbyists",
       features: [
@@ -40,7 +41,7 @@ const PricingPage = () => {
         { text: "Standard processing", included: true },
         { text: "Commercial use allowed", included: true },
       ],
-      highlight: true, // For the Cyan glow
+      highlight: true, 
       badge: "MOST POPULAR",
       buttonText: "Subscribe Basic",
       buttonStyle: "bg-cyan-500 text-black hover:bg-cyan-400 border-none shadow-[0_0_20px_rgba(34,211,238,0.4)]"
@@ -56,11 +57,11 @@ const PricingPage = () => {
         { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "MP4 upto UHD quality", included: true },
-        { text: "Fast processing queue", included: true, icon: "rocket" }, // Custom handling for 'rocket' icon if strictly needed
+        { text: "Fast processing queue", included: true, icon: "rocket" },
         { text: "Commercial use allowed", included: true },
       ],
-      highlight: false, // Pro has a specific purple border logic in styling
-      isPro: true, // Custom flag for purple styling
+      highlight: false,
+      isPro: true,
       buttonText: "Subscribe Pro",
       buttonStyle: "bg-purple-600 text-white hover:bg-purple-500 border-none shadow-[0_0_20px_rgba(168,85,247,0.4)]"
     }
@@ -94,83 +95,96 @@ const PricingPage = () => {
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-        {plans.map((plan, idx) => (
-          <div key={idx} className={`relative rounded-3xl p-8 flex flex-col border transition-all duration-300 group
-             ${plan.highlight
-              ? 'bg-slate-900/80 border-cyan-500/50 shadow-[0_0_30px_rgba(34,211,238,0.15)]'
-              : plan.isPro
-                ? 'bg-slate-900/80 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.15)]'
-                : 'bg-slate-900/50 border-slate-700 hover:border-slate-600'
-            }
-           `}>
+        {plans.map((plan, idx) => {
+          // --- LOGIC: CHECK IF THIS IS THE CURRENT PLAN ---
+          // Safely check user plan (case-insensitive)
+          const isCurrentPlan = user?.plan?.toLowerCase() === plan.name.toLowerCase();
 
-            {/* Most Popular Badge */}
-            {plan.badge && (
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-cyan-400 text-black text-xs font-bold px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.6)]">
-                {plan.badge}
-              </div>
-            )}
+          return (
+            <div key={idx} className={`relative rounded-3xl p-8 flex flex-col border transition-all duration-300 group
+               ${plan.highlight
+                ? 'bg-slate-900/80 border-cyan-500/50 shadow-[0_0_30px_rgba(34,211,238,0.15)]'
+                : plan.isPro
+                  ? 'bg-slate-900/80 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.15)]'
+                  : 'bg-slate-900/50 border-slate-700 hover:border-slate-600'
+              }
+            `}>
 
-            {/* Header */}
-            <div className="text-center mb-8 border-b border-slate-800 pb-8">
-              <h3 className="text-xl font-medium text-gray-300 mb-4">{plan.name}</h3>
+              {/* Badge */}
+              {plan.badge && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-cyan-400 text-black text-xs font-bold px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.6)]">
+                  {plan.badge}
+                </div>
+              )}
 
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                  ${plan.price[billingCycle]}
-                </span>
+              {/* Header */}
+              <div className="text-center mb-8 border-b border-slate-800 pb-8">
+                <h3 className="text-xl font-medium text-gray-300 mb-4">{plan.name}</h3>
 
-                {/* Strikethrough Price (Only for Yearly) */}
-                {billingCycle === 'yearly' && plan.originalPrice?.yearly && (
-                  <span className="text-xl text-gray-500 line-through font-medium">
-                    ${plan.originalPrice.yearly}
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+                    ${plan.price[billingCycle]}
                   </span>
-                )}
-              </div>
 
-              <span className="text-gray-500 text-sm mt-2 block">
-                {plan.period[billingCycle]}
-              </span>
-            </div>
-
-            {/* Features List */}
-            <ul className="space-y-4 mb-8 flex-1">
-              {plan.features.map((feature, fIdx) => (
-                <li key={fIdx} className="flex items-start gap-3 text-sm">
-                  {/* Icons Logic */}
-                  {feature.included ? (
-                    <Check className={`w-5 h-5 shrink-0 ${plan.isPro ? 'text-purple-400' : 'text-cyan-400'}`} />
-                  ) : (
-                    <X className="w-5 h-5 shrink-0 text-gray-600" />
+                  {billingCycle === 'yearly' && plan.originalPrice?.yearly && (
+                    <span className="text-xl text-gray-500 line-through font-medium">
+                      ${plan.originalPrice.yearly}
+                    </span>
                   )}
+                </div>
 
-                  <span className={feature.included ? 'text-gray-300' : 'text-gray-500'}>
-                    {/* Switch text for Yearly if applicable (e.g. 600 images/year) */}
-                    {billingCycle === 'yearly' && feature.yearlyText
-                      ? feature.yearlyText
-                      : feature.text}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                <span className="text-gray-500 text-sm mt-2 block">
+                  {plan.period[billingCycle]}
+                </span>
+              </div>
 
-            {/* Button */}
-            <button
-              onClick={() => navigate('/payment', {
-                state: {
-                  planName: plan.name,
-                  price: plan.price[billingCycle],
-                  billingCycle: billingCycle,
-                  credits: plan.features[0].text.split(' ')[0]
+              {/* Features */}
+              <ul className="space-y-4 mb-8 flex-1">
+                {plan.features.map((feature, fIdx) => (
+                  <li key={fIdx} className="flex items-start gap-3 text-sm">
+                    {feature.included ? (
+                      <Check className={`w-5 h-5 shrink-0 ${plan.isPro ? 'text-purple-400' : 'text-cyan-400'}`} />
+                    ) : (
+                      <X className="w-5 h-5 shrink-0 text-gray-600" />
+                    )}
+
+                    <span className={feature.included ? 'text-gray-300' : 'text-gray-500'}>
+                      {billingCycle === 'yearly' && feature.yearlyText
+                        ? feature.yearlyText
+                        : feature.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* --- UPDATED BUTTON --- */}
+              <button
+                onClick={() => {
+                   if (isCurrentPlan) return; // Do nothing if it's the current plan
+                   navigate('/payment', {
+                    state: {
+                      planName: plan.name,
+                      price: plan.price[billingCycle],
+                      billingCycle: billingCycle,
+                      credits: plan.features[0].text.split(' ')[0]
+                    }
+                  });
+                }}
+                disabled={loading || isCurrentPlan} // Disable button if loading OR matches current plan
+                className={`w-full py-3.5 rounded-full font-semibold transition-all shadow-lg border 
+                  ${isCurrentPlan 
+                    ? 'bg-slate-700 text-gray-300 border-slate-600 cursor-not-allowed opacity-80' // Style for Subscribed state
+                    : `${plan.buttonStyle} hover:scale-[1.02] active:scale-[0.98]`
+                  }`}
+              >
+                {loading 
+                  ? "Please wait..." 
+                  : (isCurrentPlan ? "Subscribed" : plan.buttonText)
                 }
-              })}
-              disabled={loading}
-              className={`w-full py-3.5 rounded-full font-semibold transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] border ${plan.buttonStyle}`}
-            >
-              {loading ? "Please wait..." : plan.buttonText}
-            </button>
-          </div>
-        ))}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

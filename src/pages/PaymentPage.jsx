@@ -47,7 +47,7 @@ const PaymentPage = () => {
 
   // 2. Redirect if accessed directly
   useEffect(() => {
-    if (!state) navigate('/#pricing');
+    if (!state) navigate('/payment');
   }, [state, navigate]);
 
   if (!state) return null;
