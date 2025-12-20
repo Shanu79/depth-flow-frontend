@@ -34,7 +34,7 @@ const LoginPage = () => {
     localStorage.setItem('redirectAfterLogin', from);
     // Simply redirect browser to the Backend's Google Login route
     // The backend will handle the OAuth dance and redirect back to localhost:3000
-    window.location.href = `${API_BASE_URL}/auth/google/login`;
+    window.location.href = `/api/auth/google/login`;
   };
 
   const handleSubmit = async (e) => {
