@@ -20,7 +20,7 @@ export default function Users() {
       })
       .then((data) => setUsers(data))
       .catch((err) => setError(err.message));
-  }, [token]);
+  }, []);
 
   return (
     <div className="p-6 text-white min-h-screen bg-slate-950">
