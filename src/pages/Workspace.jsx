@@ -203,12 +203,6 @@ const Workspace = () => {
       >
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
-          {/* Display credits in header for better UX */}
-          {credits !== null && (
-             <div className="bg-slate-900 px-3 py-1 rounded-full border border-slate-800 text-xs font-mono text-cyan-400">
-               {credits} Credits
-             </div>
-          )}
         </div>
 
         {/* Upload Box */}

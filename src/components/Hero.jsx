@@ -34,7 +34,7 @@ const Hero = () => {
       {/* Hero Image */}
       <div className="w-full md:flex flex-col items-center justify-center">
         <div className="w-full h-full overflow-hidden relative">
-              <div className="flex justify-center mb-20 scale-[0.9] lg:scale-[0.67] xl:scale-[0.8]">
+              <div className="flex justify-center mb-20 scale-[0.73] lg:scale-[0.67] xl:scale-[0.8]">
                 <HeroImage />
               </div>
               

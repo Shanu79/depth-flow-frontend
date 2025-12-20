@@ -34,7 +34,7 @@ const PricingPage = () => {
       period: { monthly: "/ month", yearly: "/ year" },
       description: "Best for hobbyists",
       features: [
-        { text: "600 credits per month", included: true, yearlyText: "7,200 credits per year" },
+        { text: "550 credits per month", included: true, yearlyText: "6,600 credits per year" },
         { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "MP4 upto HD (1080p) quality", included: true },
