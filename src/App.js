@@ -68,7 +68,7 @@ function App() {
           </RequireAuth>
         } />
 
-        {user && user.isAdmin && (
+        {user && user.is_admin && (
         <Route
           path="/admin/users"
           element={
