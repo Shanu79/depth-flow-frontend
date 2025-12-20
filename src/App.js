@@ -18,7 +18,7 @@ import RequireAuth from './components/RequireAuth';
 import PricingPage from './pages/PricingPage';
 import GalleryPage from './pages/GalleryPage';
 import PageLoader from './components/PageLoader';
-
+import AdminLayout from "./AdminLayout";
 function App() {
   // 2. Get checkAuth from the store
   const user = useAuthStore((state) => state.user);
@@ -66,6 +66,15 @@ function App() {
             <Workspace />
           </RequireAuth>
         } />
+
+        <Route
+          path="/admin"
+          element={
+            
+              <AdminLayout />
+           
+          }
+        ></Route>
 
         <Route path="/payment" element={
           <RequireAuth>
