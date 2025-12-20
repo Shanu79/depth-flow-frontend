@@ -4,11 +4,11 @@ import useAuthStore from "../../stores/authStore";
 export default function Users() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
-  const { token } = useAuthStore(); // Get token from store
+  const token = localStorage.getItem("token"); 
 
   useEffect(() => {
     // Now we can use the relative path because of your Rewrite Rule!
-    fetch("https://depth-flow-ai-backend-hhmx5.ondigitalocean.app/admin/users", { 
+    fetch("/api/admin/users", { 
       headers: {
         "Authorization": `Bearer ${token}`, // Must send Admin Token
         "Content-Type": "application/json"
