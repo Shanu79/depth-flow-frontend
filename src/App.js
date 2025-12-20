@@ -18,7 +18,7 @@ import RequireAuth from './components/RequireAuth';
 import PricingPage from './pages/PricingPage';
 import GalleryPage from './pages/GalleryPage';
 import PageLoader from './components/PageLoader';
-import AdminLayout from "./AdminLayout";
+import AdminLayout from "./components/admin/AdminLayout";
 function App() {
   // 2. Get checkAuth from the store
   const user = useAuthStore((state) => state.user);

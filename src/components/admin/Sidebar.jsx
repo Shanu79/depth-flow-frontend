@@ -8,7 +8,6 @@ export default function Sidebar() {
 
       <nav className="flex flex-col gap-3">
         <NavLink to="/admin/users">Users</NavLink>
-        <NavLink to="/admin/stats">Stats</NavLink>
       </nav>
     </aside>
   );
