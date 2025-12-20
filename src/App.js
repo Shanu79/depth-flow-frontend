@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react'; // 1. Import useEffect
+import React, { useEffect, useState } from 'react'; // 1. Import useEffect
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
-import Gallery from './pages/Gallery';
+import Gallery from './pages/GalleryPage';
 import Workspace from './pages/Workspace';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
@@ -16,6 +16,9 @@ import PaymentPage from './pages/PaymentPage';
 
 import useAuthStore from './stores/authStore';
 import RequireAuth from './components/RequireAuth';
+import PricingPage from './pages/PricingPage';
+import GalleryPage from './pages/GalleryPage';
+import PageLoader from './components/PageLoader';
 
 function App() {
   // 2. Get checkAuth from the store
@@ -23,6 +26,20 @@ function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
   
   const location = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // 1. Start Loading on route change
+    setIsLoading(true);
+
+    // 2. Stop Loading after a small delay (simulates smooth transition)
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800); // Adjust time: 500ms = fast, 1000ms = slow
+
+    // 3. Cleanup timer
+    return () => clearTimeout(timer);
+  }, [location.pathname]); // Trigger whenever path changes
 
   // 3. On component mount, check authentication status
   useEffect(() => {
@@ -33,6 +50,8 @@ function App() {
 
   return (
     <div className="bg-slate-950 min-h-screen font-sans selection:bg-purple-500/30">
+
+      {isLoading && <PageLoader />}
       
       <Navbar />
       
@@ -64,7 +83,8 @@ function App() {
         <Route path='/contact' element={<ContactPage />} />
         <Route path='/privacy' element={<PrivacyPolicy />} />
         <Route path='/terms' element={<Terms />} />
-        <Route path="/gallery" element={<Gallery />} />
+        <Route path="/gallery" element={<GalleryPage />} />
+        <Route path='/pricing' element={<PricingPage />} />
       </Routes>
       
       <Footer />

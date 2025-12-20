@@ -1,14 +1,14 @@
 import Hero from "../components/Hero";
 import Features from "../components/Features";
-import Pricing from "../components/Pricing";
 import HomeGallery from "../components/HomeGallery";
+import FAQ from "../components/Faq";
 
 const HomePage = () => (
   <>
     <Hero />
     <Features />
     <HomeGallery />
-    <Pricing />
+    <FAQ />
   </>
 );
 

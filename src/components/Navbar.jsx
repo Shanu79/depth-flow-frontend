@@ -36,7 +36,7 @@ const Navbar = () => {
       <div className="hidden md:flex items-center bg-slate-800/50 shadow-[0_0_15px_rgba(168,85,247,0.5)] rounded-full px-8 py-3 border border-slate-700/50">
         <a href="/#features" className="text-slate-300 hover:text-white px-4 text-sm font-medium transition-colors">Features</a>
         <a href="/#gallery" className="text-slate-300 hover:text-white px-4 text-sm font-medium transition-colors">Gallery</a>
-        <a href="/#pricing" className="text-slate-300 hover:text-white px-4 text-sm font-medium transition-colors">Pricing</a>
+        <Link to="/pricing" className="text-slate-300 hover:text-white px-4 text-sm font-medium transition-colors">Pricing</Link>
       </div>
 
       {/* Right Side Actions */}
@@ -100,7 +100,7 @@ const Navbar = () => {
         )}
 
         {/* Mobile Menu Toggle */}
-        <button className="md:hidden text-white p-4 pl-2" onClick={() => setIsOpen(!isOpen)}>
+        <button className="md:hidden text-white md:p-4 md:pl-2" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X /> : <Menu />}
         </button>
       </div>
@@ -110,7 +110,7 @@ const Navbar = () => {
         <div className="absolute top-20 left-0 w-full bg-slate-900 border-b border-slate-800 p-4 flex flex-col gap-4 md:hidden animate-in slide-in-from-top-5">
           <a href="#features" className="text-gray-300">Features</a>
           <a href="#gallery" className="text-gray-300">Gallery</a>
-          <a href="#pricing" className="text-gray-300">Pricing</a>
+          <Link to="/pricing" className="text-gray-300">Pricing</Link>
           
           {user ? (
              <>

@@ -7,7 +7,7 @@ import video4 from '../assets/video4.mp4';
 import video5 from '../assets/video5.mp4';
 import video6 from '../assets/video6.mp4';
 
-// Simple SVG Icons to avoid external dependencies
+// Simple SVG Icons
 const PlayIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor" className="text-white drop-shadow-lg">
     <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -30,7 +30,7 @@ export const galleryItems = [
     { id: 4, src: video4, title: "Character Design 4" },
     { id: 5, src: video5, title: "Motion Graphics 5" },
     { id: 6, src: video6, title: "Visual Effects 6" },
-  ];
+];
 
 const HomeGallery = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -46,18 +46,22 @@ const HomeGallery = () => {
 
   return (
     <>
-      <section id="gallery" className="px-6 md:px-20 py-20 bg-slate-950 scroll-mt-3 min-h-screen">
+      <section id="gallery" className="py-20 px-6 md:px-20 bg-slate-950 border-t border-slate-900 scroll-mt-3 min-h-screen">
         <h3 className="text-3xl text-white font-bold mb-8 text-center md:text-left">
             Gallery
         </h3>
         
         {/* Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {galleryItems.map((item) => (
+          {galleryItems.map((item, index) => (
             <div 
               key={item.id} 
               onClick={() => setSelectedVideo(item)}
-              className="group relative cursor-pointer rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden shadow-lg transition-all duration-300 hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] hover:-translate-y-1"
+              // --- UPDATED LOGIC HERE ---
+              // We convert the className to a template literal {` ... `}
+              // If index >= 3 (the 4th item onwards), we add 'hidden md:block'
+              className={`group relative cursor-pointer rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden shadow-lg transition-all duration-300 hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] hover:-translate-y-1 
+              ${index >= 3 ? 'hidden md:block' : ''}`}
             >
               {/* Thumbnail Container (Using Video as thumbnail) */}
               <div className="relative w-full h-64 overflow-hidden">
@@ -66,7 +70,6 @@ const HomeGallery = () => {
                   muted 
                   loop 
                   preload="metadata"
-                  // Play on hover for effect
                   onMouseOver={(e) => e.target.play()}
                   onMouseOut={(e) => {
                     e.target.pause();
@@ -106,9 +109,8 @@ const HomeGallery = () => {
       {selectedVideo && (
         <div 
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
-            onClick={() => setSelectedVideo(null)} // Click background to close
+            onClick={() => setSelectedVideo(null)}
         >
-          {/* Close Button */}
           <button 
             onClick={() => setSelectedVideo(null)}
             className="absolute top-6 right-6 text-gray-400 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all z-50"
@@ -116,10 +118,9 @@ const HomeGallery = () => {
             <XIcon />
           </button>
 
-          {/* Video Player Wrapper */}
           <div 
             className="relative w-full max-w-5xl rounded-xl overflow-hidden shadow-2xl bg-black border border-slate-800"
-            onClick={(e) => e.stopPropagation()} // Prevent clicking video from closing modal
+            onClick={(e) => e.stopPropagation()} 
           >
              <video 
                src={selectedVideo.src} 

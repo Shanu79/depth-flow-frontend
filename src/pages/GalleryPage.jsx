@@ -18,7 +18,7 @@ const XIcon = () => (
   </svg>
 );
 
-const Gallery = () => {
+const GalleryPage = () => {
     const [selectedVideo, setSelectedVideo] = useState(null);
 
     useEffect(() => {
@@ -108,4 +108,4 @@ const Gallery = () => {
     );
 };
 
-export default Gallery;
+export default GalleryPage;

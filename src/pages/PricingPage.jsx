@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Check, X } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
 import { useNavigate, useLocation } from 'react-router-dom';
-const Pricing = () => {
+const PricingPage = () => {
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
   const location = useLocation();
@@ -67,9 +67,9 @@ const Pricing = () => {
   ];
 
   return (
-    <section id="pricing" className="px-6 md:px-20 py-20 scroll-mt-2 relative">
+    <section id="pricing" className="px-6 md:px-20 py-20 relative">
       {/* Section Header */}
-      <div className="text-center mb-12">
+      <div className="text-center my-12">
         <h2 className="text-3xl md:text-4xl font-bold text-white">Flexible Pricing Plans</h2>
         <p className="text-gray-400">Choose the perfect plan for your creative needs.</p>
 
@@ -176,4 +176,4 @@ const Pricing = () => {
   );
 };
 
-export default Pricing;
+export default PricingPage;
