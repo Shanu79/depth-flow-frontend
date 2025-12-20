@@ -1,17 +1,18 @@
-import { NavLink } from "react-router-dom";
-import { Users, LayoutDashboard, Settings, LogOut } from "lucide-react";
-import { Navigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom"; 
+import { Users, LogOut } from "lucide-react";
+
 
 export default function Sidebar() {
 
-  const navigate = Navigate();
+  // 2. USE THE HOOK
+  const navigate = useNavigate(); 
+
   const handleLogout = () => {
-    navigate("/");
+    navigate("/"); // Now this works!
   }
+
   const navItems = [
     { name: "Users", path: "/admin/users", icon: <Users className="w-5 h-5" /> },
-    // Add more links here later (e.g., Settings, Analytics)
-    // { name: "Settings", path: "/admin/settings", icon: <Settings className="w-5 h-5" /> },
   ];
 
   return (
