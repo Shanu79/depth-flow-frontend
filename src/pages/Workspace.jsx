@@ -21,7 +21,7 @@ const CreditAlertModal = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
-        
+
         <div className="flex justify-between items-start mb-4">
           <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-2">
             <AlertCircle className="w-6 h-6" />
@@ -37,13 +37,13 @@ const CreditAlertModal = ({ isOpen, onClose }) => {
         </p>
 
         <div className="flex gap-3">
-          <button 
+          <button
             onClick={onClose}
             className="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 transition-colors"
           >
             Cancel
           </button>
-          <button 
+          <button
             onClick={() => navigate('/pricing')}
             className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:shadow-lg hover:shadow-purple-500/25 transition-all"
           >
@@ -72,7 +72,7 @@ const Workspace = () => {
   const [resultVideoUrl, setResultVideoUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("input");
-  
+
   // --- New: Modal State ---
   const [showCreditModal, setShowCreditModal] = useState(false);
 
@@ -191,11 +191,11 @@ const Workspace = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row overflow-hidden relative">
-      
+
       {/* --- MOUNT THE MODAL --- */}
-      <CreditAlertModal 
-        isOpen={showCreditModal} 
-        onClose={() => setShowCreditModal(false)} 
+      <CreditAlertModal
+        isOpen={showCreditModal}
+        onClose={() => setShowCreditModal(false)}
       />
 
       {/* LEFT PANEL */}
@@ -208,26 +208,26 @@ const Workspace = () => {
         </div>
 
         {/* Upload Box */}
-        <div 
-          onClick={() => fileInputRef.current.click()} 
+        <div
+          onClick={() => fileInputRef.current.click()}
           className="relative border-2 border-dashed border-cyan-400 bg-blue-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-blue-600/30 transition-all overflow-hidden"
         >
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            className="hidden" 
-            accept="image/png, image/jpeg" 
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/png, image/jpeg"
           />
-          
+
           {previewUrl ? (
             <div className="relative h-full w-full flex items-center justify-center">
-              <img 
-                src={previewUrl} 
-                alt="Preview" 
-                className="h-full object-contain rounded-lg" 
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="h-full object-contain rounded-lg"
               />
-              <button 
+              <button
                 onClick={handleRemoveImage}
                 className="absolute top-0 right-0 p-1.5 bg-slate-900/80 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg border border-slate-700"
                 title="Remove and upload another"
@@ -248,19 +248,60 @@ const Workspace = () => {
         {/* Settings */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
           <div className="space-y-4">
+
+            {/* DEPTH SLIDER - Now Dynamic */}
             <div className="space-y-3">
-              <span className="text-sm text-slate-300 font-medium flex justify-between">Depth<span>{depth}</span></span>
-              <input type="range" min="1" max="10" value={depth} onChange={(e) => setDepth(e.target.value)} className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400" />
+              <span className="text-sm text-slate-300 font-medium flex justify-between">
+                Depth
+                {/* Visual feedback so user knows why it's capped */}
+                <span className={motionStyle === "Zoom" && depth > 8 ? "text-red-400" : ""}>
+                  {depth} {motionStyle === "Zoom" ? "(Max 8)" : ""}
+                </span>
+              </span>
+
+              <input
+                type="range"
+                min="1"
+                // 👇 DYNAMIC MAX: Prevents 'Zoom' from exceeding backend math limits
+                max={motionStyle === "Zoom" ? "8" : "10"}
+                value={depth}
+                onChange={(e) => setDepth(Number(e.target.value))}
+                className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
+              />
             </div>
+
             <div className="space-y-3">
-              <span className="text-sm text-slate-300 font-medium flex justify-between">Motion Duration<span>{speed}s</span></span>
-              <input type="range" min="1" max="10" value={speed} onChange={(e) => setSpeed(e.target.value)} className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400" />
+              <span className="text-sm text-slate-300 font-medium flex justify-between">
+                Motion Duration
+                <span>{speed}s</span>
+              </span>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={speed}
+                onChange={(e) => setSpeed(e.target.value)}
+                className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
+              />
             </div>
           </div>
 
+          {/* STYLE BUTTONS - Auto-clamp depth when clicking 'Zoom' */}
           <div className="flex bg-slate-950/50 p-1 rounded-xl border border-slate-800">
             {["Dolly", "Orbit", "Zoom"].map((style) => (
-              <button key={style} onClick={() => setMotionStyle(style)} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${motionStyle === style ? "bg-slate-700 text-white shadow-sm" : "text-slate-500 hover:text-white"}`}>{style}</button>
+              <button
+                key={style}
+                onClick={() => {
+                  setMotionStyle(style);
+                  // 👇 LOGIC: If user switches to Zoom while at Depth 9 or 10, snap it down to 8
+                  if (style === "Zoom" && depth > 8) {
+                    setDepth(8);
+                  }
+                }}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${motionStyle === style ? "bg-slate-700 text-white shadow-sm" : "text-slate-500 hover:text-white"}`}
+              >
+                {style}
+              </button>
             ))}
           </div>
         </div>
