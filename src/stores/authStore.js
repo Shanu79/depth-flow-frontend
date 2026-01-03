@@ -70,7 +70,11 @@ const useAuthStore = create((set) => ({
     localStorage.removeItem("token");
     set({ user: null });
     window.location.href = "/";
-  }
+  },
+
+  updateCredits: (newCredits) => set((state) => ({
+    user: state.user ? { ...state.user, credits: newCredits } : null
+  })),
 }));
 
 export default useAuthStore;

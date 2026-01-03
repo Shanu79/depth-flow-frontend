@@ -10,6 +10,7 @@ import {
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { API_BASE_URL } from '../config.js';
+import useAuthStore from '../store/authStore';
 
 // --- NEW: Credit Alert Modal Component ---
 const CreditAlertModal = ({ isOpen, onClose }) => {
@@ -76,7 +77,8 @@ const Workspace = () => {
   const [showCreditModal, setShowCreditModal] = useState(false);
 
   // --- User State ---
-  const [credits, setCredits] = useState(null);
+  const { user, updateCredits } = useAuthStore();
+  const credits = user?.credits || 0;
 
   const fileInputRef = useRef(null);
   const previewRef = useRef(null);
@@ -91,23 +93,23 @@ const Workspace = () => {
   };
 
   // 1. Fetch User Credits on Mount
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     const token = localStorage.getItem("token");
+  //     if (!token) return;
 
-      try {
-        const res = await fetch(`${API_BASE_URL}/auth/me`, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setCredits(data.credits);
-        }
-      } catch (e) { console.error(e); }
-    };
-    fetchUser();
-  }, []);
+  //     try {
+  //       const res = await fetch(`${API_BASE_URL}/auth/me`, {
+  //         headers: { "Authorization": `Bearer ${token}` }
+  //       });
+  //       if (res.ok) {
+  //         const data = await res.json();
+  //         setCredits(data.credits);
+  //       }
+  //     } catch (e) { console.error(e); }
+  //   };
+  //   fetchUser();
+  // }, []);
 
   // ... (Resizing Logic remains same) ...
   const startResizing = useCallback(() => { setIsResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'col-resize'; }, []);
@@ -175,7 +177,7 @@ const Workspace = () => {
 
       const data = await response.json();
       setResultVideoUrl(data.video_url);
-      setCredits(data.remaining_credits);
+      updateCredits(data.remaining_credits);
       setActiveTab("output");
       setPreviewHeight(null);
 
