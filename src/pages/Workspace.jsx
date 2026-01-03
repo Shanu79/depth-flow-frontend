@@ -10,7 +10,7 @@ import {
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { API_BASE_URL } from '../config.js';
-import useAuthStore from '../store/authStore';
+import useAuthStore from '../stores/authStore.js';
 
 // --- NEW: Credit Alert Modal Component ---
 const CreditAlertModal = ({ isOpen, onClose }) => {
