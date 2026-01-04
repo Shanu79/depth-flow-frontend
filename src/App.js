@@ -75,7 +75,7 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/pricing" element={<PricingPage />} />
-        <Route path='/subsriptions' element={<BillingPage />} />
+        <Route path='/billing' element={<BillingPage />} />
 
         {/* ================= AUTH ROUTES ================= */}
         <Route
