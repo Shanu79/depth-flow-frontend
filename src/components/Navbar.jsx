@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation, Receipt } from 'react-router-dom';
-import { Menu, X, CreditCard, ChevronDown, LogOut, LayoutGrid, ShoppingCartIcon, Shield } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X, CreditCard, ChevronDown, LogOut, LayoutGrid, ShoppingCartIcon, Shield, Receipt } from 'lucide-react';
 import FullLogo from './FullLogo';
 import useAuthStore from '../stores/authStore.js';
 
