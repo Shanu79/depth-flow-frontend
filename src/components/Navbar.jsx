@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, Receipt } from 'react-router-dom';
 import { Menu, X, CreditCard, ChevronDown, LogOut, LayoutGrid, ShoppingCartIcon, Shield } from 'lucide-react';
 import FullLogo from './FullLogo';
 import useAuthStore from '../stores/authStore.js';
@@ -74,6 +74,9 @@ const Navbar = () => {
                       <Shield className="w-3.5 h-3.5" /> Admin Panel
                     </button>
                   )}
+                  <button onClick={() => navigate('/billing')} className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800">
+                    <Receipt className="w-3.5 h-3.5" /> Billing
+                  </button>
                   <button onClick={() => navigate('/pricing')} className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800">
                     <ShoppingCartIcon className="w-3.5 h-3.5" /> Buy a Plan
                   </button>
@@ -137,6 +140,9 @@ const Navbar = () => {
                   Admin Panel
                 </button>
               )}
+              <button onClick={() => { navigate('/billing'); setIsOpen(false); }} className="text-slate-300 text-left font-medium">
+                Billing & Credits
+              </button>
               <button onClick={() => { navigate('/pricing'); setIsOpen(false); }} className="text-cyan-400 text-left font-medium">
                 Buy a Plan
               </button>

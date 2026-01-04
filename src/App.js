@@ -29,6 +29,7 @@ import RequireAdmin from "./components/RequireAdmin"; // <--- Import the new com
 import AdminLayout from "./components/admin/AdminLayout";
 // Assuming your Users file is located at admin/pages/Users.jsx based on previous chat
 import Users from "./components/admin/User";
+import BillingPage from "./pages/BillingPage";
 
 function App() {
   const user = useAuthStore((state) => state.user);
@@ -56,12 +57,12 @@ function App() {
 
   return (
     <div className="bg-slate-950 min-h-screen font-sans selection:bg-purple-500/30">
-      
+
       {/* Global Page Loader */}
       {isLoading && <PageLoader />}
 
       {<Navbar />}
-      
+
       <ScrolltoTop />
 
       <Routes>
@@ -74,6 +75,7 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path='/subsriptions' element={<BillingPage />} />
 
         {/* ================= AUTH ROUTES ================= */}
         <Route
@@ -116,7 +118,7 @@ function App() {
         >
           {/* Default redirect /admin -> /admin/users */}
           <Route index element={<Navigate to="users" replace />} />
-          
+
           {/* Matches /admin/users */}
           <Route path="users" element={<Users />} />
         </Route>
