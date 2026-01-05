@@ -142,9 +142,9 @@ const Workspace = () => {
       });
 
       if (response.status === 402) {
-        setShowCreditModal(true); 
-        setIsLoading(false);      
-        return;                  
+        setShowCreditModal(true);
+        setIsLoading(false);
+        return;
       }
 
       if (!response.ok) throw new Error("Generation failed.");
@@ -215,7 +215,7 @@ const Workspace = () => {
                 <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
               </div>
               <p className="text-white font-medium text-sm">Click to Upload Image</p>
-              
+
               {/* --- NEW: Note about file size --- */}
               <p className="text-slate-400 text-xs mt-2 max-w-[80%]">
                 Note: Larger image sizes will take longer to process.
@@ -228,25 +228,24 @@ const Workspace = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
           <div className="space-y-4">
 
-            {/* DEPTH SLIDER */}
+            {/* DEPTH / INTENSITY SLIDER */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
-                Depth
-                <span className={motionStyle === "Zoom" && depth > 8 ? "text-red-400" : ""}>
-                  {depth} {motionStyle === "Zoom" ? "(Max 8)" : ""}
-                </span>
+                Intensity
+                <span>{depth} (Max 10)</span>
               </span>
 
               <input
                 type="range"
                 min="1"
-                max={motionStyle === "Zoom" ? "8" : "10"}
+                max="10"
                 value={depth}
                 onChange={(e) => setDepth(Number(e.target.value))}
                 className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
               />
             </div>
 
+            {/* SPEED / DURATION SLIDER */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
                 Motion Duration
@@ -257,7 +256,7 @@ const Workspace = () => {
                 min="1"
                 max="10"
                 value={speed}
-                onChange={(e) => setSpeed(e.target.value)}
+                onChange={(e) => setSpeed(Number(e.target.value))}
                 className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
               />
             </div>
@@ -268,13 +267,11 @@ const Workspace = () => {
             {["Dolly", "Orbit", "Zoom"].map((style) => (
               <button
                 key={style}
-                onClick={() => {
-                  setMotionStyle(style);
-                  if (style === "Zoom" && depth > 8) {
-                    setDepth(8);
-                  }
-                }}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${motionStyle === style ? "bg-slate-700 text-white shadow-sm" : "text-slate-500 hover:text-white"}`}
+                onClick={() => setMotionStyle(style)}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${motionStyle === style
+                    ? "bg-slate-700 text-white shadow-sm"
+                    : "text-slate-500 hover:text-white"
+                  }`}
               >
                 {style}
               </button>
