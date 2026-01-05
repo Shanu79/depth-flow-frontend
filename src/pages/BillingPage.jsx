@@ -88,13 +88,6 @@ const BillingPage = () => {
               <span className="text-4xl font-bold text-white">{user?.credits || 0}</span>
               <p className="text-sm text-slate-400">credits remaining</p>
             </div>
-            <button 
-              onClick={() => handleCheckout("Basic", "monthly")} 
-              disabled={loading}
-              className="mt-6 w-full py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : "Buy 550 Credits ($99)"}
-            </button>
           </div>
 
           {/* PLAN CARD */}
