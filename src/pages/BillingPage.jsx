@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { CreditCard, Zap, Shield, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { CreditCard, Zap, Shield, Loader2, CheckCircle, AlertTriangle, X } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import { API_BASE_URL } from '../config'; 
 
 const BillingPage = () => {
-  const { user, refreshUser } = useAuthStore(); // Ensure refreshUser is available to update UI after cancel
+  const { user, refreshUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  
+  // --- NEW STATE FOR MODAL ---
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
 
   const PLANS = {
@@ -36,10 +39,8 @@ const BillingPage = () => {
     }
   };
 
-  // --- 2. HANDLE CANCEL SUBSCRIPTION ---
-  const handleCancel = async () => {
-    if (!window.confirm("Are you sure you want to cancel? You will lose access to premium features immediately.")) return;
-
+  // --- 2. EXECUTE CANCELLATION (Called from Modal) ---
+  const confirmCancellation = async () => {
     setCancelLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -51,8 +52,9 @@ const BillingPage = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Cancellation failed");
 
-      alert("Subscription cancelled successfully.");
-      await refreshUser(); // Refresh local user state to reflect "Free" plan
+      // Success
+      await refreshUser(); 
+      setShowCancelModal(false); // Close Modal
       
     } catch (error) {
       console.error("Cancel Error:", error);
@@ -63,7 +65,51 @@ const BillingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-28 pb-12 px-6">
+    <div className="min-h-screen bg-slate-950 pt-28 pb-12 px-6 relative">
+      
+      {/* --- CUSTOM CANCEL MODAL --- */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+            
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-2">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <button 
+                onClick={() => setShowCancelModal(false)}
+                className="text-slate-500 hover:text-white transition-colors"
+                disabled={cancelLoading}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <h3 className="text-xl font-bold text-white mb-2">Cancel Subscription?</h3>
+            <p className="text-slate-400 mb-6 leading-relaxed">
+              Are you sure you want to cancel your <strong>{currentPlan}</strong>? You will lose access to premium features and remaining credits immediately.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                disabled={cancelLoading}
+                className="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 transition-colors"
+              >
+                Keep Plan
+              </button>
+              <button
+                onClick={confirmCancellation}
+                disabled={cancelLoading}
+                className="flex-1 px-4 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold hover:shadow-lg hover:shadow-red-500/25 transition-all flex items-center justify-center gap-2"
+              >
+                {cancelLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Yes, Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-5xl mx-auto space-y-8">
         
         <div>
@@ -122,7 +168,6 @@ const BillingPage = () => {
               </div>
               
               <div className="flex gap-3">
-                {/* --- FIX: ALLOW UPGRADE IF NOT PRO --- */}
                 {currentPlan !== "Pro" && (
                   <button 
                     onClick={() => handleCheckout("Pro", "monthly")}
@@ -133,14 +178,12 @@ const BillingPage = () => {
                   </button>
                 )}
 
-                {/* --- SHOW CANCEL ONLY IF SUBSCRIBED --- */}
                 {user?.subscription_status === 'active' && (
                   <button 
-                    onClick={handleCancel}
-                    disabled={cancelLoading}
+                    onClick={() => setShowCancelModal(true)} // Opens the new Modal
                     className="px-4 py-2 bg-slate-800 hover:bg-red-900/30 border border-slate-700 hover:border-red-800 text-slate-300 hover:text-red-400 text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
                   >
-                     {cancelLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : "Cancel Plan"}
+                     Cancel Plan
                   </button>
                 )}
               </div>
