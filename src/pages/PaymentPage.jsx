@@ -141,7 +141,7 @@ const PaymentPage = () => {
             <div className="space-y-2 pt-2">
               <div className="flex items-center gap-3 text-sm text-slate-300">
                 <CheckCircle className="w-4 h-4 text-cyan-400" />
-                <span>{credits} included</span>
+                <span>{credits} Credits included</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-slate-300">
                 <CheckCircle className="w-4 h-4 text-cyan-400" />

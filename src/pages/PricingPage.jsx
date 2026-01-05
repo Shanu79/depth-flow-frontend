@@ -15,11 +15,12 @@ const PricingPage = () => {
       name: "Free",
       price: { monthly: "0", yearly: "0" },
       period: { monthly: "/ month", yearly: "/ month" },
-      description: "1 image only",
+      description: "20 credits",
       features: [
-        { text: "1 image only", included: true },
+        { text: "20 credits", included: true },
+        { text: "2D to 3D Depth Motion", included: true },
+        { text: "No watermark", included: false },
         { text: "720p quality", included: true, info: true },
-        { text: "No download", included: false },
         { text: "Slow processing queue", included: true, icon: "clock" },
         { text: "No commercial usage", included: false },
       ],
@@ -96,13 +97,11 @@ const PricingPage = () => {
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
         {plans.map((plan, idx) => {
-          // --- LOGIC: CHECK IF THIS IS THE CURRENT PLAN ---
-          // Safely check user plan (case-insensitive)
           const isCurrentPlan = user?.plan?.toLowerCase() === plan.name.toLowerCase();
 
           return (
             <div key={idx} className={`relative rounded-3xl p-8 flex flex-col border transition-all duration-300 group
-               ${plan.highlight
+                ${plan.highlight
                 ? 'bg-slate-900/80 border-cyan-500/50 shadow-[0_0_30px_rgba(34,211,238,0.15)]'
                 : plan.isPro
                   ? 'bg-slate-900/80 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.15)]'
@@ -157,23 +156,30 @@ const PricingPage = () => {
                 ))}
               </ul>
 
-              {/* --- UPDATED BUTTON --- */}
+              {/* Button */}
               <button
                 onClick={() => {
-                   if (isCurrentPlan) return; // Do nothing if it's the current plan
-                   navigate('/payment', {
+                  if (isCurrentPlan) return;
+                  
+                  const featureText = billingCycle === 'yearly' && plan.features[0].yearlyText
+                    ? plan.features[0].yearlyText
+                    : plan.features[0].text;
+                    
+                  const creditAmount = featureText.split(' ')[0];
+
+                  navigate('/payment', {
                     state: {
                       planName: plan.name,
                       price: plan.price[billingCycle],
                       billingCycle: billingCycle,
-                      credits: plan.features[0].text.split(' ')[0]
+                      credits: creditAmount // Sends "6,600" for yearly, "550" for monthly
                     }
                   });
                 }}
-                disabled={loading || isCurrentPlan} // Disable button if loading OR matches current plan
+                disabled={loading || isCurrentPlan}
                 className={`w-full py-3.5 rounded-full font-semibold transition-all shadow-lg border 
                   ${isCurrentPlan 
-                    ? 'bg-slate-700 text-gray-300 border-slate-600 cursor-not-allowed opacity-80' // Style for Subscribed state
+                    ? 'bg-slate-700 text-gray-300 border-slate-600 cursor-not-allowed opacity-80' 
                     : `${plan.buttonStyle} hover:scale-[1.02] active:scale-[0.98]`
                   }`}
               >

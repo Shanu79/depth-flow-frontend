@@ -5,14 +5,14 @@ import {
   Share2,
   Loader2,
   MoveDiagonal2,
-  AlertCircle // Added Icon
+  AlertCircle
 } from "lucide-react";
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from '../config.js';
 import useAuthStore from '../stores/authStore.js';
 
-// --- NEW: Credit Alert Modal Component ---
+// --- Credit Alert Modal Component ---
 const CreditAlertModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
@@ -21,7 +21,6 @@ const CreditAlertModal = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
-
         <div className="flex justify-between items-start mb-4">
           <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-2">
             <AlertCircle className="w-6 h-6" />
@@ -30,12 +29,10 @@ const CreditAlertModal = ({ isOpen, onClose }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
-
         <h3 className="text-xl font-bold text-white mb-2">Out of Credits</h3>
         <p className="text-slate-400 mb-6 leading-relaxed">
           You have reached your credit limit. To continue generating stunning 3D videos, please upgrade your plan or purchase a credit pack.
         </p>
-
         <div className="flex gap-3">
           <button
             onClick={onClose}
@@ -50,7 +47,6 @@ const CreditAlertModal = ({ isOpen, onClose }) => {
             Upgrade Plan
           </button>
         </div>
-
       </div>
     </div>
   );
@@ -82,7 +78,7 @@ const Workspace = () => {
 
   const fileInputRef = useRef(null);
   const previewRef = useRef(null);
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   const handleRemoveImage = (e) => {
     e.stopPropagation();
@@ -92,26 +88,7 @@ const Workspace = () => {
     }
   };
 
-  // 1. Fetch User Credits on Mount
-  // useEffect(() => {
-  //   const fetchUser = async () => {
-  //     const token = localStorage.getItem("token");
-  //     if (!token) return;
-
-  //     try {
-  //       const res = await fetch(`${API_BASE_URL}/auth/me`, {
-  //         headers: { "Authorization": `Bearer ${token}` }
-  //       });
-  //       if (res.ok) {
-  //         const data = await res.json();
-  //         setCredits(data.credits);
-  //       }
-  //     } catch (e) { console.error(e); }
-  //   };
-  //   fetchUser();
-  // }, []);
-
-  // ... (Resizing Logic remains same) ...
+  // Resizing Logic
   const startResizing = useCallback(() => { setIsResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'col-resize'; }, []);
   const stopResizing = useCallback(() => { setIsResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
   const resize = useCallback((e) => { if (isResizing) { const newWidth = e.clientX; if (newWidth > 320 && newWidth < 800) setSidebarWidth(newWidth); } }, [isResizing]);
@@ -139,8 +116,6 @@ const Workspace = () => {
   const handleGenerate = async () => {
     if (!selectedFile) return alert("Please upload an image first!");
 
-    // 2. Client-side Check: Open Modal instead of alert
-    // Assuming each generation costs e.g., 5 credits. Adjust logic as needed.
     if (credits !== null && credits <= 0) {
       setShowCreditModal(true);
       return;
@@ -166,11 +141,10 @@ const Workspace = () => {
         body: formData,
       });
 
-      // 3. Server-side Check: Open Modal on 402 Payment Required
       if (response.status === 402) {
-        setShowCreditModal(true); // Trigger Popup
-        setIsLoading(false);      // Stop Loading
-        return;                   // Stop execution
+        setShowCreditModal(true); 
+        setIsLoading(false);      
+        return;                  
       }
 
       if (!response.ok) throw new Error("Generation failed.");
@@ -241,6 +215,11 @@ const Workspace = () => {
                 <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
               </div>
               <p className="text-white font-medium text-sm">Click to Upload Image</p>
+              
+              {/* --- NEW: Note about file size --- */}
+              <p className="text-slate-400 text-xs mt-2 max-w-[80%]">
+                Note: Larger image sizes will take longer to process.
+              </p>
             </>
           )}
         </div>
@@ -249,11 +228,10 @@ const Workspace = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
           <div className="space-y-4">
 
-            {/* DEPTH SLIDER - Now Dynamic */}
+            {/* DEPTH SLIDER */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
                 Depth
-                {/* Visual feedback so user knows why it's capped */}
                 <span className={motionStyle === "Zoom" && depth > 8 ? "text-red-400" : ""}>
                   {depth} {motionStyle === "Zoom" ? "(Max 8)" : ""}
                 </span>
@@ -262,7 +240,6 @@ const Workspace = () => {
               <input
                 type="range"
                 min="1"
-                // 👇 DYNAMIC MAX: Prevents 'Zoom' from exceeding backend math limits
                 max={motionStyle === "Zoom" ? "8" : "10"}
                 value={depth}
                 onChange={(e) => setDepth(Number(e.target.value))}
@@ -286,14 +263,13 @@ const Workspace = () => {
             </div>
           </div>
 
-          {/* STYLE BUTTONS - Auto-clamp depth when clicking 'Zoom' */}
+          {/* STYLE BUTTONS */}
           <div className="flex bg-slate-950/50 p-1 rounded-xl border border-slate-800">
             {["Dolly", "Orbit", "Zoom"].map((style) => (
               <button
                 key={style}
                 onClick={() => {
                   setMotionStyle(style);
-                  // 👇 LOGIC: If user switches to Zoom while at Depth 9 or 10, snap it down to 8
                   if (style === "Zoom" && depth > 8) {
                     setDepth(8);
                   }
