@@ -19,17 +19,16 @@ import PricingPage from "./pages/PricingPage";
 import GalleryPage from "./pages/GalleryPage";
 import AuthSuccess from "./pages/AuthSuccess";
 import PaymentPage from "./pages/PaymentPage";
+import BillingPage from "./pages/BillingPage";
 
 // --- AUTH & SECURITY ---
 import useAuthStore from "./stores/authStore";
 import RequireAuth from "./components/RequireAuth";
-import RequireAdmin from "./components/RequireAdmin"; // <--- Import the new component
+import RequireAdmin from "./components/RequireAdmin";
 
 // --- ADMIN ---
 import AdminLayout from "./components/admin/AdminLayout";
-// Assuming your Users file is located at admin/pages/Users.jsx based on previous chat
 import Users from "./components/admin/User";
-import BillingPage from "./pages/BillingPage";
 
 function App() {
   const user = useAuthStore((state) => state.user);
@@ -105,9 +104,6 @@ function App() {
         />
 
         {/* ================= ADMIN PROTECTED ================= */}
-        {/* This wraps the AdminLayout in the security check. 
-            The Layout then renders the <Outlet/> where "users" will appear.
-        */}
         <Route
           path="/admin"
           element={
@@ -127,8 +123,8 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {/* Only show Footer if NOT on Admin pages */}
-      {<Footer />}
+      {/* --- HIDE FOOTER ON ADMIN ROUTES --- */}
+      {!isAdminRoute && <Footer />}
     </div>
   );
 }
