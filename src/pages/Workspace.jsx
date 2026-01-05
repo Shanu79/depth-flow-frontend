@@ -256,7 +256,7 @@ const Workspace = () => {
                 min="1"
                 max="10"
                 value={speed}
-                onChange={(e) => setSpeed(Number(e.target.value))}
+                onChange={(e) => setSpeed(e.target.value)}
                 className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
               />
             </div>
