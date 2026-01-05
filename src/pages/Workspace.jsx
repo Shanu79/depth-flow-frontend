@@ -60,19 +60,20 @@ const Workspace = () => {
   const [isVerticalResizing, setIsVerticalResizing] = useState(false);
 
   // --- Logic State ---
-  const [motionStyle, setMotionStyle] = useState("Dolly");
-  const [depth, setDepth] = useState(7);
-  const [speed, setSpeed] = useState(5);
+  // Initialize state from LocalStorage if available
+  const [motionStyle, setMotionStyle] = useState(() => localStorage.getItem("ws_motionStyle") || "Dolly");
+  const [depth, setDepth] = useState(() => Number(localStorage.getItem("ws_depth")) || 7);
+  const [speed, setSpeed] = useState(() => Number(localStorage.getItem("ws_speed")) || 5);
+  
   const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [resultVideoUrl, setResultVideoUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
+  const [resultVideoUrl, setResultVideoUrl] = useState(() => localStorage.getItem("ws_resultVideoUrl") || null);
+  
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("input");
+  // If we have a result on load, default to output tab
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem("ws_resultVideoUrl") ? "output" : "input");
 
-  // --- New: Modal State ---
   const [showCreditModal, setShowCreditModal] = useState(false);
-
-  // --- User State ---
   const { user, updateCredits } = useAuthStore();
   const credits = user?.credits || 0;
 
@@ -80,36 +81,78 @@ const Workspace = () => {
   const previewRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleRemoveImage = (e) => {
-    e.stopPropagation();
-    setPreviewUrl(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+  // --- 1. RESTORE FILE OBJECT ON LOAD ---
+  // Since we can only store the Base64 string in localStorage, 
+  // we need to convert it back to a File object so the "Generate" button works on refresh.
+  useEffect(() => {
+    const restoreFile = async () => {
+      const savedPreview = localStorage.getItem("ws_previewUrl");
+      if (savedPreview && !selectedFile) {
+        try {
+          const res = await fetch(savedPreview);
+          const blob = await res.blob();
+          const file = new File([blob], "restored_image.png", { type: blob.type });
+          setSelectedFile(file);
+        } catch (e) {
+          console.error("Failed to restore file from storage", e);
+        }
+      }
+    };
+    restoreFile();
+  }, []);
+
+  // --- 2. PERSIST SETTINGS ---
+  useEffect(() => {
+    localStorage.setItem("ws_motionStyle", motionStyle);
+    localStorage.setItem("ws_depth", depth);
+    localStorage.setItem("ws_speed", speed);
+  }, [motionStyle, depth, speed]);
+
+  // --- HELPER: Convert File to Base64 ---
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
   };
 
-  // Resizing Logic
-  const startResizing = useCallback(() => { setIsResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'col-resize'; }, []);
-  const stopResizing = useCallback(() => { setIsResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
-  const resize = useCallback((e) => { if (isResizing) { const newWidth = e.clientX; if (newWidth > 320 && newWidth < 800) setSidebarWidth(newWidth); } }, [isResizing]);
-  const startVerticalResizing = useCallback((e) => { e.preventDefault(); setIsVerticalResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'sw-resize'; if (!previewHeight && previewRef.current) setPreviewHeight(previewRef.current.offsetHeight); }, [previewHeight]);
-  const stopVerticalResizing = useCallback(() => { setIsVerticalResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
-  const resizeVertical = useCallback((e) => { if (isVerticalResizing && previewRef.current) { const rect = previewRef.current.getBoundingClientRect(); const newHeight = e.clientY - rect.top; if (newHeight > 300 && newHeight < 1200) setPreviewHeight(newHeight); } }, [isVerticalResizing]);
-
-  useEffect(() => {
-    if (isResizing) { window.addEventListener("mousemove", resize); window.addEventListener("mouseup", stopResizing); }
-    if (isVerticalResizing) { window.addEventListener("mousemove", resizeVertical); window.addEventListener("mouseup", stopVerticalResizing); }
-    return () => { window.removeEventListener("mousemove", resize); window.removeEventListener("mouseup", stopResizing); window.removeEventListener("mousemove", resizeVertical); window.removeEventListener("mouseup", stopVerticalResizing); };
-  }, [isResizing, resize, stopResizing, isVerticalResizing, resizeVertical, stopVerticalResizing]);
-
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      
+      // Save to LocalStorage
+      try {
+        const base64 = await fileToBase64(file);
+        localStorage.setItem("ws_previewUrl", base64);
+      } catch (err) {
+        console.warn("Image too large to save locally", err);
+      }
+
       setResultVideoUrl(null);
+      localStorage.removeItem("ws_resultVideoUrl"); // Clear old result
+      
       setActiveTab("input");
       setPreviewHeight(null);
+    }
+  };
+
+  const handleRemoveImage = (e) => {
+    e.stopPropagation();
+    setPreviewUrl(null);
+    setSelectedFile(null);
+    setResultVideoUrl(null);
+    
+    // Clear LocalStorage
+    localStorage.removeItem("ws_previewUrl");
+    localStorage.removeItem("ws_resultVideoUrl");
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -150,7 +193,10 @@ const Workspace = () => {
       if (!response.ok) throw new Error("Generation failed.");
 
       const data = await response.json();
+      
       setResultVideoUrl(data.video_url);
+      localStorage.setItem("ws_resultVideoUrl", data.video_url); // SAVE RESULT
+      
       updateCredits(data.remaining_credits);
       setActiveTab("output");
       setPreviewHeight(null);
@@ -163,10 +209,45 @@ const Workspace = () => {
     }
   };
 
+  const handleDownload = async () => {
+    if (!resultVideoUrl) return;
+
+    try {
+      const response = await fetch(resultVideoUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const filename = resultVideoUrl.split('/').pop() || "generated-video.mp4";
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+      window.open(resultVideoUrl, '_blank');
+    }
+  };
+
+  // --- RESIZING LOGIC (Unchanged) ---
+  const startResizing = useCallback(() => { setIsResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'col-resize'; }, []);
+  const stopResizing = useCallback(() => { setIsResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
+  const resize = useCallback((e) => { if (isResizing) { const newWidth = e.clientX; if (newWidth > 320 && newWidth < 800) setSidebarWidth(newWidth); } }, [isResizing]);
+  const startVerticalResizing = useCallback((e) => { e.preventDefault(); setIsVerticalResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'sw-resize'; if (!previewHeight && previewRef.current) setPreviewHeight(previewRef.current.offsetHeight); }, [previewHeight]);
+  const stopVerticalResizing = useCallback(() => { setIsVerticalResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
+  const resizeVertical = useCallback((e) => { if (isVerticalResizing && previewRef.current) { const rect = previewRef.current.getBoundingClientRect(); const newHeight = e.clientY - rect.top; if (newHeight > 300 && newHeight < 1200) setPreviewHeight(newHeight); } }, [isVerticalResizing]);
+
+  useEffect(() => {
+    if (isResizing) { window.addEventListener("mousemove", resize); window.addEventListener("mouseup", stopResizing); }
+    if (isVerticalResizing) { window.addEventListener("mousemove", resizeVertical); window.addEventListener("mouseup", stopVerticalResizing); }
+    return () => { window.removeEventListener("mousemove", resize); window.removeEventListener("mouseup", stopResizing); window.removeEventListener("mousemove", resizeVertical); window.removeEventListener("mouseup", stopVerticalResizing); };
+  }, [isResizing, resize, stopResizing, isVerticalResizing, resizeVertical, stopVerticalResizing]);
+
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row overflow-hidden relative">
 
-      {/* --- MOUNT THE MODAL --- */}
       <CreditAlertModal
         isOpen={showCreditModal}
         onClose={() => setShowCreditModal(false)}
@@ -215,8 +296,6 @@ const Workspace = () => {
                 <Upload className="text-white w-10 h-10" strokeWidth={1.5} />
               </div>
               <p className="text-white font-medium text-sm">Click to Upload Image</p>
-
-              {/* --- NEW: Note about file size --- */}
               <p className="text-slate-400 text-xs mt-2 max-w-[80%]">
                 Note: Larger image sizes will take longer to process.
               </p>
@@ -228,13 +307,12 @@ const Workspace = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
           <div className="space-y-4">
 
-            {/* DEPTH / INTENSITY SLIDER */}
+            {/* INTENSITY SLIDER */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
                 Intensity
                 <span>{depth}</span>
               </span>
-
               <input
                 type="range"
                 min="1"
@@ -245,7 +323,7 @@ const Workspace = () => {
               />
             </div>
 
-            {/* SPEED / DURATION SLIDER */}
+            {/* SPEED SLIDER */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
                 Motion Duration
@@ -269,8 +347,8 @@ const Workspace = () => {
                 key={style}
                 onClick={() => setMotionStyle(style)}
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${motionStyle === style
-                    ? "bg-slate-700 text-white shadow-sm"
-                    : "text-slate-500 hover:text-white"
+                  ? "bg-slate-700 text-white shadow-sm"
+                  : "text-slate-500 hover:text-white"
                   }`}
               >
                 {style}
@@ -315,8 +393,17 @@ const Workspace = () => {
 
           {/* Actions */}
           <div className="flex gap-3 mt-6">
-            <a href={resultVideoUrl || "#"} target="_blank" rel="noopener noreferrer" className={`flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold flex items-center justify-center gap-2 ${!resultVideoUrl ? 'opacity-50 pointer-events-none' : ''}`}><Download className="w-5 h-5" /> Download</a>
-            <button className="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 flex items-center gap-2"><Share2 className="w-4 h-4" /> Share</button>
+            <button
+              onClick={handleDownload}
+              disabled={!resultVideoUrl}
+              className={`flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold flex items-center justify-center gap-2 ${!resultVideoUrl ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:shadow-purple-500/25 transition-all'}`}
+            >
+              <Download className="w-5 h-5" /> Download
+            </button>
+
+            <button className="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 flex items-center gap-2">
+              <Share2 className="w-4 h-4" /> Share
+            </button>
           </div>
         </div>
       </div>
