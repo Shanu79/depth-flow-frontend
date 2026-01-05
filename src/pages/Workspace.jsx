@@ -232,7 +232,7 @@ const Workspace = () => {
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
                 Intensity
-                <span>{depth} (Max 10)</span>
+                <span>{depth}</span>
               </span>
 
               <input
