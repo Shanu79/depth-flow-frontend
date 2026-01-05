@@ -64,6 +64,7 @@ const Workspace = () => {
   const [motionStyle, setMotionStyle] = useState(() => localStorage.getItem("ws_motionStyle") || "Dolly");
   const [depth, setDepth] = useState(() => Number(localStorage.getItem("ws_depth")) || 7);
   const [speed, setSpeed] = useState(() => Number(localStorage.getItem("ws_speed")) || 5);
+  const [duration, setDuration] = useState(() => Number(localStorage.getItem("ws_duration")) || 5); // NEW PARAMETER
   
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
@@ -82,8 +83,6 @@ const Workspace = () => {
   const navigate = useNavigate();
 
   // --- 1. RESTORE FILE OBJECT ON LOAD ---
-  // Since we can only store the Base64 string in localStorage, 
-  // we need to convert it back to a File object so the "Generate" button works on refresh.
   useEffect(() => {
     const restoreFile = async () => {
       const savedPreview = localStorage.getItem("ws_previewUrl");
@@ -106,7 +105,8 @@ const Workspace = () => {
     localStorage.setItem("ws_motionStyle", motionStyle);
     localStorage.setItem("ws_depth", depth);
     localStorage.setItem("ws_speed", speed);
-  }, [motionStyle, depth, speed]);
+    localStorage.setItem("ws_duration", duration); // Persist Duration
+  }, [motionStyle, depth, speed, duration]);
 
   // --- HELPER: Convert File to Base64 ---
   const fileToBase64 = (file) => {
@@ -134,7 +134,7 @@ const Workspace = () => {
       }
 
       setResultVideoUrl(null);
-      localStorage.removeItem("ws_resultVideoUrl"); // Clear old result
+      localStorage.removeItem("ws_resultVideoUrl"); 
       
       setActiveTab("input");
       setPreviewHeight(null);
@@ -175,6 +175,7 @@ const Workspace = () => {
       formData.append("style", motionStyle);
       formData.append("depth", depth);
       formData.append("speed", speed);
+      formData.append("duration", duration); // Sending new param to backend
 
       const response = await fetch(`${API_BASE_URL}/ai/generate-3d`, {
         method: "POST",
@@ -195,7 +196,7 @@ const Workspace = () => {
       const data = await response.json();
       
       setResultVideoUrl(data.video_url);
-      localStorage.setItem("ws_resultVideoUrl", data.video_url); // SAVE RESULT
+      localStorage.setItem("ws_resultVideoUrl", data.video_url); 
       
       updateCredits(data.remaining_credits);
       setActiveTab("output");
@@ -230,7 +231,7 @@ const Workspace = () => {
     }
   };
 
-  // --- RESIZING LOGIC (Unchanged) ---
+  // --- RESIZING LOGIC ---
   const startResizing = useCallback(() => { setIsResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'col-resize'; }, []);
   const stopResizing = useCallback(() => { setIsResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
   const resize = useCallback((e) => { if (isResizing) { const newWidth = e.clientX; if (newWidth > 320 && newWidth < 800) setSidebarWidth(newWidth); } }, [isResizing]);
@@ -307,10 +308,10 @@ const Workspace = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
           <div className="space-y-4">
 
-            {/* INTENSITY SLIDER */}
+            {/* 1. INTENSITY SLIDER */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
-                Intensity
+                Depth Intensity
                 <span>{depth}</span>
               </span>
               <input
@@ -323,21 +324,38 @@ const Workspace = () => {
               />
             </div>
 
-            {/* SPEED SLIDER */}
+            {/* 2. SPEED SLIDER (Velocity) */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
-                Motion Duration
-                <span>{speed}s</span>
+                Motion Speed
+                <span>{speed}x</span>
               </span>
               <input
                 type="range"
                 min="1"
                 max="10"
                 value={speed}
-                onChange={(e) => setSpeed(e.target.value)}
+                onChange={(e) => setSpeed(Number(e.target.value))}
                 className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
               />
             </div>
+
+            {/* 3. DURATION SLIDER (Time) */}
+            <div className="space-y-3">
+              <span className="text-sm text-slate-300 font-medium flex justify-between">
+                Video Length
+                <span>{duration}s</span>
+              </span>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
+                className="w-full bg-cyan-600 rounded-full cursor-pointer accent-cyan-400"
+              />
+            </div>
+
           </div>
 
           {/* STYLE BUTTONS */}
