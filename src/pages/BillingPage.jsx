@@ -27,7 +27,17 @@ const BillingPage = () => {
   const dateMatch = user?.subscription_status?.match(/\d{4}-\d{2}-\d{2}/);
   const cancelDate = dateMatch ? dateMatch[0] : "End of Cycle";
 
-  // --- 1. HANDLE CHECKOUT / RESUBSCRIBE ---
+  // --- FORCE SYNC ON MOUNT (Moved to Top Level) ---
+  useEffect(() => {
+    // This guarantees a check happens whenever you visit /billing
+    if (user?.subscription_id) {
+      console.log("BillingPage: Forcing Sync...");
+      syncSubscription(); 
+    }
+  }, [user?.subscription_id, syncSubscription]);
+
+
+  // --- 2. HANDLE CHECKOUT / RESUBSCRIBE ---
   const handleCheckout = async (planName, cycle = "monthly") => {
     setLoading(true);
     try {
@@ -59,7 +69,7 @@ const BillingPage = () => {
     }
   };
 
-  // --- 2. EXECUTE CANCELLATION ---
+  // --- 3. EXECUTE CANCELLATION ---
   const confirmCancellation = async () => {
     setCancelLoading(true);
     try {
@@ -81,16 +91,6 @@ const BillingPage = () => {
     } finally {
       setCancelLoading(false);
     }
-
-    // --- FORCE SYNC ON MOUNT ---
-    useEffect(() => {
-      // This guarantees a check happens whenever you visit /billing
-      if (user?.subscription_id) {
-        console.log("BillingPage: Forcing Sync...");
-        syncSubscription(); 
-      }
-    }, [user?.subscription_id, syncSubscription]);
-
   };
 
   return (
@@ -217,7 +217,7 @@ const BillingPage = () => {
                 {currentPlan !== "Pro" && (
                   <button 
                     onClick={() => handleCheckout("Pro", "monthly")}
-                    disabled={loading || isScheduledForCancel} // Disable upgrade while cancelling (optional, or let them switch & reactivate)
+                    disabled={loading || isScheduledForCancel} 
                     className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : "Upgrade to Pro"}
@@ -234,7 +234,7 @@ const BillingPage = () => {
                   </button>
                 )}
 
-                {/* --- RESUBSCRIBE BUTTON (Shown ONLY when scheduled for cancel) --- */}
+                {/* --- RESUBSCRIBE BUTTON --- */}
                 {isScheduledForCancel && (
                   <button 
                     onClick={() => handleCheckout(currentPlan, user.billing_cycle || "monthly")} 
