@@ -46,10 +46,11 @@ function App() {
   // 2. GLOBAL SUBSCRIPTION SYNC
   // Runs immediately after checkAuth loads the user profile
   useEffect(() => {
-    if (user?.subscription_id) {
+    // Only try if we have a user AND an ID
+    if (user && user.subscription_id) {
       syncSubscription();
     }
-  }, [user?.subscription_id, syncSubscription]); 
+  }, [user?.subscription_id]);
 
   // 3. PAGE LOADER LOGIC
   useEffect(() => {
