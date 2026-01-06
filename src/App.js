@@ -59,11 +59,6 @@ function App() {
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
-  // --- Initial Auth Check ---
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   const redirectPath = location.state?.from?.pathname || "/";
 
   return (
