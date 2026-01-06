@@ -100,12 +100,14 @@ const PaymentPage = () => {
         navigate("/workspace");
       }
 
-      // CASE B: New Subscription (Open Checkout)
+      // CASE B: New Subscription
       else if (data.action === "checkout" && data.checkout_url) {
-        await DodoPayments.Checkout.open({
-          checkoutUrl: data.checkout_url
-        });
-        // Note: isProcessing stays true until 'checkout.opened' or 'checkout.closed' fires
+        // Option 1 (Debug): Log the URL to be sure it's valid
+        console.log("Redirecting to:", data.checkout_url);
+
+        // Option 2 (Fix): Force a top-level redirect instead of SDK
+        // This bypasses iframe/CORS issues.
+        window.location.href = data.checkout_url;
       }
 
       else {

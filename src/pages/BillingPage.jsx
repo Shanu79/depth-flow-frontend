@@ -19,13 +19,13 @@ const BillingPage = () => {
 
   const currentPlan = PLANS[user?.plan] ? user.plan : "Free";
 
-  // --- HELPER: Check Cancellation Status ---
-  const isScheduledForCancel = user?.subscription_status?.startsWith("Scheduled for cancellation");
+ // --- HELPER: Check Cancellation Status ---
+  // 1. Check if the status string exists and contains the keyword
+  const isScheduledForCancel = user?.subscription_status && user.subscription_status.includes("Scheduled for cancellation");
   
-  // Extract date from string "Scheduled for cancellation on 2025-12-31"
-  const cancelDate = isScheduledForCancel 
-    ? user.subscription_status.split("On ")[1] 
-    : null;
+  // 2. Extract date using Regex (Finds YYYY-MM-DD anywhere in the string)
+  const dateMatch = user?.subscription_status?.match(/\d{4}-\d{2}-\d{2}/);
+  const cancelDate = dateMatch ? dateMatch[0] : "End of Cycle"; // Fallback text
 
   // --- 1. HANDLE CHECKOUT ---
   const handleCheckout = async (planName, cycle = "monthly") => {
