@@ -48,11 +48,8 @@ function App() {
 
   // 2. GLOBAL SUBSCRIPTION SYNC
   useEffect(() => {
-    // Debug Log
-    console.log("App.js: User Updated:", user);
 
     if (user?.subscription_id) {
-      console.log("App.js: Triggering Sync for ID:", user.subscription_id);
       syncSubscription();
     }
   }, [user, syncSubscription]);

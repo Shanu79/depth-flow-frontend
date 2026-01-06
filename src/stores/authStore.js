@@ -5,7 +5,7 @@ const useAuthStore = create((set, get) => ({
   user: null,
   loading: true,
 
-  // Action: Check if logged in on load
+  // --- 1. CHECK AUTH ON LOAD ---
   checkAuth: async () => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -15,20 +15,19 @@ const useAuthStore = create((set, get) => ({
         });
         if (res.ok) {
           const profile = await res.json();
-          // Set user with token AND profile data
           set({ user: { token, ...profile }, loading: false });
           return;
         }
       } catch (err) {
-        console.error(err);
+        console.error("Auth check failed:", err);
       }
     }
-    // If failed
+    // Fallback: Clear invalid token
     localStorage.removeItem("token");
     set({ user: null, loading: false });
   },
 
-  // Action: Login
+  // --- 2. LOGIN ---
   login: async (loginResponse) => {
     const token = loginResponse.access_token || loginResponse.token;
     localStorage.setItem("token", token);
@@ -38,18 +37,13 @@ const useAuthStore = create((set, get) => ({
         headers: { Authorization: `Bearer ${token}` }
       });
       const profile = await res.json();
-      
-      // --- DEBUG: Verify Structure ---
-      console.log("AuthStore Login: Setting User:", profile);
-      
-      // Ensure we are not nesting it like { user: { user: ... } }
-      set({ user: { token, ...profile } }); 
-      
+      set({ user: { token, ...profile } });
     } catch (err) {
-      console.error("Login profile fetch failed");
+      console.error("Failed to fetch profile after login:", err);
     }
   },
 
+  // --- 3. REFRESH PROFILE ---
   refreshUser: async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -60,37 +54,30 @@ const useAuthStore = create((set, get) => ({
       });
       if (res.ok) {
         const profile = await res.json();
-        console.log("AuthStore: Profile Loaded from API:", profile);
-        // Merge new profile data (like updated credits) into existing user state
+        // Preserves the token while updating profile data
         set({ user: { token, ...profile } });
       }
     } catch (err) {
-      console.error("Failed to refresh user profile", err);
+      console.error("Failed to refresh user:", err);
     }
   },
 
-  // Action: Logout
+  // --- 4. LOGOUT ---
   logout: () => {
     localStorage.removeItem("token");
     set({ user: null });
     window.location.href = "/";
   },
 
+  // --- 5. CREDIT UPDATE HELPER ---
   updateCredits: (newCredits) => set((state) => ({
     user: state.user ? { ...state.user, credits: newCredits } : null
   })),
 
-  // --- NEW: Global Sync Action ---
+  // --- 6. SYNC SUBSCRIPTION (Global) ---
   syncSubscription: async () => {
     const { user } = get();
-    
-    // DEBUG LOGS (Check console to see these)
-    console.log("Global Sync Initiated. User:", user ? user.email : "No User");
-    
-    if (!user || !user.subscription_id) {
-      console.warn("Global Sync Aborted: No Subscription ID present.");
-      return;
-    }
+    if (!user || !user.subscription_id) return;
 
     try {
       const token = localStorage.getItem("token");
@@ -101,26 +88,24 @@ const useAuthStore = create((set, get) => ({
 
       if (response.ok) {
         const data = await response.json();
-        
-        // Update state ONLY if things changed to avoid infinite loops
         const currentUser = get().user;
-        if (currentUser.subscription_status !== data.synced_status || currentUser.plan !== data.synced_plan) {
-            set((state) => ({
-              user: {
-                ...state.user,
-                subscription_status: data.synced_status,
-                plan: data.synced_plan
-              }
-            }));
-            console.log("Global Sync Success: Updated to", data.synced_status);
-        } else {
-            console.log("Global Sync: Data already up to date.");
+
+        // Only update if state actually changed (prevents loops)
+        if (
+          currentUser.subscription_status !== data.synced_status || 
+          currentUser.plan !== data.synced_plan
+        ) {
+          set((state) => ({
+            user: {
+              ...state.user,
+              subscription_status: data.synced_status,
+              plan: data.synced_plan
+            }
+          }));
         }
-      } else {
-        console.error("Global Sync Error:", await response.text());
       }
     } catch (error) {
-      console.error("Global Sync Failed:", error);
+      console.error("Subscription sync failed:", error);
     }
   }
 }));

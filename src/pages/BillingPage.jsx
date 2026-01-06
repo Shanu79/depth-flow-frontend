@@ -32,7 +32,6 @@ const BillingPage = () => {
   // --- FORCE SYNC ON MOUNT (Moved to Top Level) ---
   useEffect(() => {
     if (user?.subscription_id) {
-      console.log("BillingPage: Forcing Sync...");
       syncSubscription(); 
     }
   }, [user, syncSubscription]);
