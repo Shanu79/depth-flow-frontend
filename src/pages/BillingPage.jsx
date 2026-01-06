@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, Shield, Loader2, AlertTriangle, X, CalendarClock } from 'lucide-react';
+import { Zap, Shield, Loader2, AlertTriangle, X, CalendarClock, RotateCcw } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import { API_BASE_URL } from '../config'; 
 
@@ -11,23 +11,23 @@ const BillingPage = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
 
+  // --- 1. FIXED PRICES ---
   const PLANS = {
     Free: { price: 0, label: "Free Tier" },
-    Basic: { price: 99, label: "Basic Plan" },
-    Pro: { price: 199, label: "Pro Plan" }
+    Basic: { price: 9.99, label: "Basic Plan" },
+    Pro: { price: 19.99, label: "Pro Plan" }
   };
 
   const currentPlan = PLANS[user?.plan] ? user.plan : "Free";
 
- // --- HELPER: Check Cancellation Status ---
-  // 1. Check if the status string exists and contains the keyword
+  // --- HELPER: Check Cancellation Status ---
   const isScheduledForCancel = user?.subscription_status && user.subscription_status.includes("Scheduled for cancellation");
   
-  // 2. Extract date using Regex (Finds YYYY-MM-DD anywhere in the string)
+  // Extract date using Regex
   const dateMatch = user?.subscription_status?.match(/\d{4}-\d{2}-\d{2}/);
-  const cancelDate = dateMatch ? dateMatch[0] : "End of Cycle"; // Fallback text
+  const cancelDate = dateMatch ? dateMatch[0] : "End of Cycle";
 
-  // --- 1. HANDLE CHECKOUT ---
+  // --- 1. HANDLE CHECKOUT / RESUBSCRIBE ---
   const handleCheckout = async (planName, cycle = "monthly") => {
     setLoading(true);
     try {
@@ -39,17 +39,21 @@ const BillingPage = () => {
       });
       const data = await response.json();
       
-      if (!response.ok) throw new Error(data.detail || "Checkout failed");
+      if (!response.ok) throw new Error(data.detail || "Request failed");
 
-      // Handle Upgrade (Immediate) vs New (Redirect)
       if (data.action === "updated") {
         await refreshUser();
-        alert(data.message);
+        // Custom message for reactivation vs upgrade
+        if (isScheduledForCancel && planName === currentPlan) {
+             alert("Subscription successfully reactivated!");
+        } else {
+             alert(data.message);
+        }
       } else if (data.checkout_url) {
         window.location.href = data.checkout_url;
       }
     } catch (error) {
-      alert("Payment Error: " + error.message);
+      alert("Error: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -68,7 +72,6 @@ const BillingPage = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Cancellation failed");
 
-      // Success
       await refreshUser(); 
       setShowCancelModal(false); 
       
@@ -155,7 +158,7 @@ const BillingPage = () => {
           {/* PLAN CARD */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 col-span-1 md:col-span-2 relative">
             
-            {/* --- STATUS BADGE LOGIC --- */}
+            {/* --- STATUS BADGE --- */}
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-purple-500/10 rounded-lg">
@@ -169,7 +172,6 @@ const BillingPage = () => {
                 </div>
               </div>
 
-              {/* Dynamic Badge */}
               {isScheduledForCancel ? (
                  <span className="flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
                    <CalendarClock className="w-3 h-3" />
@@ -193,32 +195,43 @@ const BillingPage = () => {
                    ${PLANS[currentPlan].price}/{user?.billing_cycle === 'yearly' ? 'yr' : 'mo'}
                 </span>
                 
-                {/* Info Text for Scheduled Cancel */}
                 {isScheduledForCancel && (
                    <p className="text-amber-500/80 text-xs mt-2 font-medium">
-                     Your plan is set to cancel on {cancelDate}. You can continue using your credits until then.
+                     Your plan cancels on {cancelDate}. Reactivate now to keep your credits.
                    </p>
                 )}
               </div>
               
               <div className="flex gap-3">
+                {/* Upgrade Button */}
                 {currentPlan !== "Pro" && (
                   <button 
                     onClick={() => handleCheckout("Pro", "monthly")}
-                    disabled={loading || isScheduledForCancel}
+                    disabled={loading || isScheduledForCancel} // Disable upgrade while cancelling (optional, or let them switch & reactivate)
                     className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : "Upgrade to Pro"}
                   </button>
                 )}
 
-                {/* Only show Cancel button if Active AND NOT already scheduled */}
+                {/* Cancel Button (Hidden if already scheduled) */}
                 {user?.subscription_status === 'active' && !isScheduledForCancel && (
                   <button 
                     onClick={() => setShowCancelModal(true)} 
                     className="px-4 py-2 bg-slate-800 hover:bg-red-900/30 border border-slate-700 hover:border-red-800 text-slate-300 hover:text-red-400 text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
                   >
                      Cancel Plan
+                  </button>
+                )}
+
+                {/* --- RESUBSCRIBE BUTTON (Shown ONLY when scheduled for cancel) --- */}
+                {isScheduledForCancel && (
+                  <button 
+                    onClick={() => handleCheckout(currentPlan, user.billing_cycle || "monthly")} 
+                    disabled={loading}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-green-500/20"
+                  >
+                     {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <><RotateCcw className="w-4 h-4" /> Resubscribe</>}
                   </button>
                 )}
               </div>
