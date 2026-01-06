@@ -31,14 +31,26 @@ import AdminLayout from "./components/admin/AdminLayout";
 import Users from "./components/admin/User";
 
 function App() {
-  const user = useAuthStore((state) => state.user);
-  const checkAuth = useAuthStore((state) => state.checkAuth);
-
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
 
   // Helper to hide Public Navbar/Footer on Admin pages
   const isAdminRoute = location.pathname.startsWith("/admin");
+
+  const { checkAuth, syncSubscription, user } = useAuthStore();
+
+  // 1. Initial Auth Check
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  // 2. GLOBAL SUBSCRIPTION SYNC
+  // Runs whenever the 'user' object is loaded/changes.
+  useEffect(() => {
+    if (user?.subscription_id) {
+      syncSubscription();
+    }
+  }, [user?.subscription_id]); // Dependency ensures it runs on login
 
   // --- Page Loader Logic ---
   useEffect(() => {

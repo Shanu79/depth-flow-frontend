@@ -75,6 +75,37 @@ const useAuthStore = create((set) => ({
   updateCredits: (newCredits) => set((state) => ({
     user: state.user ? { ...state.user, credits: newCredits } : null
   })),
+
+  // --- NEW: Global Sync Action ---
+  syncSubscription: async () => {
+    const { user } = get();
+    // 1. Don't run if not logged in or no subscription ID
+    if (!user || !user.subscription_id) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/payments/sync-subscription`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // 2. Silently update the local user state with fresh data
+        set((state) => ({
+          user: {
+            ...state.user,
+            subscription_status: data.synced_status,
+            plan: data.synced_plan
+          }
+        }));
+        console.log("Global Sync: Subscription updated to", data.synced_status);
+      }
+    } catch (error) {
+      console.error("Global Sync failed:", error);
+    }
+  }
 }));
 
 export default useAuthStore;
