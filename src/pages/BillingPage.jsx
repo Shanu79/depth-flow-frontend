@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Zap, Shield, Loader2, AlertTriangle, X, CalendarClock, RotateCcw } from 'lucide-react';
-import useAuthStore from '../stores/authStore';
+import useAuthStore from "../stores/authStore"
 import { API_BASE_URL } from '../config'; 
 
 const BillingPage = () => {
-  const { user, refreshUser } = useAuthStore();
+  const { user, refreshUser, syncSubscription } = useAuthStore();
   const [loading, setLoading] = useState(false);
   
   // Modal State
@@ -81,8 +81,6 @@ const BillingPage = () => {
     } finally {
       setCancelLoading(false);
     }
-
-    const { user, refreshUser, syncSubscription } = useAuthStore();
 
     // --- FORCE SYNC ON MOUNT ---
     useEffect(() => {
