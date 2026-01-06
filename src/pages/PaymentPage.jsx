@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CreditCard, CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
-import { DodoPayments } from "dodopayments-checkout"; 
+import { DodoPayments } from "dodopayments-checkout";
 import { API_BASE_URL } from '../config.js';
 
 const PaymentPage = () => {
@@ -15,7 +15,7 @@ const PaymentPage = () => {
   // 1. Initialize SDK (Handles Checkout Events for New Subs)
   useEffect(() => {
     DodoPayments.Initialize({
-      mode: "live", 
+      mode: "live",
       onEvent: async (event) => {
         console.log("Dodo Event:", event);
         switch (event.event_type) {
@@ -91,7 +91,7 @@ const PaymentPage = () => {
       }
 
       // --- NEW LOGIC START ---
-      
+
       // CASE A: Upgrade/Downgrade (Instant Update)
       if (data.action === "updated") {
         await refreshUser(); // Update local store with new plan info
@@ -99,15 +99,15 @@ const PaymentPage = () => {
         alert(data.message); // "Plan upgraded to Pro..."
         navigate("/workspace");
       }
-      
+
       // CASE B: New Subscription (Open Checkout)
       else if (data.action === "checkout" && data.checkout_url) {
         await DodoPayments.Checkout.open({
           checkoutUrl: data.checkout_url
         });
         // Note: isProcessing stays true until 'checkout.opened' or 'checkout.closed' fires
-      } 
-      
+      }
+
       else {
         throw new Error("Unknown response from server");
       }
@@ -119,6 +119,11 @@ const PaymentPage = () => {
       setIsProcessing(false);
     }
   };
+
+  const isUpgrade = user?.subscription_id && (
+    user.subscription_status === 'active' ||
+    user.subscription_status?.startsWith('Scheduled')
+  )
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
@@ -175,7 +180,11 @@ const PaymentPage = () => {
             disabled={isProcessing}
             className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] flex items-center justify-center gap-2"
           >
-            {isProcessing ? <Loader2 className="animate-spin" /> : `Pay $${price}`}
+            {isProcessing ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              isUpgrade ? `Confirm Plan Change ($${price})` : `Pay $${price}`
+            )}
           </button>
 
           <button onClick={() => navigate(-1)} className="w-full mt-4 py-3 text-slate-500 hover:text-white text-sm font-medium transition-colors">

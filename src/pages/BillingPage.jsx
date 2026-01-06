@@ -24,7 +24,7 @@ const BillingPage = () => {
   
   // Extract date from string "Scheduled for cancellation on 2025-12-31"
   const cancelDate = isScheduledForCancel 
-    ? user.subscription_status.split("on ")[1] 
+    ? user.subscription_status.split("On ")[1] 
     : null;
 
   // --- 1. HANDLE CHECKOUT ---
