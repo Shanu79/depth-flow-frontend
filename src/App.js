@@ -43,14 +43,19 @@ function App() {
     checkAuth();
   }, []); // Empty dependency array = runs once
 
-  // 2. GLOBAL SUBSCRIPTION SYNC
-  // Runs immediately after checkAuth loads the user profile
   useEffect(() => {
-    // Only try if we have a user AND an ID
-    if (user && user.subscription_id) {
+    // --- DEBUG LOGS START ---
+    console.log("App.js: User State Changed:", user);
+    console.log("App.js: Subscription ID:", user?.subscription_id);
+    // --- DEBUG LOGS END ---
+
+    if (user?.subscription_id) {
+      console.log("App.js: Triggering Sync...");
       syncSubscription();
+    } else {
+      console.log("App.js: Skipping Sync (No ID found)");
     }
-  }, [user?.subscription_id]);
+  }, [user?.subscription_id, syncSubscription]);
 
   // 3. PAGE LOADER LOGIC
   useEffect(() => {

@@ -57,6 +57,7 @@ const useAuthStore = create((set, get) => ({
       });
       if (res.ok) {
         const profile = await res.json();
+        console.log("AuthStore: Profile Loaded from API:", profile);
         // Merge new profile data (like updated credits) into existing user state
         set({ user: { token, ...profile } });
       }
