@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CreditCard, CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
-import { DodoPayments } from "dodopayments-checkout"; // Ensure this package is installed
+import { DodoPayments } from "dodopayments-checkout"; 
 import { API_BASE_URL } from '../config.js';
 
 const PaymentPage = () => {
@@ -12,23 +12,21 @@ const PaymentPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const refreshUser = useAuthStore((state) => state.refreshUser);
 
-  // 1. Initialize SDK on Component Mount
+  // 1. Initialize SDK (Handles Checkout Events for New Subs)
   useEffect(() => {
     DodoPayments.Initialize({
-      mode: "live", // Change to "live" in production
+      mode: "live", 
       onEvent: async (event) => {
         console.log("Dodo Event:", event);
         switch (event.event_type) {
           case "checkout.opened":
-            // The overlay is visible
             setIsProcessing(false);
             break;
           case "checkout.closed":
-            // User closed the popup without paying
             setIsProcessing(false);
             break;
           case "checkout.succeeded":
-            // Payment success!
+            // This handles NEW subscriptions
             setTimeout(async () => {
               await refreshUser();
               alert("Payment Successful! Thank you for your purchase.");
@@ -56,15 +54,14 @@ const PaymentPage = () => {
 
   const { planName, price, billingCycle, credits } = state;
 
-  // 3. Handle Payment
+  // 3. Handle Payment (UPDATED LOGIC)
   const handlePayment = async () => {
     setIsProcessing(true);
 
     try {
-      // A. Get Token
       const token = localStorage.getItem("token");
 
-      // B. Create Session on Backend
+      // B. Create Session or Trigger Update on Backend
       const response = await fetch(`${API_BASE_URL}/payments/create-checkout-session`, {
         method: "POST",
         headers: {
@@ -80,37 +77,44 @@ const PaymentPage = () => {
 
       const data = await response.json();
 
+      // Error Handling
       if (!response.ok) {
-        // --- FIX: Parse Pydantic Errors Safely ---
-        let errorMessage = "Failed to create session";
-
+        let errorMessage = "Failed to process request";
         if (typeof data.detail === "string") {
-          // Case 1: Simple string error (e.g., "Invalid token")
           errorMessage = data.detail;
         } else if (Array.isArray(data.detail)) {
-          // Case 2: Pydantic Validation Error (List of objects)
-          // e.g., [{loc: ['plan_name'], msg: 'field required'}]
           errorMessage = data.detail.map(err => err.msg).join(", ");
         } else if (typeof data.detail === "object") {
-          // Case 3: Single object error
           errorMessage = JSON.stringify(data.detail);
         }
-
         throw new Error(errorMessage);
       }
 
-      // C. Open the Overlay with the REAL URL from backend
-      if (data.checkout_url) {
+      // --- NEW LOGIC START ---
+      
+      // CASE A: Upgrade/Downgrade (Instant Update)
+      if (data.action === "updated") {
+        await refreshUser(); // Update local store with new plan info
+        setIsProcessing(false);
+        alert(data.message); // "Plan upgraded to Pro..."
+        navigate("/workspace");
+      }
+      
+      // CASE B: New Subscription (Open Checkout)
+      else if (data.action === "checkout" && data.checkout_url) {
         await DodoPayments.Checkout.open({
           checkoutUrl: data.checkout_url
         });
-      } else {
-        throw new Error("No checkout URL returned from backend");
+        // Note: isProcessing stays true until 'checkout.opened' or 'checkout.closed' fires
+      } 
+      
+      else {
+        throw new Error("Unknown response from server");
       }
+      // --- NEW LOGIC END ---
 
     } catch (error) {
       console.error("Payment Initiation Failed:", error);
-      // Now 'error.message' is guaranteed to be a clean string
       alert("Error: " + error.message);
       setIsProcessing(false);
     }

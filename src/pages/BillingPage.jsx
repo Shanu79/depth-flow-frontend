@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreditCard, Zap, Shield, Loader2, CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { Zap, Shield, Loader2, AlertTriangle, X, CalendarClock } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import { API_BASE_URL } from '../config'; 
 
@@ -7,7 +7,7 @@ const BillingPage = () => {
   const { user, refreshUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
   
-  // --- NEW STATE FOR MODAL ---
+  // Modal State
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
 
@@ -18,6 +18,14 @@ const BillingPage = () => {
   };
 
   const currentPlan = PLANS[user?.plan] ? user.plan : "Free";
+
+  // --- HELPER: Check Cancellation Status ---
+  const isScheduledForCancel = user?.subscription_status?.startsWith("Scheduled for cancellation");
+  
+  // Extract date from string "Scheduled for cancellation on 2025-12-31"
+  const cancelDate = isScheduledForCancel 
+    ? user.subscription_status.split("on ")[1] 
+    : null;
 
   // --- 1. HANDLE CHECKOUT ---
   const handleCheckout = async (planName, cycle = "monthly") => {
@@ -30,8 +38,16 @@ const BillingPage = () => {
         body: JSON.stringify({ plan_name: planName, billing_cycle: cycle, quantity: 1 })
       });
       const data = await response.json();
+      
       if (!response.ok) throw new Error(data.detail || "Checkout failed");
-      if (data.checkout_url) window.location.href = data.checkout_url;
+
+      // Handle Upgrade (Immediate) vs New (Redirect)
+      if (data.action === "updated") {
+        await refreshUser();
+        alert(data.message);
+      } else if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      }
     } catch (error) {
       alert("Payment Error: " + error.message);
     } finally {
@@ -39,7 +55,7 @@ const BillingPage = () => {
     }
   };
 
-  // --- 2. EXECUTE CANCELLATION (Called from Modal) ---
+  // --- 2. EXECUTE CANCELLATION ---
   const confirmCancellation = async () => {
     setCancelLoading(true);
     try {
@@ -54,7 +70,7 @@ const BillingPage = () => {
 
       // Success
       await refreshUser(); 
-      setShowCancelModal(false); // Close Modal
+      setShowCancelModal(false); 
       
     } catch (error) {
       console.error("Cancel Error:", error);
@@ -87,7 +103,7 @@ const BillingPage = () => {
 
             <h3 className="text-xl font-bold text-white mb-2">Cancel Subscription?</h3>
             <p className="text-slate-400 mb-6 leading-relaxed">
-              Are you sure you want to cancel your <strong>{currentPlan}</strong>? You will lose access to premium features and remaining credits immediately.
+              Are you sure? Your plan will be set to <strong>cancel automatically</strong> at the end of your billing cycle. You will retain access until then.
             </p>
 
             <div className="flex gap-3">
@@ -103,7 +119,7 @@ const BillingPage = () => {
                 disabled={cancelLoading}
                 className="flex-1 px-4 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold hover:shadow-lg hover:shadow-red-500/25 transition-all flex items-center justify-center gap-2"
               >
-                {cancelLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Yes, Cancel"}
+                {cancelLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm Cancel"}
               </button>
             </div>
           </div>
@@ -138,6 +154,8 @@ const BillingPage = () => {
 
           {/* PLAN CARD */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 col-span-1 md:col-span-2 relative">
+            
+            {/* --- STATUS BADGE LOGIC --- */}
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-purple-500/10 rounded-lg">
@@ -150,13 +168,22 @@ const BillingPage = () => {
                   </p>
                 </div>
               </div>
-              <span className={`px-3 py-1 text-xs font-bold rounded-full border ${
-                user?.subscription_status === 'active' 
-                  ? 'bg-green-500/10 text-green-400 border-green-500/20' 
-                  : 'bg-slate-700 text-slate-400 border-slate-600'
-              }`}>
-                {user?.subscription_status === 'active' ? currentPlan.toUpperCase() : "FREE"}
-              </span>
+
+              {/* Dynamic Badge */}
+              {isScheduledForCancel ? (
+                 <span className="flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                   <CalendarClock className="w-3 h-3" />
+                   Ends {cancelDate}
+                 </span>
+              ) : user?.subscription_status === 'active' ? (
+                <span className="px-3 py-1 text-xs font-bold rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                  ACTIVE
+                </span>
+              ) : (
+                <span className="px-3 py-1 text-xs font-bold rounded-full bg-slate-700 text-slate-400 border border-slate-600">
+                  FREE
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col md:flex-row justify-between items-end gap-4 mt-2">
@@ -165,22 +192,30 @@ const BillingPage = () => {
                 <span className="text-slate-400 text-lg ml-2">
                    ${PLANS[currentPlan].price}/{user?.billing_cycle === 'yearly' ? 'yr' : 'mo'}
                 </span>
+                
+                {/* Info Text for Scheduled Cancel */}
+                {isScheduledForCancel && (
+                   <p className="text-amber-500/80 text-xs mt-2 font-medium">
+                     Your plan is set to cancel on {cancelDate}. You can continue using your credits until then.
+                   </p>
+                )}
               </div>
               
               <div className="flex gap-3">
                 {currentPlan !== "Pro" && (
                   <button 
                     onClick={() => handleCheckout("Pro", "monthly")}
-                    disabled={loading}
-                    className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                    disabled={loading || isScheduledForCancel}
+                    className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : "Upgrade to Pro"}
                   </button>
                 )}
 
-                {user?.subscription_status === 'active' && (
+                {/* Only show Cancel button if Active AND NOT already scheduled */}
+                {user?.subscription_status === 'active' && !isScheduledForCancel && (
                   <button 
-                    onClick={() => setShowCancelModal(true)} // Opens the new Modal
+                    onClick={() => setShowCancelModal(true)} 
                     className="px-4 py-2 bg-slate-800 hover:bg-red-900/30 border border-slate-700 hover:border-red-800 text-slate-300 hover:text-red-400 text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
                   >
                      Cancel Plan
