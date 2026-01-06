@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { API_BASE_URL } from '../config.js';
 
-const useAuthStore = create((set) => ({
+const useAuthStore = create((set, get) => ({
   user: null,
   loading: true,
 
