@@ -33,26 +33,25 @@ import Users from "./components/admin/User";
 function App() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-
-  // Helper to hide Public Navbar/Footer on Admin pages
   const isAdminRoute = location.pathname.startsWith("/admin");
 
+  // Destructure actions and state
   const { checkAuth, syncSubscription, user } = useAuthStore();
 
-  // 1. Initial Auth Check
+  // 1. INITIAL AUTH CHECK (Run once on mount)
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, []); // Empty dependency array = runs once
 
   // 2. GLOBAL SUBSCRIPTION SYNC
-  // Runs whenever the 'user' object is loaded/changes.
+  // Runs immediately after checkAuth loads the user profile
   useEffect(() => {
     if (user?.subscription_id) {
       syncSubscription();
     }
-  }, [user?.subscription_id]); // Dependency ensures it runs on login
+  }, [user?.subscription_id, syncSubscription]); 
 
-  // --- Page Loader Logic ---
+  // 3. PAGE LOADER LOGIC
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => setIsLoading(false), 800);
@@ -60,7 +59,7 @@ function App() {
   }, [location.pathname]);
 
   const redirectPath = location.state?.from?.pathname || "/";
-
+  
   return (
     <div className="bg-slate-950 min-h-screen font-sans selection:bg-purple-500/30">
 
