@@ -33,15 +33,18 @@ const useAuthStore = create((set, get) => ({
     const token = loginResponse.access_token || loginResponse.token;
     localStorage.setItem("token", token);
 
-    // Fetch full profile immediately
     try {
       const res = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const profile = await res.json();
       
-      // Update State
-      set({ user: { token, ...profile } });
+      // --- DEBUG: Verify Structure ---
+      console.log("AuthStore Login: Setting User:", profile);
+      
+      // Ensure we are not nesting it like { user: { user: ... } }
+      set({ user: { token, ...profile } }); 
+      
     } catch (err) {
       console.error("Login profile fetch failed");
     }

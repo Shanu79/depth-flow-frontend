@@ -35,27 +35,27 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const isAdminRoute = location.pathname.startsWith("/admin");
 
-  // Destructure actions and state
-  const { checkAuth, syncSubscription, user } = useAuthStore();
+  // --- FIX: USE SELECTORS FOR REACTIVITY ---
+  // This ensures App re-renders when 'user' updates
+  const user = useAuthStore((state) => state.user);
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+  const syncSubscription = useAuthStore((state) => state.syncSubscription);
 
-  // 1. INITIAL AUTH CHECK (Run once on mount)
+  // 1. INITIAL AUTH CHECK
   useEffect(() => {
     checkAuth();
-  }, []); // Empty dependency array = runs once
+  }, [checkAuth]);
 
+  // 2. GLOBAL SUBSCRIPTION SYNC
   useEffect(() => {
-    // --- DEBUG LOGS START ---
-    console.log("App.js: User State Changed:", user);
-    console.log("App.js: Subscription ID:", user?.subscription_id);
-    // --- DEBUG LOGS END ---
+    // Debug Log
+    console.log("App.js: User Updated:", user);
 
     if (user?.subscription_id) {
-      console.log("App.js: Triggering Sync...");
+      console.log("App.js: Triggering Sync for ID:", user.subscription_id);
       syncSubscription();
-    } else {
-      console.log("App.js: Skipping Sync (No ID found)");
     }
-  }, [user?.subscription_id, syncSubscription]);
+  }, [user, syncSubscription]);
 
   // 3. PAGE LOADER LOGIC
   useEffect(() => {

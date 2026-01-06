@@ -4,7 +4,9 @@ import useAuthStore from "../stores/authStore"
 import { API_BASE_URL } from '../config'; 
 
 const BillingPage = () => {
-  const { user, refreshUser, syncSubscription } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const refreshUser = useAuthStore((state) => state.refreshUser);
+  const syncSubscription = useAuthStore((state) => state.syncSubscription);
   const [loading, setLoading] = useState(false);
   
   // Modal State
@@ -29,12 +31,11 @@ const BillingPage = () => {
 
   // --- FORCE SYNC ON MOUNT (Moved to Top Level) ---
   useEffect(() => {
-    // This guarantees a check happens whenever you visit /billing
     if (user?.subscription_id) {
       console.log("BillingPage: Forcing Sync...");
       syncSubscription(); 
     }
-  }, [user?.subscription_id, syncSubscription]);
+  }, [user, syncSubscription]);
 
 
   // --- 2. HANDLE CHECKOUT / RESUBSCRIBE ---
