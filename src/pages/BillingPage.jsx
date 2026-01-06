@@ -81,6 +81,18 @@ const BillingPage = () => {
     } finally {
       setCancelLoading(false);
     }
+
+    const { user, refreshUser, syncSubscription } = useAuthStore();
+
+    // --- FORCE SYNC ON MOUNT ---
+    useEffect(() => {
+      // This guarantees a check happens whenever you visit /billing
+      if (user?.subscription_id) {
+        console.log("BillingPage: Forcing Sync...");
+        syncSubscription(); 
+      }
+    }, [user?.subscription_id, syncSubscription]);
+
   };
 
   return (

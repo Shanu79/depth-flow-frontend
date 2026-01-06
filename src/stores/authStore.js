@@ -79,8 +79,14 @@ const useAuthStore = create((set, get) => ({
   // --- NEW: Global Sync Action ---
   syncSubscription: async () => {
     const { user } = get();
-    // 1. Don't run if not logged in or no subscription ID
-    if (!user || !user.subscription_id) return;
+    
+    // DEBUG LOGS (Check console to see these)
+    console.log("Global Sync Initiated. User:", user ? user.email : "No User");
+    
+    if (!user || !user.subscription_id) {
+      console.warn("Global Sync Aborted: No Subscription ID present.");
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -92,18 +98,25 @@ const useAuthStore = create((set, get) => ({
       if (response.ok) {
         const data = await response.json();
         
-        // 2. Silently update the local user state with fresh data
-        set((state) => ({
-          user: {
-            ...state.user,
-            subscription_status: data.synced_status,
-            plan: data.synced_plan
-          }
-        }));
-        console.log("Global Sync: Subscription updated to", data.synced_status);
+        // Update state ONLY if things changed to avoid infinite loops
+        const currentUser = get().user;
+        if (currentUser.subscription_status !== data.synced_status || currentUser.plan !== data.synced_plan) {
+            set((state) => ({
+              user: {
+                ...state.user,
+                subscription_status: data.synced_status,
+                plan: data.synced_plan
+              }
+            }));
+            console.log("Global Sync Success: Updated to", data.synced_status);
+        } else {
+            console.log("Global Sync: Data already up to date.");
+        }
+      } else {
+        console.error("Global Sync Error:", await response.text());
       }
     } catch (error) {
-      console.error("Global Sync failed:", error);
+      console.error("Global Sync Failed:", error);
     }
   }
 }));
