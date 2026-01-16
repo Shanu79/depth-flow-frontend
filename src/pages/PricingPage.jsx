@@ -11,6 +11,23 @@ const PricingPage = () => {
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
 
   const plans = [
+     {
+      name: "Trial Plan",
+      price: { monthly: "3.99", yearly: "3.99"},
+      period: { monthly: "One Time", yearly: "One Time"},
+      description: "150 credits",
+      features: [
+        { text: "150 credits", included: true },
+        { text: "2D to 3D Depth Motion", included: true },
+        { text: "No watermark", included: false },
+        { text: "720p quality", included: true, info: true },
+        { text: "Slow processing queue", included: true, icon: "clock" },
+        { text: "No commercial usage", included: false },
+      ],
+      highlight: false,
+      buttonText: "Subscribe Trial",
+      buttonStyle: "border-slate-600 text-white hover:bg-slate-800"
+    },
     {
       name: "Basic",
       price: { monthly: "9.99", yearly: "99" },
@@ -78,7 +95,7 @@ const PricingPage = () => {
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
         {plans.map((plan, idx) => {
           const isCurrentPlan = user?.plan?.toLowerCase() === plan.name.toLowerCase();
 
