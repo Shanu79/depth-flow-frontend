@@ -58,7 +58,7 @@ const PaymentPage = () => {
   const handlePayment = async () => {
     setIsProcessing(true);
 
-    const finalBillingCycle = planName === "Trial" ? "One Time" : billingCycle;
+    const finalBillingCycle = planName === "Trial" ? "one_time" : billingCycle;
 
     try {
       const token = localStorage.getItem("token");
