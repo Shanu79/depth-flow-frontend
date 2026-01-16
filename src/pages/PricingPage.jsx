@@ -25,7 +25,7 @@ const PricingPage = () => {
         { text: "No commercial usage", included: true },
       ],
       highlight: false,
-      buttonText: "Subscribe Trial",
+      buttonText: "Try Trial Plan",
       buttonStyle: "border-slate-600 text-white hover:bg-slate-800"
     },
     {
@@ -185,7 +185,7 @@ const PricingPage = () => {
               >
                 {loading 
                   ? "Please wait..." 
-                  : (isCurrentPlan ? "Subscribed" : plan.buttonText)
+                  : (isCurrentPlan ? "Activated" : plan.buttonText)
                 }
               </button>
             </div>
