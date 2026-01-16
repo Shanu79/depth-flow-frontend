@@ -15,7 +15,7 @@ const BillingPage = () => {
 
   // --- 1. FIXED PRICES ---
   const PLANS = {
-    Free: { price: 0, label: "Free Tier" },
+    Trial: { price: 3.99, label: "Trial Plan" },
     Basic: { price: 9.99, label: "Basic Plan" },
     Pro: { price: 19.99, label: "Pro Plan" }
   };
@@ -177,7 +177,7 @@ const BillingPage = () => {
                 <div>
                   <h3 className="text-slate-200 font-medium">Current Plan</h3>
                   <p className="text-xs text-slate-400">
-                    {user?.billing_cycle ? `Billed ${user.billing_cycle}` : 'No active subscription'}
+                    {user.plan=="Trial" ? `One Time` : `Billed ${user.billing_cycle}`}
                   </p>
                 </div>
               </div>
