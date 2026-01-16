@@ -12,17 +12,17 @@ const PricingPage = () => {
 
   const plans = [
      {
-      name: "Trial Plan",
+      name: "Trial",
       price: { monthly: "3.99", yearly: "3.99"},
       period: { monthly: "One Time", yearly: "One Time"},
       description: "150 credits",
       features: [
         { text: "150 credits", included: true },
         { text: "2D to 3D Depth Motion", included: true },
-        { text: "No watermark", included: false },
+        { text: "No watermark", included: true },
         { text: "720p quality", included: true, info: true },
         { text: "Slow processing queue", included: true, icon: "clock" },
-        { text: "No commercial usage", included: false },
+        { text: "No commercial usage", included: true },
       ],
       highlight: false,
       buttonText: "Subscribe Trial",
