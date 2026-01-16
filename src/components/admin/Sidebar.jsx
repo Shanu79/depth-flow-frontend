@@ -1,14 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom"; 
 import { Users, LogOut } from "lucide-react";
 
-
 export default function Sidebar() {
-
-  // 2. USE THE HOOK
   const navigate = useNavigate(); 
 
   const handleLogout = () => {
-    navigate("/"); // Now this works!
+    // Add your logout logic here (clearing tokens etc)
+    localStorage.removeItem("token");
+    navigate("/"); 
   }
 
   const navItems = [
