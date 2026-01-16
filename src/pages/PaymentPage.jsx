@@ -58,6 +58,8 @@ const PaymentPage = () => {
   const handlePayment = async () => {
     setIsProcessing(true);
 
+    const finalBillingCycle = cleanPlanName === "Trial" ? "one_time" : billingCycle;
+
     try {
       const token = localStorage.getItem("token");
 
@@ -70,7 +72,7 @@ const PaymentPage = () => {
         },
         body: JSON.stringify({
           plan_name: planName,
-          billing_cycle: billingCycle,
+          billing_cycle: finalBillingCycle,
           quantity: 1
         })
       });
