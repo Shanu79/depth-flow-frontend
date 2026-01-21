@@ -62,7 +62,7 @@ const ComparisonTable = () => {
             See the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">Difference</span>
           </h2>
           <p className="text-slate-400 text-sm md:text-base">
-            Why creators choose Depthflow AI
+            Why creators choose Depthflow AI Compared to other:
           </p>
         </div>
 
@@ -72,10 +72,9 @@ const ComparisonTable = () => {
           {/* Headers */}
           <div className="p-4 border-b border-r border-white/10 bg-slate-900/50"></div>
 
-          {/* Depthflow Header */}
-          <div className="p-4 border-b border-white/10 relative bg-gradient-to-b from-purple-900/40 to-slate-900/40 text-center">
-            <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500"></div>
-            <div className="flex items-center justify-center gap-2 text-white font-bold text-lg">
+          {/* Depthflow Header (Rounded Top & Border) */}
+          <div className="p-4 relative bg-slate-800/60 text-center rounded-t-2xl border-t-2 border-x-2 border-purple-500/30 shadow-[0_-5px_20px_rgba(168,85,247,0.1)]">
+            <div className="flex items-center justify-center gap-2 h-16">
                <FullLogo />
             </div>
           </div>
@@ -91,18 +90,25 @@ const ComparisonTable = () => {
           </div>
 
           {/* Rows */}
-          {features.map((item, idx) => (
+          {features.map((item, idx) => {
+            const isLast = idx === features.length - 1;
+            
+            return (
             <React.Fragment key={idx}>
               
               {/* Feature Label */}
-              <div className="px-4 py-3 border-b border-r border-white/10 flex items-center gap-2 text-slate-300 text-xs font-semibold bg-slate-900/30">
+              <div className={`px-4 py-3 border-r border-white/10 flex items-center gap-2 text-slate-300 text-xs font-semibold bg-slate-900/30 ${!isLast ? 'border-b' : ''}`}>
                 {item.icon && <span className="text-slate-500">{item.icon}</span>}
                 {item.name}
               </div>
 
-              {/* Depthflow Data */}
-              <div className="px-4 py-3 border-b border-white/10 bg-purple-900/10 flex items-start gap-2 relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-purple-500/5 pointer-events-none"></div>
+              {/* UPDATED: Depthflow Data (Fixed Borders) */}
+              <div className={`
+                px-4 py-3 flex items-start gap-2 relative
+                border-x-2 border-t-2 border-purple-500/30
+                ${isLast ? 'rounded-b-2xl border-b-2 shadow-[0_5px_20px_rgba(168,85,247,0.1)]' : ''}
+              `}>
+                <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-purple-500/5 pointer-events-none rounded-[inherit]"></div>
                 <div className="mt-0.5 min-w-[16px] text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]">
                   <Check className="w-4 h-4 stroke-[3]" />
                 </div>
@@ -112,27 +118,27 @@ const ComparisonTable = () => {
               </div>
 
               {/* Immersity Data */}
-              <div className="px-4 py-3 border-b border-r border-white/10 flex items-start gap-2 opacity-50 hover:opacity-100 transition-opacity">
-                 <div className="mt-0.5 min-w-[16px] text-yellow-500">
+              <div className={`px-4 py-3 border-r border-white/5 flex items-start gap-2 opacity-50 hover:opacity-100 transition-opacity ${!isLast ? 'border-b' : ''}`}>
+                  <div className="mt-0.5 min-w-[16px] text-yellow-500">
                     <AlertTriangle className="w-4 h-4" />
-                 </div>
-                 <p className="text-slate-300 text-xs leading-relaxed">
-                   {item.immersity}
-                 </p>
+                  </div>
+                  <p className="text-slate-300 text-xs leading-relaxed">
+                    {item.immersity}
+                  </p>
               </div>
 
               {/* Others Data */}
-              <div className="px-4 py-3 border-b border-white/10 flex items-start gap-2 opacity-40 hover:opacity-100 transition-opacity">
-                 <div className="mt-0.5 min-w-[16px] text-slate-500">
+              <div className={`px-4 py-3 border-b border-white/10 flex items-start gap-2 opacity-40 hover:opacity-100 transition-opacity`}>
+                  <div className="mt-0.5 min-w-[16px] text-slate-500">
                     <Minus className="w-4 h-4" />
-                 </div>
-                 <p className="text-slate-400 text-xs leading-relaxed">
-                   {item.others}
-                 </p>
+                  </div>
+                  <p className="text-slate-400 text-xs leading-relaxed">
+                    {item.others}
+                  </p>
               </div>
 
             </React.Fragment>
-          ))}
+          )})}
         </div>
 
         {/* --- MOBILE VIEW (Compact Stack) --- */}
@@ -155,12 +161,12 @@ const ComparisonTable = () => {
 
               <div className="grid grid-cols-2 divide-x divide-white/5 bg-black/20">
                 <div className="p-3 opacity-50">
-                   <p className="text-[9px] uppercase text-slate-500 font-bold mb-1">Immersity</p>
-                   <p className="text-slate-400">{item.immersity}</p>
+                    <p className="text-[9px] uppercase text-slate-500 font-bold mb-1">Immersity</p>
+                    <p className="text-slate-400">{item.immersity}</p>
                 </div>
                 <div className="p-3 opacity-40">
-                   <p className="text-[9px] uppercase text-slate-500 font-bold mb-1">Others</p>
-                   <p className="text-slate-400">{item.others}</p>
+                    <p className="text-[9px] uppercase text-slate-500 font-bold mb-1">Others</p>
+                    <p className="text-slate-400">{item.others}</p>
                 </div>
               </div>
             </div>
