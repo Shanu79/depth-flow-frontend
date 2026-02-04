@@ -1,8 +1,96 @@
 import { useState } from 'react';
-import { Check, X, Sparkles } from 'lucide-react';
+import { Check, X, Sparkles, Plus, Minus } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
 import { useNavigate } from 'react-router-dom';
 
+// --- FAQ DATA (UPDATED) ---
+const faqs = [
+  {
+    question: "What is included in the $3.99 Trial plan?",
+    answer: "The Trial plan is a one-time preview option that lets you experience Depthflow’s workflow and output quality. It includes limited credits, 720p output, slow processing, and is meant for testing before upgrading."
+  },
+  {
+    question: "Do unused credits expire?",
+    answer: "Monthly plan credits reset at the end of each billing cycle. Credits cannot be carried forward to the next month. Trial credits are limited and meant for preview use only."
+  },
+  {
+    question: "Can I upgrade or downgrade my plan anytime?",
+    answer: "Yes. You can upgrade or change your plan anytime from your account dashboard. Upgrades take effect immediately without losing access."
+  },
+  {
+    question: "Are there any hidden fees or extra charges?",
+    answer: "No. Depthflow follows transparent pricing. You only pay for the plan you choose — there are no hidden fees or surprise charges."
+  },
+  {
+    question: "Is my payment secure on Depthflow?",
+    answer: "Yes. All payments on Depthflow are processed through secure and trusted payment gateways. We do not store your card or payment details on our servers."
+  },
+  {
+    question: "Can I pay from any country or in any currency?",
+    answer: "Yes. Depthflow supports global payments, allowing users from most countries to pay using their local currency and available payment methods."
+  },
+  {
+    question: "Can I cancel my subscription anytime?",
+    answer: "Absolutely. You can cancel your subscription anytime from your account dashboard. Your access will remain active until the end of your current billing period."
+  }
+];
+
+// --- FAQ COMPONENT ---
+const FAQSection = () => {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  return (
+    <div className="mt-32 max-w-3xl mx-auto">
+      <h2 className="text-3xl md:text-4xl font-bold text-center text-white mb-4">
+        Frequently Asked Questions
+      </h2>
+      <p className="text-slate-400 text-center mb-12">
+        Everything you need to know about Depthflow AI.
+      </p>
+
+      <div className="space-y-4">
+        {faqs.map((faq, index) => (
+          <div 
+            key={index} 
+            className={`border rounded-xl transition-all duration-300 ${
+              openIndex === index 
+                ? 'bg-slate-900 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.1)]' 
+                : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <button
+              onClick={() => setOpenIndex(openIndex === index ? null : index)}
+              className="w-full flex items-center justify-between p-6 text-left"
+            >
+              <span className="font-medium text-slate-200 text-lg pr-4">
+                {faq.question}
+              </span>
+              {openIndex === index ? (
+                <Minus className="w-5 h-5 text-purple-400 flex-shrink-0" />
+              ) : (
+                <Plus className="w-5 h-5 text-slate-500 flex-shrink-0" />
+              )}
+            </button>
+            
+            <div 
+              className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+                openIndex === index ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="px-6 pb-6 text-slate-400 leading-relaxed border-t border-slate-800/50 pt-4 mt-2">
+                  {faq.answer}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN PRICING PAGE COMPONENT ---
 const PricingPage = () => {
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
@@ -95,7 +183,7 @@ const PricingPage = () => {
       </div>
 
       {/* Cards Grid */}
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto items-center">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto items-center mb-20">
         {plans.map((plan, idx) => {
           const isCurrentPlan = user?.plan?.toLowerCase() === plan.name.toLowerCase();
           const isHighlighted = plan.highlight;
@@ -142,7 +230,7 @@ const PricingPage = () => {
               <button
                 onClick={() => {
                   if (isCurrentPlan) return;
-                  const creditAmount = plan.features[0].text.split(' ')[0]; // Simple extraction
+                  const creditAmount = plan.features[0].text.split(' ')[0];
                   navigate('/payment', {
                     state: {
                       planName: plan.name,
@@ -197,6 +285,10 @@ const PricingPage = () => {
           );
         })}
       </div>
+
+      {/* FAQ SECTION */}
+      <FAQSection />
+      
     </section>
   );
 };
