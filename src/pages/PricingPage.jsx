@@ -69,7 +69,7 @@ const PricingPage = () => {
 
       {/* Section Header */}
       <div className="relative z-10 text-center mb-16">
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Flexible Pricing Plans</h2>
+        <h2 className="text-4xl md:text-5xl font-bold text-white my-4 tracking-tight">Flexible Pricing Plans</h2>
         <p className="text-slate-400 text-lg">Choose the perfect plan for your creative needs.</p>
 
         {/* Toggle Switch */}
@@ -80,9 +80,9 @@ const PricingPage = () => {
 
           <button
             onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-            className="w-14 h-8 bg-slate-800 rounded-full p-1 relative transition-colors border border-slate-700 cursor-pointer"
+            className={`w-14 h-8 rounded-full p-1 relative transition-colors border border-slate-700 cursor-pointer ${billingCycle === 'yearly' ? 'bg-purple-600 border-purple-500' : 'bg-slate-800'}`}
           >
-            <div className={`w-6 h-6 rounded-full bg-slate-400/80 shadow-md transform transition-all duration-300 ${billingCycle === 'yearly' ? 'translate-x-6 bg-white' : 'translate-x-0'}`}></div>
+            <div className={`w-6 h-6 rounded-full shadow-md transform transition-all duration-300 ${billingCycle === 'yearly' ? 'translate-x-6 bg-white' : 'translate-x-0 bg-slate-400/80'}`}></div>
           </button>
 
           <span className={`text-sm font-medium flex items-center gap-2 ${billingCycle === 'yearly' ? 'text-white' : 'text-slate-500'}`}>
@@ -101,11 +101,11 @@ const PricingPage = () => {
           const isHighlighted = plan.highlight;
 
           return (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               className={`relative rounded-3xl p-8 flex flex-col transition-all duration-300
-                ${isHighlighted 
-                  ? 'bg-slate-900/80 border border-purple-500 shadow-[0_0_50px_rgba(139,92,246,0.3)] z-10 scale-105 md:-mt-4' 
+                ${isHighlighted
+                  ? 'bg-slate-900/80 border border-purple-500 shadow-[0_0_50px_rgba(139,92,246,0.3)] z-10 scale-105 md:-mt-4'
                   : 'bg-slate-900/40 border border-slate-800 hover:border-slate-700'
                 }
               `}
@@ -124,10 +124,10 @@ const PricingPage = () => {
               {/* Card Header */}
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-2">
-                   <h3 className="text-lg text-slate-300 font-medium">{plan.name}</h3>
-                   {isHighlighted && <div className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold">Most Popular</div>}
+                  <h3 className="text-lg text-slate-300 font-medium">{plan.name}</h3>
+                  {isHighlighted && <div className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold">Most Popular</div>}
                 </div>
-                
+
                 <div className="flex items-baseline gap-1">
                   <span className="text-5xl font-bold text-white tracking-tight">
                     ${plan.price[billingCycle]}
@@ -154,15 +154,15 @@ const PricingPage = () => {
                 }}
                 disabled={loading || isCurrentPlan}
                 className={`w-full py-3 rounded-xl font-medium transition-all mb-8
-                  ${isHighlighted 
-                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:to-indigo-500 text-white shadow-lg shadow-purple-900/20' 
+                  ${isHighlighted
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:to-indigo-500 text-white shadow-lg shadow-purple-900/20'
                     : 'bg-slate-800/50 hover:bg-slate-800 text-white border border-slate-700'
                   }
                   ${isCurrentPlan ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}
                 `}
               >
-                {loading 
-                  ? "Processing..." 
+                {loading
+                  ? "Processing..."
                   : (isCurrentPlan ? "Current Plan" : plan.buttonText)
                 }
               </button>
@@ -173,8 +173,8 @@ const PricingPage = () => {
                   {plan.features.map((feature, fIdx) => (
                     <li key={fIdx} className="flex items-start gap-3 text-sm group">
                       <div className={`mt-0.5 rounded-full p-0.5 border flex items-center justify-center w-5 h-5 shrink-0
-                        ${feature.included 
-                          ? 'border-slate-600 bg-slate-800' 
+                        ${feature.included
+                          ? 'border-slate-600 bg-slate-800'
                           : 'border-slate-800 bg-transparent opacity-50'
                         }`}>
                         {feature.included ? (

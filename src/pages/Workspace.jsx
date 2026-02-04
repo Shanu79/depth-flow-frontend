@@ -5,7 +5,9 @@ import {
   Share2,
   Loader2,
   MoveDiagonal2,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  Trash2
 } from "lucide-react";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -69,6 +71,14 @@ const Workspace = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
   const [resultVideoUrl, setResultVideoUrl] = useState(() => localStorage.getItem("ws_resultVideoUrl") || null);
+
+  // Initialize History from LocalStorage
+  const [history, setHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem("ws_history");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
   
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0); // NEW: Progress State
@@ -109,6 +119,11 @@ const Workspace = () => {
     localStorage.setItem("ws_speed", speed);
     localStorage.setItem("ws_duration", duration);
   }, [motionStyle, depth, speed, duration]);
+
+  // --- 3. PERSIST HISTORY ---
+  useEffect(() => {
+    localStorage.setItem("ws_history", JSON.stringify(history));
+  }, [history]);
 
   // --- HELPER: Convert File to Base64 ---
   const fileToBase64 = (file) => {
@@ -211,9 +226,21 @@ const Workspace = () => {
       // Generation Complete
       clearInterval(progressInterval);
       setProgress(100);
+
+      const newVideoUrl = data.video_url;
       
-      setResultVideoUrl(data.video_url);
-      localStorage.setItem("ws_resultVideoUrl", data.video_url); 
+      setResultVideoUrl(newVideoUrl);
+      localStorage.setItem("ws_resultVideoUrl", newVideoUrl); 
+
+      // Add to History
+      const newHistoryItem = {
+        id: Date.now(),
+        videoUrl: newVideoUrl,
+        timestamp: new Date().toISOString(),
+        thumbnail: previewUrl // Use current preview as fallback/thumbnail if needed
+      };
+      
+      setHistory(prev => [newHistoryItem, ...prev].slice(0, 10)); // Keep last 10
       
       updateCredits(data.remaining_credits);
       setActiveTab("output");
@@ -252,6 +279,11 @@ const Workspace = () => {
     }
   };
 
+  const deleteHistoryItem = (e, id) => {
+    e.stopPropagation();
+    setHistory(prev => prev.filter(item => item.id !== id));
+  };
+
   // --- RESIZING LOGIC ---
   const startResizing = useCallback(() => { setIsResizing(true); document.body.style.userSelect = 'none'; document.body.style.cursor = 'col-resize'; }, []);
   const stopResizing = useCallback(() => { setIsResizing(false); document.body.style.userSelect = ''; document.body.style.cursor = ''; }, []);
@@ -277,7 +309,7 @@ const Workspace = () => {
 
       {/* LEFT PANEL */}
       <div
-        className={`relative flex-shrink-0 flex flex-col pt-24 pb-10 px-6 space-y-6 overflow-y-auto scrollbar-hide border-r border-slate-800 bg-slate-950 z-10 w-full md:w-[var(--sidebar-width)] ${isResizing ? 'transition-none' : 'transition-[width] duration-300 ease-out'}`}
+        className={`relative flex-shrink-0 flex flex-col pt-24 px-6 space-y-6 overflow-y-auto scrollbar-hide border-r border-slate-800 bg-slate-950 z-10 w-full md:w-[var(--sidebar-width)] ${isResizing ? 'transition-none' : 'transition-[width] duration-300 ease-out'}`}
         style={{ '--sidebar-width': `${sidebarWidth}px` }}
       >
         <div className="flex justify-between items-center">
@@ -431,21 +463,30 @@ const Workspace = () => {
       {/* DRAG HANDLE */}
       <div onMouseDown={startResizing} className="hidden md:flex w-4 -ml-2 cursor-col-resize hover:bg-purple-500/10 transition-all items-center justify-center z-50 group absolute h-full" style={{ left: `${sidebarWidth}px` }}><div className="w-[1px] h-full bg-slate-800 group-hover:bg-purple-500/50 transition-colors" /></div>
 
-      {/* RIGHT PANEL - PREVIEW */}
-      <div className="flex-1 flex flex-col gap-6 pt-24 pb-10 px-6 md:px-12 bg-slate-950 overflow-hidden min-w-0">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex-1 flex flex-col h-fill">
-
+      {/* RIGHT PANEL - PREVIEW & HISTORY */}
+      {/* 1. Added h-full and overflow-y-auto to allow scrolling if content overflows */}
+      {/* 2. Removed h-screen from this specific element to respect flex parent */}
+      <div className="flex-1 flex flex-col pt-24 pb-10 px-6 md:px-12 bg-slate-950 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+        
+        {/* Main Preview Card */}
+        {/* 1. Removed flex-1 to prevent aggressive vertical stretching */}
+        {/* 2. Added w-full to ensure full width usage */}
+        <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col mb-6 shrink-0">
+          
           {/* Tabs */}
-          <div className="flex gap-1 bg-slate-800 w-fit p-1 rounded-lg mb-6">
+          <div className="flex gap-1 bg-slate-800 w-fit p-1 rounded-lg mb-6 flex-shrink-0">
             <button onClick={() => setActiveTab("input")} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === "input" ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>Input</button>
             <button onClick={() => resultVideoUrl && setActiveTab("output")} disabled={!resultVideoUrl} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === 'output' ? 'bg-purple-600 text-white' : 'text-slate-400'} ${!resultVideoUrl ? 'opacity-50' : 'hover:text-white'}`}>Result</button>
           </div>
 
-          {/* Viewer */}
+          {/* Viewer Container */}
+          {/* 1. Removed flex-1. */}
+          {/* 2. Added aspect-video (16:9 ratio) to keep it shaped like a video player, not a giant box. */}
+          {/* 3. Added max-h-[60vh] to stop it from getting too tall on large screens. */}
           <div
             ref={previewRef}
-            className="bg-black rounded-xl overflow-hidden relative group min-h-[50vh] flex items-center justify-center transition-all duration-75 ease-linear"
-            style={{ height: previewHeight ? `${previewHeight}px` : 'auto', maxHeight: previewHeight ? 'none' : '65vh' }}
+            className="w-full aspect-video max-h-[60vh] bg-black rounded-xl overflow-hidden relative group flex items-center justify-center transition-all duration-75 ease-linear"
+            style={{ height: previewHeight ? `${previewHeight}px` : 'auto' }}
           >
             {isLoading ? (
                <div className="flex flex-col items-center gap-3">
@@ -457,26 +498,80 @@ const Workspace = () => {
               previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
                 <div className="text-slate-600">No Image Selected</div>
             }
-
             {/* Corner Resize Handle */}
             <div onMouseDown={startVerticalResizing} className="absolute bottom-0 left-0 w-8 h-8 bg-black/50 hover:bg-purple-600 cursor-sw-resize flex items-end justify-start p-1 rounded-tr-xl transition-colors z-20"><MoveDiagonal2 className="w-4 h-4 text-white/70" /></div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-3 mt-6 flex-shrink-0">
             <button
-              onClick={handleDownload}
+              onClick={() => handleDownload(resultVideoUrl)}
               disabled={!resultVideoUrl}
               className={`flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold flex items-center justify-center gap-2 ${!resultVideoUrl ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:shadow-purple-500/25 transition-all'}`}
             >
               <Download className="w-5 h-5" /> Download
             </button>
-
             <button className="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 flex items-center gap-2">
               <Share2 className="w-4 h-4" /> Share
             </button>
           </div>
         </div>
+
+        {/* HISTORY SECTION */}
+        {/* Uses mt-auto to sit at the bottom of the container, but scrollable if content above is tall */}
+        <div className="flex-shrink-0 mt-auto">
+          <div className="flex items-center gap-2 mb-3 text-slate-400">
+            <Clock className="w-4 h-4" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider">History</h3>
+          </div>
+          
+          {history.length === 0 ? (
+             <div className="h-24 border border-dashed border-slate-800 rounded-xl flex items-center justify-center text-slate-600 text-sm">
+               No generated videos yet
+             </div>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+              {history.map((item) => (
+                <div 
+                  key={item.id} 
+                  onClick={() => {
+                    setResultVideoUrl(item.videoUrl);
+                    setActiveTab('output');
+                  }}
+                  className={`group relative min-w-[160px] w-40 h-24 bg-slate-900 rounded-xl overflow-hidden border cursor-pointer transition-all hover:scale-105 ${resultVideoUrl === item.videoUrl ? 'border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border-slate-800 hover:border-slate-600'}`}
+                >
+                  <video 
+                    src={item.videoUrl} 
+                    className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
+                    muted
+                    onMouseOver={e => e.target.play()}
+                    onMouseOut={e => {e.target.pause(); e.target.currentTime = 0;}}
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[1px]">
+                     <button 
+                        onClick={(e) => { e.stopPropagation(); handleDownload(item.videoUrl); }}
+                        className="p-1.5 bg-slate-800/90 text-white rounded-full hover:bg-purple-600 hover:text-white transition-colors"
+                        title="Download"
+                     >
+                       <Download className="w-4 h-4" />
+                     </button>
+                     <button 
+                        onClick={(e) => deleteHistoryItem(e, item.id)}
+                        className="p-1.5 bg-slate-800/90 text-slate-300 rounded-full hover:bg-red-500 hover:text-white transition-colors"
+                        title="Delete"
+                     >
+                       <Trash2 className="w-4 h-4" />
+                     </button>
+                  </div>
+                  {resultVideoUrl === item.videoUrl && (
+                    <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full animate-pulse shadow-[0_0_8px_#a855f7]" />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );
