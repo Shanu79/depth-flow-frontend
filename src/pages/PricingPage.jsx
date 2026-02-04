@@ -15,9 +15,9 @@ const PricingPage = () => {
       name: "Trial",
       price: { monthly: "3.99", yearly: "3.99"},
       period: { monthly: "One Time", yearly: "One Time"},
-      description: "150 credits",
+      description: "120 credits",
       features: [
-        { text: "150 credits", included: true },
+        { text: "120 credits", included: true },
         { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "720p quality", included: true, info: true },

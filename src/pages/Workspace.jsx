@@ -64,13 +64,15 @@ const Workspace = () => {
   const [motionStyle, setMotionStyle] = useState(() => localStorage.getItem("ws_motionStyle") || "Dolly");
   const [depth, setDepth] = useState(() => Number(localStorage.getItem("ws_depth")) || 7);
   const [speed, setSpeed] = useState(() => Number(localStorage.getItem("ws_speed")) || 5);
-  const [duration, setDuration] = useState(() => Number(localStorage.getItem("ws_duration")) || 5); // NEW PARAMETER
+  const [duration, setDuration] = useState(() => Number(localStorage.getItem("ws_duration")) || 5); 
   
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
   const [resultVideoUrl, setResultVideoUrl] = useState(() => localStorage.getItem("ws_resultVideoUrl") || null);
   
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0); // NEW: Progress State
+
   // If we have a result on load, default to output tab
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem("ws_resultVideoUrl") ? "output" : "input");
 
@@ -105,7 +107,7 @@ const Workspace = () => {
     localStorage.setItem("ws_motionStyle", motionStyle);
     localStorage.setItem("ws_depth", depth);
     localStorage.setItem("ws_speed", speed);
-    localStorage.setItem("ws_duration", duration); // Persist Duration
+    localStorage.setItem("ws_duration", duration);
   }, [motionStyle, depth, speed, duration]);
 
   // --- HELPER: Convert File to Base64 ---
@@ -165,6 +167,16 @@ const Workspace = () => {
     }
 
     setIsLoading(true);
+    setProgress(0);
+
+    // Simulate progress bar (fast at start, slows down)
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 90) return prev; // Stall at 90% until done
+        const increment = prev < 50 ? 5 : 2; 
+        return prev + increment;
+      });
+    }, 300);
 
     try {
       const token = localStorage.getItem("token");
@@ -175,7 +187,7 @@ const Workspace = () => {
       formData.append("style", motionStyle);
       formData.append("depth", depth);
       formData.append("speed", speed);
-      formData.append("duration", duration); // Sending new param to backend
+      formData.append("duration", duration);
 
       const response = await fetch(`${API_BASE_URL}/ai/generate-3d`, {
         method: "POST",
@@ -187,6 +199,7 @@ const Workspace = () => {
 
       if (response.status === 402) {
         setShowCreditModal(true);
+        clearInterval(progressInterval);
         setIsLoading(false);
         return;
       }
@@ -194,6 +207,10 @@ const Workspace = () => {
       if (!response.ok) throw new Error("Generation failed.");
 
       const data = await response.json();
+      
+      // Generation Complete
+      clearInterval(progressInterval);
+      setProgress(100);
       
       setResultVideoUrl(data.video_url);
       localStorage.setItem("ws_resultVideoUrl", data.video_url); 
@@ -206,7 +223,11 @@ const Workspace = () => {
       console.error("Error:", error);
       alert(error.message);
     } finally {
-      setIsLoading(false);
+      // Small timeout to let user see 100%
+      setTimeout(() => {
+        setIsLoading(false);
+        setProgress(0);
+      }, 500);
     }
   };
 
@@ -263,10 +284,10 @@ const Workspace = () => {
           <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
         </div>
 
-        {/* Upload Box */}
+        {/* Upload Box - CHANGED TO PURPLE THEME */}
         <div
           onClick={() => fileInputRef.current.click()}
-          className="relative border-2 border-dashed border-cyan-400 bg-blue-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-blue-600/30 transition-all overflow-hidden"
+          className="relative border-2 border-dashed border-purple-500 bg-purple-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-purple-600/30 transition-all overflow-hidden"
         >
           <input
             type="file"
@@ -340,7 +361,7 @@ const Workspace = () => {
               />
             </div>
 
-            {/* 3. DURATION SLIDER (Time) */}
+            {/* 3. DURATION SLIDER - CHANGED TO PURPLE */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
                 Video Length
@@ -352,7 +373,7 @@ const Workspace = () => {
                 max="10"
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
-                className="w-full bg-cyan-600 rounded-full cursor-pointer accent-cyan-400"
+                className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
               />
             </div>
 
@@ -375,8 +396,35 @@ const Workspace = () => {
           </div>
         </div>
 
-        <button onClick={handleGenerate} disabled={isLoading || !selectedFile} className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 font-extrabold text-lg transition-all mt-4 ${isLoading || !selectedFile ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20'}`}>
-          {isLoading ? <Loader2 className="animate-spin" /> : `Generate 3D Image`}
+        {/* Generate Button - CHANGED TO PURPLE & ADDED PROGRESS BAR */}
+        <button 
+          onClick={handleGenerate} 
+          disabled={isLoading || !selectedFile} 
+          className={`relative w-full py-4 rounded-xl flex items-center justify-center gap-2 font-extrabold text-lg transition-all mt-4 overflow-hidden
+            ${isLoading || !selectedFile 
+              ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
+              : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20'}`
+          }
+        >
+          {/* Progress Bar Background Overlay */}
+          {isLoading && (
+            <div 
+              className="absolute left-0 top-0 h-full bg-purple-700/50 transition-all duration-300 ease-out" 
+              style={{ width: `${progress}%` }} 
+            />
+          )}
+
+          {/* Button Content */}
+          <div className="relative z-10 flex items-center gap-2">
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin w-5 h-5" /> 
+                <span>Generating... {progress}%</span>
+              </>
+            ) : (
+              "Generate 3D Image"
+            )}
+          </div>
         </button>
       </div>
 
@@ -399,10 +447,15 @@ const Workspace = () => {
             className="bg-black rounded-xl overflow-hidden relative group min-h-[50vh] flex items-center justify-center transition-all duration-75 ease-linear"
             style={{ height: previewHeight ? `${previewHeight}px` : 'auto', maxHeight: previewHeight ? 'none' : '65vh' }}
           >
-            {isLoading ? <Loader2 className="w-12 h-12 text-purple-400 animate-spin" /> :
+            {isLoading ? (
+               <div className="flex flex-col items-center gap-3">
+                 <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+                 <span className="text-purple-400 font-mono text-sm">{progress}% Complete</span>
+               </div>
+              ) :
               activeTab === 'output' && resultVideoUrl ? <video src={resultVideoUrl} controls autoPlay loop className="w-full h-full object-contain" /> :
-                previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
-                  <div className="text-slate-600">No Image Selected</div>
+              previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
+                <div className="text-slate-600">No Image Selected</div>
             }
 
             {/* Corner Resize Handle */}
