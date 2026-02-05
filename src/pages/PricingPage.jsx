@@ -113,7 +113,7 @@ const PricingPage = () => {
       buttonText: "Get started",
     },
     {
-      name: "Basic Plan",
+      name: "Basic",
       price: { monthly: "9.99", yearly: "99" },
       originalPrice: { monthly: null, yearly: "120" },
       period: { monthly: "/ month", yearly: "/ year" },
@@ -131,7 +131,7 @@ const PricingPage = () => {
       buttonText: "Get started",
     },
     {
-      name: "Pro Plan",
+      name: "Pro",
       price: { monthly: "19.99", yearly: "199" },
       originalPrice: { monthly: null, yearly: "240" },
       period: { monthly: "/ month", yearly: "/ year" },
