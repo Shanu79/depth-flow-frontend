@@ -145,7 +145,7 @@ const PaymentPage = () => {
             <div className="flex justify-between items-center border-b border-slate-700 pb-4">
               <div>
                 <h3 className="text-xl font-semibold text-white">{planName} Plan</h3>
-                <p className="text-slate-400 text-sm capitalize">{planName==="Trial" ? billingCycle : "One time"} Billing</p>
+                <p className="text-slate-400 text-sm capitalize">{planName==="Trial" ? "One time" : billingCycle} Billing</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-white">${price}</p>
