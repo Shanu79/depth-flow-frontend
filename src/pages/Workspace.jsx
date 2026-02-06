@@ -414,7 +414,7 @@ const Workspace = () => {
               <span>Generating...</span>
             </>
           ) : (
-            `Generate (${GENERATION_COST} Credits)`
+            `Generate 3D Image`
           )}
         </button>
       </div>
