@@ -14,8 +14,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from '../config.js';
 import useAuthStore from '../stores/authStore.js';
 
+const GENERATION_COST = 20;
+
 // --- Credit Alert Modal Component ---
-const CreditAlertModal = ({ isOpen, onClose }) => {
+const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
   const navigate = useNavigate();
 
   if (!isOpen) return null;
@@ -31,9 +33,13 @@ const CreditAlertModal = ({ isOpen, onClose }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">Out of Credits</h3>
+
+        <h3 className="text-xl font-bold text-white mb-2">Insufficient Credits</h3>
         <p className="text-slate-400 mb-6 leading-relaxed">
-          You have reached your credit limit. To continue generating stunning 3D videos, please upgrade your plan or purchase a credit pack.
+          This generation requires <span className="text-white font-bold">{GENERATION_COST} credits</span>,
+          but you only have <span className="text-red-400 font-bold">{currentCredits}</span> available.
+          <br /><br />
+          To continue generating stunning 3D videos, please upgrade your plan.
         </p>
         <div className="flex gap-3">
           <button
@@ -62,28 +68,25 @@ const Workspace = () => {
   const [isVerticalResizing, setIsVerticalResizing] = useState(false);
 
   // --- Logic State ---
-  // Initialize state from LocalStorage if available
   const [motionStyle, setMotionStyle] = useState(() => localStorage.getItem("ws_motionStyle") || "Dolly");
   const [depth, setDepth] = useState(() => Number(localStorage.getItem("ws_depth")) || 7);
   const [speed, setSpeed] = useState(() => Number(localStorage.getItem("ws_speed")) || 5);
-  const [duration, setDuration] = useState(() => Number(localStorage.getItem("ws_duration")) || 5); 
-  
+  const [duration, setDuration] = useState(() => Number(localStorage.getItem("ws_duration")) || 5);
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
   const [resultVideoUrl, setResultVideoUrl] = useState(() => localStorage.getItem("ws_resultVideoUrl") || null);
 
-  // Initialize History from LocalStorage
   const [history, setHistory] = useState(() => {
     try {
       const saved = localStorage.getItem("ws_history");
       return saved ? JSON.parse(saved) : [];
     } catch (e) { return []; }
   });
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(0); // NEW: Progress State
 
-  // If we have a result on load, default to output tab
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem("ws_resultVideoUrl") ? "output" : "input");
 
   const [showCreditModal, setShowCreditModal] = useState(false);
@@ -94,7 +97,36 @@ const Workspace = () => {
   const previewRef = useRef(null);
   const navigate = useNavigate();
 
-  // --- 1. RESTORE FILE OBJECT ON LOAD ---
+  // --- 1. PROGRESS BAR SIMULATION (ADAPTED FROM MUSIC WORKSPACE) ---
+  useEffect(() => {
+    let interval;
+    if (isLoading) {
+      // Logic: Fast start -> Steady middle -> Slow finish -> Stall at 95%
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          let step = 0;
+
+          if (prev < 30) {
+            step = 2; // Fast initialization
+          } else if (prev < 80) {
+            step = 0.5; // Steady processing
+          } else if (prev < 95) {
+            step = 0.1; // Finalizing / Slow down
+          } else {
+            return 95; // Stall until API responds
+          }
+
+          return prev + step;
+        });
+      }, 100); // 100ms updates for smoothness
+    } else {
+      setProgress(0);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+
+  // --- 2. RESTORE FILE OBJECT ON LOAD ---
   useEffect(() => {
     const restoreFile = async () => {
       const savedPreview = localStorage.getItem("ws_previewUrl");
@@ -112,7 +144,7 @@ const Workspace = () => {
     restoreFile();
   }, []);
 
-  // --- 2. PERSIST SETTINGS ---
+  // --- 3. PERSIST SETTINGS ---
   useEffect(() => {
     localStorage.setItem("ws_motionStyle", motionStyle);
     localStorage.setItem("ws_depth", depth);
@@ -120,7 +152,7 @@ const Workspace = () => {
     localStorage.setItem("ws_duration", duration);
   }, [motionStyle, depth, speed, duration]);
 
-  // --- 3. PERSIST HISTORY ---
+  // --- 4. PERSIST HISTORY ---
   useEffect(() => {
     localStorage.setItem("ws_history", JSON.stringify(history));
   }, [history]);
@@ -141,7 +173,7 @@ const Workspace = () => {
       setSelectedFile(file);
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
-      
+
       // Save to LocalStorage
       try {
         const base64 = await fileToBase64(file);
@@ -151,8 +183,8 @@ const Workspace = () => {
       }
 
       setResultVideoUrl(null);
-      localStorage.removeItem("ws_resultVideoUrl"); 
-      
+      localStorage.removeItem("ws_resultVideoUrl");
+
       setActiveTab("input");
       setPreviewHeight(null);
     }
@@ -163,11 +195,11 @@ const Workspace = () => {
     setPreviewUrl(null);
     setSelectedFile(null);
     setResultVideoUrl(null);
-    
+
     // Clear LocalStorage
     localStorage.removeItem("ws_previewUrl");
     localStorage.removeItem("ws_resultVideoUrl");
-    
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -176,22 +208,13 @@ const Workspace = () => {
   const handleGenerate = async () => {
     if (!selectedFile) return alert("Please upload an image first!");
 
-    if (credits !== null && credits <= 0) {
+    if (credits !== null && credits < GENERATION_COST) {
       setShowCreditModal(true);
       return;
     }
 
     setIsLoading(true);
     setProgress(0);
-
-    // Simulate progress bar (fast at start, slows down)
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 90) return prev; // Stall at 90% until done
-        const increment = prev < 50 ? 5 : 2; 
-        return prev + increment;
-      });
-    }, 300);
 
     try {
       const token = localStorage.getItem("token");
@@ -214,7 +237,6 @@ const Workspace = () => {
 
       if (response.status === 402) {
         setShowCreditModal(true);
-        clearInterval(progressInterval);
         setIsLoading(false);
         return;
       }
@@ -222,26 +244,25 @@ const Workspace = () => {
       if (!response.ok) throw new Error("Generation failed.");
 
       const data = await response.json();
-      
-      // Generation Complete
-      clearInterval(progressInterval);
+
+      // Force progress to 100 on success
       setProgress(100);
 
       const newVideoUrl = data.video_url;
-      
+
       setResultVideoUrl(newVideoUrl);
-      localStorage.setItem("ws_resultVideoUrl", newVideoUrl); 
+      localStorage.setItem("ws_resultVideoUrl", newVideoUrl);
 
       // Add to History
       const newHistoryItem = {
         id: Date.now(),
         videoUrl: newVideoUrl,
         timestamp: new Date().toISOString(),
-        thumbnail: previewUrl // Use current preview as fallback/thumbnail if needed
+        thumbnail: previewUrl
       };
-      
+
       setHistory(prev => [newHistoryItem, ...prev].slice(0, 10)); // Keep last 10
-      
+
       updateCredits(data.remaining_credits);
       setActiveTab("output");
       setPreviewHeight(null);
@@ -305,6 +326,7 @@ const Workspace = () => {
       <CreditAlertModal
         isOpen={showCreditModal}
         onClose={() => setShowCreditModal(false)}
+        currentCredits={credits}
       />
 
       {/* LEFT PANEL */}
@@ -316,7 +338,7 @@ const Workspace = () => {
           <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
         </div>
 
-        {/* Upload Box - CHANGED TO PURPLE THEME */}
+        {/* Upload Box */}
         <div
           onClick={() => fileInputRef.current.click()}
           className="relative border-2 border-dashed border-purple-500 bg-purple-600/20 backdrop-blur-sm rounded-2xl h-48 flex flex-col items-center justify-center text-center p-6 cursor-pointer group hover:bg-purple-600/30 transition-all overflow-hidden"
@@ -376,8 +398,7 @@ const Workspace = () => {
                 className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
               />
             </div>
-
-            {/* 2. SPEED SLIDER (Velocity) */}
+            {/* 2. SPEED SLIDER */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
                 Motion Speed
@@ -392,8 +413,7 @@ const Workspace = () => {
                 className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
               />
             </div>
-
-            {/* 3. DURATION SLIDER - CHANGED TO PURPLE */}
+            {/* 3. DURATION SLIDER */}
             <div className="space-y-3">
               <span className="text-sm text-slate-300 font-medium flex justify-between">
                 Video Length
@@ -428,30 +448,33 @@ const Workspace = () => {
           </div>
         </div>
 
-        {/* Generate Button - CHANGED TO PURPLE & ADDED PROGRESS BAR */}
-        <button 
-          onClick={handleGenerate} 
-          disabled={isLoading || !selectedFile} 
+        {/* Generate Button with UPDATED PROGRESS BAR */}
+        <button
+          onClick={handleGenerate}
+          disabled={isLoading || !selectedFile}
           className={`relative w-full py-4 rounded-xl flex items-center justify-center gap-2 font-extrabold text-lg transition-all mt-4 overflow-hidden
-            ${isLoading || !selectedFile 
-              ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
+            ${isLoading || !selectedFile
+              ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
               : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20'}`
           }
         >
           {/* Progress Bar Background Overlay */}
           {isLoading && (
-            <div 
-              className="absolute left-0 top-0 h-full bg-purple-700/50 transition-all duration-300 ease-out" 
-              style={{ width: `${progress}%` }} 
-            />
+            <div
+              className="absolute left-0 top-0 h-full bg-purple-700/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)]"
+              style={{ width: `${progress}%` }}
+            >
+              {/* Optional: Add a shine effect at the leading edge */}
+              <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-white/50 shadow-[0_0_10px_white]" />
+            </div>
           )}
 
           {/* Button Content */}
           <div className="relative z-10 flex items-center gap-2">
             {isLoading ? (
               <>
-                <Loader2 className="animate-spin w-5 h-5" /> 
-                <span>Generating... {progress}%</span>
+                <Loader2 className="animate-spin w-5 h-5" />
+                <span>Generating... {Math.round(progress)}%</span>
               </>
             ) : (
               "Generate 3D Image"
@@ -464,15 +487,11 @@ const Workspace = () => {
       <div onMouseDown={startResizing} className="hidden md:flex w-4 -ml-2 cursor-col-resize hover:bg-purple-500/10 transition-all items-center justify-center z-50 group absolute h-full" style={{ left: `${sidebarWidth}px` }}><div className="w-[1px] h-full bg-slate-800 group-hover:bg-purple-500/50 transition-colors" /></div>
 
       {/* RIGHT PANEL - PREVIEW & HISTORY */}
-      {/* 1. Added h-full and overflow-y-auto to allow scrolling if content overflows */}
-      {/* 2. Removed h-screen from this specific element to respect flex parent */}
       <div className="flex-1 flex flex-col pt-24 pb-10 px-6 md:px-12 bg-slate-950 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-        
+
         {/* Main Preview Card */}
-        {/* 1. Removed flex-1 to prevent aggressive vertical stretching */}
-        {/* 2. Added w-full to ensure full width usage */}
         <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col mb-6 shrink-0">
-          
+
           {/* Tabs */}
           <div className="flex gap-1 bg-slate-800 w-fit p-1 rounded-lg mb-6 flex-shrink-0">
             <button onClick={() => setActiveTab("input")} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === "input" ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>Input</button>
@@ -480,23 +499,20 @@ const Workspace = () => {
           </div>
 
           {/* Viewer Container */}
-          {/* 1. Removed flex-1. */}
-          {/* 2. Added aspect-video (16:9 ratio) to keep it shaped like a video player, not a giant box. */}
-          {/* 3. Added max-h-[60vh] to stop it from getting too tall on large screens. */}
           <div
             ref={previewRef}
             className="w-full aspect-video max-h-[60vh] bg-black rounded-xl overflow-hidden relative group flex items-center justify-center transition-all duration-75 ease-linear"
             style={{ height: previewHeight ? `${previewHeight}px` : 'auto' }}
           >
             {isLoading ? (
-               <div className="flex flex-col items-center gap-3">
-                 <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-                 <span className="text-purple-400 font-mono text-sm">{progress}% Complete</span>
-               </div>
-              ) :
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+                <span className="text-purple-400 font-mono text-sm">{Math.round(progress)}% Complete</span>
+              </div>
+            ) :
               activeTab === 'output' && resultVideoUrl ? <video src={resultVideoUrl} controls autoPlay loop className="w-full h-full object-contain" /> :
-              previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
-                <div className="text-slate-600">No Image Selected</div>
+                previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
+                  <div className="text-slate-600">No Image Selected</div>
             }
             {/* Corner Resize Handle */}
             <div onMouseDown={startVerticalResizing} className="absolute bottom-0 left-0 w-8 h-8 bg-black/50 hover:bg-purple-600 cursor-sw-resize flex items-end justify-start p-1 rounded-tr-xl transition-colors z-20"><MoveDiagonal2 className="w-4 h-4 text-white/70" /></div>
@@ -518,50 +534,49 @@ const Workspace = () => {
         </div>
 
         {/* HISTORY SECTION */}
-        {/* Uses mt-auto to sit at the bottom of the container, but scrollable if content above is tall */}
         <div className="flex-shrink-0 mt-auto">
           <div className="flex items-center gap-2 mb-3 text-slate-400">
             <Clock className="w-4 h-4" />
             <h3 className="text-sm font-semibold uppercase tracking-wider">History</h3>
           </div>
-          
+
           {history.length === 0 ? (
-             <div className="h-24 border border-dashed border-slate-800 rounded-xl flex items-center justify-center text-slate-600 text-sm">
-               No generated videos yet
-             </div>
+            <div className="h-24 border border-dashed border-slate-800 rounded-xl flex items-center justify-center text-slate-600 text-sm">
+              No generated videos yet
+            </div>
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
               {history.map((item) => (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   onClick={() => {
                     setResultVideoUrl(item.videoUrl);
                     setActiveTab('output');
                   }}
                   className={`group relative min-w-[160px] w-40 h-24 bg-slate-900 rounded-xl overflow-hidden border cursor-pointer transition-all hover:scale-105 ${resultVideoUrl === item.videoUrl ? 'border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border-slate-800 hover:border-slate-600'}`}
                 >
-                  <video 
-                    src={item.videoUrl} 
+                  <video
+                    src={item.videoUrl}
                     className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
                     muted
                     onMouseOver={e => e.target.play()}
-                    onMouseOut={e => {e.target.pause(); e.target.currentTime = 0;}}
+                    onMouseOut={e => { e.target.pause(); e.target.currentTime = 0; }}
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[1px]">
-                     <button 
-                        onClick={(e) => { e.stopPropagation(); handleDownload(item.videoUrl); }}
-                        className="p-1.5 bg-slate-800/90 text-white rounded-full hover:bg-purple-600 hover:text-white transition-colors"
-                        title="Download"
-                     >
-                       <Download className="w-4 h-4" />
-                     </button>
-                     <button 
-                        onClick={(e) => deleteHistoryItem(e, item.id)}
-                        className="p-1.5 bg-slate-800/90 text-slate-300 rounded-full hover:bg-red-500 hover:text-white transition-colors"
-                        title="Delete"
-                     >
-                       <Trash2 className="w-4 h-4" />
-                     </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDownload(item.videoUrl); }}
+                      className="p-1.5 bg-slate-800/90 text-white rounded-full hover:bg-purple-600 hover:text-white transition-colors"
+                      title="Download"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => deleteHistoryItem(e, item.id)}
+                      className="p-1.5 bg-slate-800/90 text-slate-300 rounded-full hover:bg-red-500 hover:text-white transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                   {resultVideoUrl === item.videoUrl && (
                     <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full animate-pulse shadow-[0_0_8px_#a855f7]" />
