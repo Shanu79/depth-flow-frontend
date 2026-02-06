@@ -33,14 +33,15 @@ const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
-
+        
         <h3 className="text-xl font-bold text-white mb-2">Insufficient Credits</h3>
         <p className="text-slate-400 mb-6 leading-relaxed">
-          This generation requires <span className="text-white font-bold">{GENERATION_COST} credits</span>,
+          This generation requires <span className="text-white font-bold">{GENERATION_COST} credits</span>, 
           but you only have <span className="text-red-400 font-bold">{currentCredits}</span> available.
           <br /><br />
           To continue generating stunning 3D videos, please upgrade your plan.
         </p>
+        
         <div className="flex gap-3">
           <button
             onClick={onClose}
@@ -71,8 +72,8 @@ const Workspace = () => {
   const [motionStyle, setMotionStyle] = useState(() => localStorage.getItem("ws_motionStyle") || "Dolly");
   const [depth, setDepth] = useState(() => Number(localStorage.getItem("ws_depth")) || 7);
   const [speed, setSpeed] = useState(() => Number(localStorage.getItem("ws_speed")) || 5);
-  const [duration, setDuration] = useState(() => Number(localStorage.getItem("ws_duration")) || 5);
-
+  const [duration, setDuration] = useState(() => Number(localStorage.getItem("ws_duration")) || 5); 
+  
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
   const [resultVideoUrl, setResultVideoUrl] = useState(() => localStorage.getItem("ws_resultVideoUrl") || null);
@@ -83,7 +84,7 @@ const Workspace = () => {
       return saved ? JSON.parse(saved) : [];
     } catch (e) { return []; }
   });
-
+  
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -97,34 +98,25 @@ const Workspace = () => {
   const previewRef = useRef(null);
   const navigate = useNavigate();
 
-  // --- 1. PROGRESS BAR SIMULATION (ADAPTED FROM MUSIC WORKSPACE) ---
+  // --- 1. PROGRESS BAR SIMULATION ---
   useEffect(() => {
     let interval;
     if (isLoading) {
-      // Logic: Fast start -> Steady middle -> Slow finish -> Stall at 95%
       interval = setInterval(() => {
         setProgress((prev) => {
           let step = 0;
-
-          if (prev < 30) {
-            step = 2; // Fast initialization
-          } else if (prev < 80) {
-            step = 0.5; // Steady processing
-          } else if (prev < 95) {
-            step = 0.1; // Finalizing / Slow down
-          } else {
-            return 95; // Stall until API responds
-          }
-
+          if (prev < 30) step = 2; 
+          else if (prev < 80) step = 0.5;
+          else if (prev < 95) step = 0.1;
+          else return 95;
           return prev + step;
         });
-      }, 100); // 100ms updates for smoothness
+      }, 100);
     } else {
       setProgress(0);
     }
     return () => clearInterval(interval);
   }, [isLoading]);
-
 
   // --- 2. RESTORE FILE OBJECT ON LOAD ---
   useEffect(() => {
@@ -157,7 +149,6 @@ const Workspace = () => {
     localStorage.setItem("ws_history", JSON.stringify(history));
   }, [history]);
 
-  // --- HELPER: Convert File to Base64 ---
   const fileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -173,8 +164,7 @@ const Workspace = () => {
       setSelectedFile(file);
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
-
-      // Save to LocalStorage
+      
       try {
         const base64 = await fileToBase64(file);
         localStorage.setItem("ws_previewUrl", base64);
@@ -183,8 +173,8 @@ const Workspace = () => {
       }
 
       setResultVideoUrl(null);
-      localStorage.removeItem("ws_resultVideoUrl");
-
+      localStorage.removeItem("ws_resultVideoUrl"); 
+      
       setActiveTab("input");
       setPreviewHeight(null);
     }
@@ -195,14 +185,9 @@ const Workspace = () => {
     setPreviewUrl(null);
     setSelectedFile(null);
     setResultVideoUrl(null);
-
-    // Clear LocalStorage
     localStorage.removeItem("ws_previewUrl");
     localStorage.removeItem("ws_resultVideoUrl");
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleGenerate = async () => {
@@ -215,6 +200,10 @@ const Workspace = () => {
 
     setIsLoading(true);
     setProgress(0);
+
+    // Switch tab to output so user sees the download button area
+    // (Optional but good UX since the progress bar is there now)
+    // setActiveTab("output"); 
 
     try {
       const token = localStorage.getItem("token");
@@ -244,25 +233,23 @@ const Workspace = () => {
       if (!response.ok) throw new Error("Generation failed.");
 
       const data = await response.json();
-
-      // Force progress to 100 on success
+      
       setProgress(100);
 
       const newVideoUrl = data.video_url;
-
+      
       setResultVideoUrl(newVideoUrl);
-      localStorage.setItem("ws_resultVideoUrl", newVideoUrl);
+      localStorage.setItem("ws_resultVideoUrl", newVideoUrl); 
 
-      // Add to History
       const newHistoryItem = {
         id: Date.now(),
         videoUrl: newVideoUrl,
         timestamp: new Date().toISOString(),
-        thumbnail: previewUrl
+        thumbnail: previewUrl 
       };
-
-      setHistory(prev => [newHistoryItem, ...prev].slice(0, 10)); // Keep last 10
-
+      
+      setHistory(prev => [newHistoryItem, ...prev].slice(0, 10)); 
+      
       updateCredits(data.remaining_credits);
       setActiveTab("output");
       setPreviewHeight(null);
@@ -271,7 +258,6 @@ const Workspace = () => {
       console.error("Error:", error);
       alert(error.message);
     } finally {
-      // Small timeout to let user see 100%
       setTimeout(() => {
         setIsLoading(false);
         setProgress(0);
@@ -281,7 +267,6 @@ const Workspace = () => {
 
   const handleDownload = async () => {
     if (!resultVideoUrl) return;
-
     try {
       const response = await fetch(resultVideoUrl);
       const blob = await response.blob();
@@ -382,53 +367,21 @@ const Workspace = () => {
         {/* Settings */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
           <div className="space-y-4">
-
-            {/* 1. INTENSITY SLIDER */}
+            {/* 1. INTENSITY */}
             <div className="space-y-3">
-              <span className="text-sm text-slate-300 font-medium flex justify-between">
-                Depth Intensity
-                <span>{depth}</span>
-              </span>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={depth}
-                onChange={(e) => setDepth(Number(e.target.value))}
-                className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
-              />
+              <span className="text-sm text-slate-300 font-medium flex justify-between">Depth Intensity<span>{depth}</span></span>
+              <input type="range" min="1" max="10" value={depth} onChange={(e) => setDepth(Number(e.target.value))} className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400" />
             </div>
-            {/* 2. SPEED SLIDER */}
+            {/* 2. SPEED */}
             <div className="space-y-3">
-              <span className="text-sm text-slate-300 font-medium flex justify-between">
-                Motion Speed
-                <span>{speed}x</span>
-              </span>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={speed}
-                onChange={(e) => setSpeed(Number(e.target.value))}
-                className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
-              />
+              <span className="text-sm text-slate-300 font-medium flex justify-between">Motion Speed<span>{speed}x</span></span>
+              <input type="range" min="1" max="10" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400" />
             </div>
-            {/* 3. DURATION SLIDER */}
+            {/* 3. DURATION */}
             <div className="space-y-3">
-              <span className="text-sm text-slate-300 font-medium flex justify-between">
-                Video Length
-                <span>{duration}s</span>
-              </span>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
-                className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400"
-              />
+              <span className="text-sm text-slate-300 font-medium flex justify-between">Video Length<span>{duration}s</span></span>
+              <input type="range" min="1" max="10" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full bg-purple-500 rounded-full cursor-pointer accent-purple-400" />
             </div>
-
           </div>
 
           {/* STYLE BUTTONS */}
@@ -437,10 +390,7 @@ const Workspace = () => {
               <button
                 key={style}
                 onClick={() => setMotionStyle(style)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${motionStyle === style
-                  ? "bg-slate-700 text-white shadow-sm"
-                  : "text-slate-500 hover:text-white"
-                  }`}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${motionStyle === style ? "bg-slate-700 text-white shadow-sm" : "text-slate-500 hover:text-white"}`}
               >
                 {style}
               </button>
@@ -448,38 +398,24 @@ const Workspace = () => {
           </div>
         </div>
 
-        {/* Generate Button with UPDATED PROGRESS BAR */}
-        <button
-          onClick={handleGenerate}
-          disabled={isLoading || !selectedFile}
+        {/* Generate Button (Reverted to standard Loading, Progress removed) */}
+        <button 
+          onClick={handleGenerate} 
+          disabled={isLoading || !selectedFile} 
           className={`relative w-full py-4 rounded-xl flex items-center justify-center gap-2 font-extrabold text-lg transition-all mt-4 overflow-hidden
-            ${isLoading || !selectedFile
-              ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+            ${isLoading || !selectedFile 
+              ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
               : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20'}`
           }
         >
-          {/* Progress Bar Background Overlay */}
-          {isLoading && (
-            <div
-              className="absolute left-0 top-0 h-full bg-purple-700/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)]"
-              style={{ width: `${progress}%` }}
-            >
-              {/* Optional: Add a shine effect at the leading edge */}
-              <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-white/50 shadow-[0_0_10px_white]" />
-            </div>
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin w-5 h-5" /> 
+              <span>Generating...</span>
+            </>
+          ) : (
+            `Generate (${GENERATION_COST} Credits)`
           )}
-
-          {/* Button Content */}
-          <div className="relative z-10 flex items-center gap-2">
-            {isLoading ? (
-              <>
-                <Loader2 className="animate-spin w-5 h-5" />
-                <span>Generating... {Math.round(progress)}%</span>
-              </>
-            ) : (
-              "Generate 3D Image"
-            )}
-          </div>
         </button>
       </div>
 
@@ -488,10 +424,10 @@ const Workspace = () => {
 
       {/* RIGHT PANEL - PREVIEW & HISTORY */}
       <div className="flex-1 flex flex-col pt-24 pb-10 px-6 md:px-12 bg-slate-950 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-
+        
         {/* Main Preview Card */}
         <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col mb-6 shrink-0">
-
+          
           {/* Tabs */}
           <div className="flex gap-1 bg-slate-800 w-fit p-1 rounded-lg mb-6 flex-shrink-0">
             <button onClick={() => setActiveTab("input")} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === "input" ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>Input</button>
@@ -505,28 +441,56 @@ const Workspace = () => {
             style={{ height: previewHeight ? `${previewHeight}px` : 'auto' }}
           >
             {isLoading ? (
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-                <span className="text-purple-400 font-mono text-sm">{Math.round(progress)}% Complete</span>
-              </div>
-            ) :
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+                  <span className="text-purple-400 font-mono text-sm">Working magic...</span>
+                </div>
+              ) :
               activeTab === 'output' && resultVideoUrl ? <video src={resultVideoUrl} controls autoPlay loop className="w-full h-full object-contain" /> :
-                previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
-                  <div className="text-slate-600">No Image Selected</div>
+              previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
+                <div className="text-slate-600">No Image Selected</div>
             }
-            {/* Corner Resize Handle */}
             <div onMouseDown={startVerticalResizing} className="absolute bottom-0 left-0 w-8 h-8 bg-black/50 hover:bg-purple-600 cursor-sw-resize flex items-end justify-start p-1 rounded-tr-xl transition-colors z-20"><MoveDiagonal2 className="w-4 h-4 text-white/70" /></div>
           </div>
 
-          {/* Actions */}
+          {/* Actions - DOWNLOAD BUTTON WITH PROGRESS BAR */}
           <div className="flex gap-3 mt-6 flex-shrink-0">
             <button
               onClick={() => handleDownload(resultVideoUrl)}
-              disabled={!resultVideoUrl}
-              className={`flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold flex items-center justify-center gap-2 ${!resultVideoUrl ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:shadow-purple-500/25 transition-all'}`}
+              disabled={!resultVideoUrl && !isLoading} // Enabled visually if Loading OR has Result
+              className={`
+                relative flex-1 py-3 rounded-xl overflow-hidden flex items-center justify-center gap-2 font-semibold transition-all
+                ${(!resultVideoUrl && !isLoading) 
+                  ? 'bg-slate-800 text-slate-500 opacity-50 cursor-not-allowed' // Disabled State
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/25' // Active or Loading State
+                }
+              `}
             >
-              <Download className="w-5 h-5" /> Download
+               {/* PROGRESS BAR OVERLAY (Only shows when loading) */}
+               {isLoading && (
+                <div 
+                  className="absolute left-0 top-0 h-full bg-purple-800/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)] z-0" 
+                  style={{ width: `${progress}%` }} 
+                >
+                  <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-white/50 shadow-[0_0_10px_white]" />
+                </div>
+              )}
+
+              {/* Button Text Content */}
+              <div className="relative z-10 flex items-center gap-2">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="animate-spin w-5 h-5" />
+                    <span>Processing... {Math.round(progress)}%</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-5 h-5" /> Download
+                  </>
+                )}
+              </div>
             </button>
+
             <button className="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 flex items-center gap-2">
               <Share2 className="w-4 h-4" /> Share
             </button>
@@ -539,44 +503,44 @@ const Workspace = () => {
             <Clock className="w-4 h-4" />
             <h3 className="text-sm font-semibold uppercase tracking-wider">History</h3>
           </div>
-
+          
           {history.length === 0 ? (
-            <div className="h-24 border border-dashed border-slate-800 rounded-xl flex items-center justify-center text-slate-600 text-sm">
-              No generated videos yet
-            </div>
+             <div className="h-24 border border-dashed border-slate-800 rounded-xl flex items-center justify-center text-slate-600 text-sm">
+               No generated videos yet
+             </div>
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
               {history.map((item) => (
-                <div
-                  key={item.id}
+                <div 
+                  key={item.id} 
                   onClick={() => {
                     setResultVideoUrl(item.videoUrl);
                     setActiveTab('output');
                   }}
                   className={`group relative min-w-[160px] w-40 h-24 bg-slate-900 rounded-xl overflow-hidden border cursor-pointer transition-all hover:scale-105 ${resultVideoUrl === item.videoUrl ? 'border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border-slate-800 hover:border-slate-600'}`}
                 >
-                  <video
-                    src={item.videoUrl}
+                  <video 
+                    src={item.videoUrl} 
                     className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
                     muted
                     onMouseOver={e => e.target.play()}
-                    onMouseOut={e => { e.target.pause(); e.target.currentTime = 0; }}
+                    onMouseOut={e => {e.target.pause(); e.target.currentTime = 0;}}
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[1px]">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDownload(item.videoUrl); }}
-                      className="p-1.5 bg-slate-800/90 text-white rounded-full hover:bg-purple-600 hover:text-white transition-colors"
-                      title="Download"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={(e) => deleteHistoryItem(e, item.id)}
-                      className="p-1.5 bg-slate-800/90 text-slate-300 rounded-full hover:bg-red-500 hover:text-white transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleDownload(item.videoUrl); }}
+                        className="p-1.5 bg-slate-800/90 text-white rounded-full hover:bg-purple-600 hover:text-white transition-colors"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={(e) => deleteHistoryItem(e, item.id)}
+                        className="p-1.5 bg-slate-800/90 text-slate-300 rounded-full hover:bg-red-500 hover:text-white transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                   </div>
                   {resultVideoUrl === item.videoUrl && (
                     <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full animate-pulse shadow-[0_0_8px_#a855f7]" />
