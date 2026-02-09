@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Clock,
   Trash2,
+  Sparkles,
   RefreshCw,
   Play,
 } from "lucide-react";
