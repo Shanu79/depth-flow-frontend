@@ -7,19 +7,19 @@ import {
   MoveDiagonal2,
   AlertCircle,
   Clock,
-  Trash2
+  Trash2,
+  FileWarning
 } from "lucide-react";
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from '../config.js';
 import useAuthStore from '../stores/authStore.js';
 
 const GENERATION_COST = 20;
 
-// --- Credit Alert Modal Component ---
+// --- Credit Alert Modal ---
 const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
   const navigate = useNavigate();
-
   if (!isOpen) return null;
 
   return (
@@ -61,6 +61,37 @@ const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
   );
 };
 
+// --- Countdown Timer Component ---
+const ExpiryTimer = ({ seconds, onExpire }) => {
+  const [timeLeft, setTimeLeft] = useState(seconds);
+
+  useEffect(() => {
+    setTimeLeft(seconds); // Reset if props change
+  }, [seconds]);
+
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      if (onExpire) onExpire();
+      return;
+    }
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft, onExpire]);
+
+  if (timeLeft <= 0) return <span className="text-red-500 text-xs font-bold">Expired</span>;
+
+  const mins = Math.floor(timeLeft / 60);
+  const secs = timeLeft % 60;
+  return (
+    <div className="flex items-center gap-1 text-xs text-orange-400 font-mono bg-orange-500/10 px-2 py-1 rounded backdrop-blur-md">
+      <Clock className="w-3 h-3" />
+      {mins}:{secs < 10 ? `0${secs}` : secs}
+    </div>
+  );
+};
+
 const Workspace = () => {
   // --- UI State ---
   const [sidebarWidth, setSidebarWidth] = useState(450);
@@ -78,12 +109,10 @@ const Workspace = () => {
   const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
   const [resultVideoUrl, setResultVideoUrl] = useState(() => localStorage.getItem("ws_resultVideoUrl") || null);
 
-  const [history, setHistory] = useState(() => {
-    try {
-      const saved = localStorage.getItem("ws_history");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) { return []; }
-  });
+  // History State
+  const [history, setHistory] = useState([]);
+  // NEW: Track IDs that technically exist in DB but return 404 (deleted files)
+  const [failedLoadIds, setFailedLoadIds] = useState(new Set());
   
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -96,9 +125,40 @@ const Workspace = () => {
 
   const fileInputRef = useRef(null);
   const previewRef = useRef(null);
-  const navigate = useNavigate();
+  
+  // --- FETCH HISTORY ---
+  const fetchHistory = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-  // --- 1. PROGRESS BAR SIMULATION ---
+      const res = await fetch(`${API_BASE_URL}/ai/history`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setHistory(data);
+      }
+    } catch (error) {
+      console.error("Failed to load history", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  // --- HANDLE 404 / EXPIRED VIDEOS GRACEFULLY ---
+  const handleVideoError = (id) => {
+    setFailedLoadIds(prev => {
+      const newSet = new Set(prev);
+      newSet.add(id);
+      return newSet;
+    });
+  };
+
+  // --- PROGRESS BAR SIMULATION ---
   useEffect(() => {
     let interval;
     if (isLoading) {
@@ -118,7 +178,7 @@ const Workspace = () => {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  // --- 2. RESTORE FILE OBJECT ON LOAD ---
+  // --- RESTORE FILE ---
   useEffect(() => {
     const restoreFile = async () => {
       const savedPreview = localStorage.getItem("ws_previewUrl");
@@ -134,20 +194,15 @@ const Workspace = () => {
       }
     };
     restoreFile();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // --- 3. PERSIST SETTINGS ---
+  // --- PERSIST SETTINGS ---
   useEffect(() => {
     localStorage.setItem("ws_motionStyle", motionStyle);
     localStorage.setItem("ws_depth", depth);
     localStorage.setItem("ws_speed", speed);
     localStorage.setItem("ws_duration", duration);
   }, [motionStyle, depth, speed, duration]);
-
-  // --- 4. PERSIST HISTORY ---
-  useEffect(() => {
-    localStorage.setItem("ws_history", JSON.stringify(history));
-  }, [history]);
 
   const fileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -174,7 +229,6 @@ const Workspace = () => {
 
       setResultVideoUrl(null);
       localStorage.removeItem("ws_resultVideoUrl"); 
-      
       setActiveTab("input");
       setPreviewHeight(null);
     }
@@ -200,10 +254,6 @@ const Workspace = () => {
 
     setIsLoading(true);
     setProgress(0);
-
-    // Switch tab to output so user sees the download button area
-    // (Optional but good UX since the progress bar is there now)
-    // setActiveTab("output"); 
 
     try {
       const token = localStorage.getItem("token");
@@ -237,22 +287,15 @@ const Workspace = () => {
       setProgress(100);
 
       const newVideoUrl = data.video_url;
-      
       setResultVideoUrl(newVideoUrl);
       localStorage.setItem("ws_resultVideoUrl", newVideoUrl); 
-
-      const newHistoryItem = {
-        id: Date.now(),
-        videoUrl: newVideoUrl,
-        timestamp: new Date().toISOString(),
-        thumbnail: previewUrl 
-      };
-      
-      setHistory(prev => [newHistoryItem, ...prev].slice(0, 10)); 
       
       updateCredits(data.remaining_credits);
       setActiveTab("output");
       setPreviewHeight(null);
+
+      // Refresh history to see the new item immediately
+      fetchHistory();
 
     } catch (error) {
       console.error("Error:", error);
@@ -265,29 +308,24 @@ const Workspace = () => {
     }
   };
 
-  const handleDownload = async () => {
-    if (!resultVideoUrl) return;
+  const handleDownload = async (url) => {
+    if (!url) return;
     try {
-      const response = await fetch(resultVideoUrl);
+      const response = await fetch(url);
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
-      const filename = resultVideoUrl.split('/').pop() || "generated-video.mp4";
+      link.href = blobUrl;
+      const filename = url.split('/').pop() || "generated-video.mp4";
       link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("Download failed:", error);
-      window.open(resultVideoUrl, '_blank');
+      window.open(url, '_blank');
     }
-  };
-
-  const deleteHistoryItem = (e, id) => {
-    e.stopPropagation();
-    setHistory(prev => prev.filter(item => item.id !== id));
   };
 
   // --- RESIZING LOGIC ---
@@ -398,7 +436,7 @@ const Workspace = () => {
           </div>
         </div>
 
-        {/* Generate Button (Reverted to standard Loading, Progress removed) */}
+        {/* Generate Button */}
         <button 
           onClick={handleGenerate} 
           disabled={isLoading || !selectedFile} 
@@ -446,7 +484,21 @@ const Workspace = () => {
                   <span className="text-purple-400 font-mono text-sm">Working magic...</span>
                 </div>
               ) :
-              activeTab === 'output' && resultVideoUrl ? <video src={resultVideoUrl} controls autoPlay loop className="w-full h-full object-contain" /> :
+              activeTab === 'output' && resultVideoUrl ? 
+              (
+                <video 
+                  src={resultVideoUrl} 
+                  controls 
+                  autoPlay 
+                  loop 
+                  className="w-full h-full object-contain"
+                  onError={() => {
+                    alert("The video you are trying to view has expired or was deleted.");
+                    setResultVideoUrl(null);
+                    setActiveTab('input');
+                  }} 
+                />
+              ) :
               previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
                 <div className="text-slate-600">No Image Selected</div>
             }
@@ -457,7 +509,7 @@ const Workspace = () => {
           <div className="flex gap-3 mt-6 flex-shrink-0">
             <button
               onClick={() => handleDownload(resultVideoUrl)}
-              disabled={!resultVideoUrl && !isLoading} // Enabled visually if Loading OR has Result
+              disabled={!resultVideoUrl && !isLoading} 
               className={`
                 relative flex-1 py-3 rounded-xl overflow-hidden flex items-center justify-center gap-2 font-semibold transition-all
                 ${(!resultVideoUrl && !isLoading) 
@@ -466,7 +518,7 @@ const Workspace = () => {
                 }
               `}
             >
-               {/* PROGRESS BAR OVERLAY (Only shows when loading) */}
+              {/* PROGRESS BAR OVERLAY */}
                {isLoading && (
                 <div 
                   className="absolute left-0 top-0 h-full bg-purple-800/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)] z-0" 
@@ -499,9 +551,12 @@ const Workspace = () => {
 
         {/* HISTORY SECTION */}
         <div className="flex-shrink-0 mt-auto">
-          <div className="flex items-center gap-2 mb-3 text-slate-400">
-            <Clock className="w-4 h-4" />
-            <h3 className="text-sm font-semibold uppercase tracking-wider">History</h3>
+          <div className="flex items-center justify-between mb-3 text-slate-400">
+             <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <h3 className="text-sm font-semibold uppercase tracking-wider">History (Exp. 30m)</h3>
+             </div>
+             <button onClick={fetchHistory} className="text-xs hover:text-white transition-colors">Refresh</button>
           </div>
           
           {history.length === 0 ? (
@@ -510,43 +565,74 @@ const Workspace = () => {
              </div>
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-              {history.map((item) => (
-                <div 
-                  key={item.id} 
-                  onClick={() => {
-                    setResultVideoUrl(item.videoUrl);
-                    setActiveTab('output');
-                  }}
-                  className={`group relative min-w-[160px] w-40 h-24 bg-slate-900 rounded-xl overflow-hidden border cursor-pointer transition-all hover:scale-105 ${resultVideoUrl === item.videoUrl ? 'border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border-slate-800 hover:border-slate-600'}`}
-                >
-                  <video 
-                    src={item.videoUrl} 
-                    className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
-                    muted
-                    onMouseOver={e => e.target.play()}
-                    onMouseOut={e => {e.target.pause(); e.target.currentTime = 0;}}
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[1px]">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleDownload(item.videoUrl); }}
-                        className="p-1.5 bg-slate-800/90 text-white rounded-full hover:bg-purple-600 hover:text-white transition-colors"
-                        title="Download"
-                      >
-                        <Download className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={(e) => deleteHistoryItem(e, item.id)}
-                        className="p-1.5 bg-slate-800/90 text-slate-300 rounded-full hover:bg-red-500 hover:text-white transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+              {history.map((item) => {
+                // Determine if item is invalid either by server time OR by failed load (404)
+                const isDead = item.is_expired || failedLoadIds.has(item.id);
+
+                return (
+                  <div 
+                    key={item.id} 
+                    onClick={() => {
+                      if (!isDead) {
+                        setResultVideoUrl(item.video_url);
+                        setActiveTab('output');
+                      }
+                    }}
+                    className={`
+                      group relative min-w-[160px] w-40 h-28 bg-slate-900 rounded-xl overflow-hidden border transition-all 
+                      ${isDead ? 'opacity-50 cursor-not-allowed border-red-900/30 bg-red-900/5' : 'cursor-pointer hover:scale-105 border-slate-800 hover:border-slate-600'}
+                      ${!isDead && resultVideoUrl === item.video_url ? 'border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : ''}
+                    `}
+                  >
+                    {/* Content Area */}
+                    {isDead ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 gap-1">
+                          {failedLoadIds.has(item.id) && !item.is_expired ? (
+                             <>
+                               <FileWarning className="w-6 h-6 text-orange-500/50" />
+                               <span className="text-[10px] uppercase font-bold text-orange-500/50">Missing</span>
+                             </>
+                          ) : (
+                             <>
+                               <Trash2 className="w-6 h-6 opacity-50" />
+                               <span className="text-[10px] uppercase font-bold">Deleted</span>
+                             </>
+                          )}
+                        </div>
+                    ) : (
+                      <>
+                        <video 
+                          src={item.video_url} 
+                          className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
+                          muted
+                          onMouseOver={e => e.target.play()}
+                          onMouseOut={e => {e.target.pause(); e.target.currentTime = 0;}}
+                          onError={() => handleVideoError(item.id)} // <--- GRACEFUL 404 HANDLING
+                        />
+                        
+                        {/* Overlay Controls */}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-[1px] p-2">
+                           <button 
+                             onClick={(e) => { e.stopPropagation(); handleDownload(item.video_url); }}
+                             className="p-1.5 bg-slate-800/90 text-white rounded-full hover:bg-purple-600 transition-colors"
+                             title="Download"
+                           >
+                             <Download className="w-4 h-4" />
+                           </button>
+                        </div>
+
+                        {/* Timer Badge */}
+                        <div className="absolute bottom-1 right-1 left-1 flex justify-center pointer-events-none">
+                          <ExpiryTimer 
+                            seconds={item.expires_in_seconds} 
+                            onExpire={() => handleVideoError(item.id)} // Auto-mark dead when timer hits 0
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
-                  {resultVideoUrl === item.videoUrl && (
-                    <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full animate-pulse shadow-[0_0_8px_#a855f7]" />
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
