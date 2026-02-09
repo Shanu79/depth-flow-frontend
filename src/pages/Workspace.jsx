@@ -8,7 +8,9 @@ import {
   AlertCircle,
   Clock,
   Trash2,
-  FileWarning
+  FileWarning,
+  RefreshCw,
+  Play,
 } from "lucide-react";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -33,15 +35,15 @@ const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <h3 className="text-xl font-bold text-white mb-2">Insufficient Credits</h3>
         <p className="text-slate-400 mb-6 leading-relaxed">
-          This generation requires <span className="text-white font-bold">{GENERATION_COST} credits</span>, 
+          This generation requires <span className="text-white font-bold">{GENERATION_COST} credits</span>,
           but you only have <span className="text-red-400 font-bold">{currentCredits}</span> available.
           <br /><br />
           To continue generating stunning 3D videos, please upgrade your plan.
         </p>
-        
+
         <div className="flex gap-3">
           <button
             onClick={onClose}
@@ -103,8 +105,8 @@ const Workspace = () => {
   const [motionStyle, setMotionStyle] = useState(() => localStorage.getItem("ws_motionStyle") || "Dolly");
   const [depth, setDepth] = useState(() => Number(localStorage.getItem("ws_depth")) || 7);
   const [speed, setSpeed] = useState(() => Number(localStorage.getItem("ws_speed")) || 5);
-  const [duration, setDuration] = useState(() => Number(localStorage.getItem("ws_duration")) || 5); 
-  
+  const [duration, setDuration] = useState(() => Number(localStorage.getItem("ws_duration")) || 5);
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
   const [resultVideoUrl, setResultVideoUrl] = useState(() => localStorage.getItem("ws_resultVideoUrl") || null);
@@ -113,7 +115,7 @@ const Workspace = () => {
   const [history, setHistory] = useState([]);
   // NEW: Track IDs that technically exist in DB but return 404 (deleted files)
   const [failedLoadIds, setFailedLoadIds] = useState(new Set());
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -125,7 +127,7 @@ const Workspace = () => {
 
   const fileInputRef = useRef(null);
   const previewRef = useRef(null);
-  
+
   // --- FETCH HISTORY ---
   const fetchHistory = useCallback(async () => {
     try {
@@ -135,7 +137,7 @@ const Workspace = () => {
       const res = await fetch(`${API_BASE_URL}/ai/history`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         setHistory(data);
@@ -165,7 +167,7 @@ const Workspace = () => {
       interval = setInterval(() => {
         setProgress((prev) => {
           let step = 0;
-          if (prev < 30) step = 2; 
+          if (prev < 30) step = 2;
           else if (prev < 80) step = 0.5;
           else if (prev < 95) step = 0.1;
           else return 95;
@@ -219,7 +221,7 @@ const Workspace = () => {
       setSelectedFile(file);
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
-      
+
       try {
         const base64 = await fileToBase64(file);
         localStorage.setItem("ws_previewUrl", base64);
@@ -228,7 +230,7 @@ const Workspace = () => {
       }
 
       setResultVideoUrl(null);
-      localStorage.removeItem("ws_resultVideoUrl"); 
+      localStorage.removeItem("ws_resultVideoUrl");
       setActiveTab("input");
       setPreviewHeight(null);
     }
@@ -283,13 +285,13 @@ const Workspace = () => {
       if (!response.ok) throw new Error("Generation failed.");
 
       const data = await response.json();
-      
+
       setProgress(100);
 
       const newVideoUrl = data.video_url;
       setResultVideoUrl(newVideoUrl);
-      localStorage.setItem("ws_resultVideoUrl", newVideoUrl); 
-      
+      localStorage.setItem("ws_resultVideoUrl", newVideoUrl);
+
       updateCredits(data.remaining_credits);
       setActiveTab("output");
       setPreviewHeight(null);
@@ -437,18 +439,18 @@ const Workspace = () => {
         </div>
 
         {/* Generate Button */}
-        <button 
-          onClick={handleGenerate} 
-          disabled={isLoading || !selectedFile} 
+        <button
+          onClick={handleGenerate}
+          disabled={isLoading || !selectedFile}
           className={`relative w-full py-4 rounded-xl flex items-center justify-center gap-2 font-extrabold text-lg transition-all mt-4 overflow-hidden
-            ${isLoading || !selectedFile 
-              ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
+            ${isLoading || !selectedFile
+              ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
               : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20'}`
           }
         >
           {isLoading ? (
             <>
-              <Loader2 className="animate-spin w-5 h-5" /> 
+              <Loader2 className="animate-spin w-5 h-5" />
               <span>Generating...</span>
             </>
           ) : (
@@ -462,10 +464,10 @@ const Workspace = () => {
 
       {/* RIGHT PANEL - PREVIEW & HISTORY */}
       <div className="flex-1 flex flex-col pt-24 pb-10 px-6 md:px-12 bg-[#050511] h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-        
+
         {/* Main Preview Card */}
         <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col mb-6 shrink-0">
-          
+
           {/* Tabs */}
           <div className="flex gap-1 bg-slate-800 w-fit p-1 rounded-lg mb-6 flex-shrink-0">
             <button onClick={() => setActiveTab("input")} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === "input" ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>Input</button>
@@ -479,28 +481,28 @@ const Workspace = () => {
             style={{ height: previewHeight ? `${previewHeight}px` : 'auto' }}
           >
             {isLoading ? (
-                <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-                  <span className="text-purple-400 font-mono text-sm">Working magic...</span>
-                </div>
-              ) :
-              activeTab === 'output' && resultVideoUrl ? 
-              (
-                <video 
-                  src={resultVideoUrl} 
-                  controls 
-                  autoPlay 
-                  loop 
-                  className="w-full h-full object-contain"
-                  onError={() => {
-                    alert("The video you are trying to view has expired or was deleted.");
-                    setResultVideoUrl(null);
-                    setActiveTab('input');
-                  }} 
-                />
-              ) :
-              previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
-                <div className="text-slate-600">No Image Selected</div>
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+                <span className="text-purple-400 font-mono text-sm">Working magic...</span>
+              </div>
+            ) :
+              activeTab === 'output' && resultVideoUrl ?
+                (
+                  <video
+                    src={resultVideoUrl}
+                    controls
+                    autoPlay
+                    loop
+                    className="w-full h-full object-contain"
+                    onError={() => {
+                      alert("The video you are trying to view has expired or was deleted.");
+                      setResultVideoUrl(null);
+                      setActiveTab('input');
+                    }}
+                  />
+                ) :
+                previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
+                  <div className="text-slate-600">No Image Selected</div>
             }
             <div onMouseDown={startVerticalResizing} className="absolute bottom-0 left-0 w-8 h-8 bg-black/50 hover:bg-purple-600 cursor-sw-resize flex items-end justify-start p-1 rounded-tr-xl transition-colors z-20"><MoveDiagonal2 className="w-4 h-4 text-white/70" /></div>
           </div>
@@ -509,20 +511,20 @@ const Workspace = () => {
           <div className="flex gap-3 mt-6 flex-shrink-0">
             <button
               onClick={() => handleDownload(resultVideoUrl)}
-              disabled={!resultVideoUrl && !isLoading} 
+              disabled={!resultVideoUrl && !isLoading}
               className={`
                 relative flex-1 py-3 rounded-xl overflow-hidden flex items-center justify-center gap-2 font-semibold transition-all
-                ${(!resultVideoUrl && !isLoading) 
+                ${(!resultVideoUrl && !isLoading)
                   ? 'bg-slate-800 text-slate-500 opacity-50 cursor-not-allowed' // Disabled State
                   : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/25' // Active or Loading State
                 }
               `}
             >
               {/* PROGRESS BAR OVERLAY */}
-               {isLoading && (
-                <div 
-                  className="absolute left-0 top-0 h-full bg-purple-800/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)] z-0" 
-                  style={{ width: `${progress}%` }} 
+              {isLoading && (
+                <div
+                  className="absolute left-0 top-0 h-full bg-purple-800/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)] z-0"
+                  style={{ width: `${progress}%` }}
                 >
                   <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-white/50 shadow-[0_0_10px_white]" />
                 </div>
@@ -549,30 +551,53 @@ const Workspace = () => {
           </div>
         </div>
 
-        {/* HISTORY SECTION */}
-        <div className="flex-shrink-0 mt-auto">
-          <div className="flex items-center justify-between mb-3 text-slate-400">
-             <div className="flex items-center gap-2">
+        {/* --- IMPROVED HISTORY SECTION --- */}
+        <div className="flex-shrink-0 mt-auto pt-6 border-t border-slate-800/50">
+          {/* Section Header */}
+          <div className="flex items-center justify-between mb-4 px-1">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-purple-500/10 rounded-lg text-purple-400">
                 <Clock className="w-4 h-4" />
-                <h3 className="text-sm font-semibold uppercase tracking-wider">History</h3>
-                <h5 className="text-xs text-slate-500">Download Now, expires in 30 Minutes</h5>
-             </div>
-             <button onClick={fetchHistory} className="text-xs hover:text-white transition-colors">Refresh</button>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-200 tracking-wide uppercase">
+                  Recent Generations
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Files auto-delete after 30 mins
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={fetchHistory}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all active:scale-95"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh</span>
+            </button>
           </div>
-          
+
+          {/* Content Area */}
           {history.length === 0 ? (
-             <div className="h-24 border border-dashed border-slate-800 rounded-xl flex items-center justify-center text-slate-600 text-sm">
-               No generated videos yet
-             </div>
+            <div className="h-32 border border-dashed border-slate-800/60 bg-slate-900/20 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-500">
+              <div className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 opacity-40" />
+              </div>
+              <span className="text-sm font-medium">No videos generated yet</span>
+            </div>
           ) : (
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+            <div className="flex gap-4 overflow-x-auto pb-6 pt-2 px-1 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
               {history.map((item) => {
-                // Determine if item is invalid either by server time OR by failed load (404)
-                const isDead = item.is_expired || failedLoadIds.has(item.id);
+                // Determine status
+                const isExpired = item.is_expired;
+                const isFailed = failedLoadIds.has(item.id);
+                const isDead = isExpired || isFailed;
+                const isActive = !isDead && resultVideoUrl === item.video_url;
 
                 return (
-                  <div 
-                    key={item.id} 
+                  <div
+                    key={item.id}
                     onClick={() => {
                       if (!isDead) {
                         setResultVideoUrl(item.video_url);
@@ -580,54 +605,73 @@ const Workspace = () => {
                       }
                     }}
                     className={`
-                      group relative min-w-[160px] w-40 h-28 bg-slate-900 rounded-xl overflow-hidden border transition-all 
-                      ${isDead ? 'opacity-50 cursor-not-allowed border-red-900/30 bg-red-900/5' : 'cursor-pointer hover:scale-105 border-slate-800 hover:border-slate-600'}
-                      ${!isDead && resultVideoUrl === item.video_url ? 'border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : ''}
-                    `}
+              relative group flex-shrink-0 snap-start
+              w-48 aspect-video rounded-2xl overflow-hidden transition-all duration-300
+              ${isDead
+                        ? 'bg-slate-900/40 border border-dashed border-slate-800 cursor-not-allowed grayscale opacity-60'
+                        : 'bg-black cursor-pointer hover:shadow-[0_0_20px_-5px_rgba(168,85,247,0.4)] hover:scale-[1.02]'
+                      }
+              ${isActive ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-[#05050a]' : 'border border-white/10 hover:border-purple-500/50'}
+            `}
                   >
-                    {/* Content Area */}
+                    {/* --- DEAD STATE (Expired/Error) --- */}
                     {isDead ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 gap-1">
-                          {failedLoadIds.has(item.id) && !item.is_expired ? (
-                             <>
-                               <FileWarning className="w-6 h-6 text-orange-500/50" />
-                               <span className="text-[10px] uppercase font-bold text-orange-500/50">Missing</span>
-                             </>
-                          ) : (
-                             <>
-                               <Trash2 className="w-6 h-6 opacity-50" />
-                               <span className="text-[10px] uppercase font-bold">Deleted</span>
-                             </>
-                          )}
-                        </div>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
+                        {isFailed && !isExpired ? (
+                          <>
+                            <AlertCircle className="w-6 h-6 text-orange-400/80 mb-1" />
+                            <span className="text-[10px] font-bold text-orange-400/80 uppercase tracking-wider">Missing File</span>
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="w-6 h-6 text-slate-600 mb-1" />
+                            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Expired</span>
+                          </>
+                        )}
+                      </div>
                     ) : (
+                      /* --- ALIVE STATE --- */
                       <>
-                        <video 
-                          src={item.video_url} 
-                          className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
+                        <video
+                          src={item.video_url}
+                          className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
                           muted
+                          loop
+                          playsInline
                           onMouseOver={e => e.target.play()}
-                          onMouseOut={e => {e.target.pause(); e.target.currentTime = 0;}}
-                          onError={() => handleVideoError(item.id)} // <--- GRACEFUL 404 HANDLING
+                          onMouseOut={e => { e.target.pause(); e.target.currentTime = 0; }}
+                          onError={() => handleVideoError(item.id)}
                         />
-                        
-                        {/* Overlay Controls */}
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-[1px] p-2">
-                           <button 
-                             onClick={(e) => { e.stopPropagation(); handleDownload(item.video_url); }}
-                             className="p-1.5 bg-slate-800/90 text-white rounded-full hover:bg-purple-600 transition-colors"
-                             title="Download"
-                           >
-                             <Download className="w-4 h-4" />
-                           </button>
+
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none" />
+
+                        {/* Hover Play Indicator */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <Play className="w-4 h-4 text-white fill-white" />
+                          </div>
                         </div>
 
-                        {/* Timer Badge */}
-                        <div className="absolute bottom-1 right-1 left-1 flex justify-center pointer-events-none">
-                          <ExpiryTimer 
-                            seconds={item.expires_in_seconds} 
-                            onExpire={() => handleVideoError(item.id)} // Auto-mark dead when timer hits 0
-                          />
+                        {/* Top Right: Download Button */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDownload(item.video_url); }}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 hover:bg-purple-600 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-y-2 group-hover:translate-y-0"
+                          title="Download Video"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Bottom: Timer Badge */}
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <div className="bg-black/60 backdrop-blur-md border border-white/5 rounded-lg py-1 px-2 flex items-center justify-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <ExpiryTimer
+                              seconds={item.expires_in_seconds}
+                              onExpire={() => handleVideoError(item.id)}
+                              className="text-[10px] font-mono text-slate-200"
+                            />
+                          </div>
                         </div>
                       </>
                     )}
