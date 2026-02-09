@@ -46,7 +46,7 @@ const HomeGallery = () => {
 
   return (
     <>
-      <section id="gallery" className="py-20 px-6 md:px-20 bg-slate-950 border-t border-slate-900 scroll-mt-3 min-h-screen">
+      <section id="gallery" className="py-20 px-6 md:px-20 bg-[#050511] border-t border-slate-900 scroll-mt-3 min-h-screen">
         <h3 className="text-3xl text-white font-bold mb-8 text-center md:text-left">
             Gallery
         </h3>

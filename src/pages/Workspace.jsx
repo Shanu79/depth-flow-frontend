@@ -344,7 +344,7 @@ const Workspace = () => {
 
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row overflow-hidden relative">
+    <div className="min-h-screen bg-[#050511] flex flex-col md:flex-row overflow-hidden relative">
 
       <CreditAlertModal
         isOpen={showCreditModal}
@@ -354,7 +354,7 @@ const Workspace = () => {
 
       {/* LEFT PANEL */}
       <div
-        className={`relative flex-shrink-0 flex flex-col pt-24 px-6 space-y-6 overflow-y-auto scrollbar-hide border-r border-slate-800 bg-slate-950 z-10 w-full md:w-[var(--sidebar-width)] ${isResizing ? 'transition-none' : 'transition-[width] duration-300 ease-out'}`}
+        className={`relative flex-shrink-0 flex flex-col pt-24 px-6 space-y-6 overflow-y-auto scrollbar-hide border-r border-slate-800 bg-[#050511] z-10 w-full md:w-[var(--sidebar-width)] ${isResizing ? 'transition-none' : 'transition-[width] duration-300 ease-out'}`}
         style={{ '--sidebar-width': `${sidebarWidth}px` }}
       >
         <div className="flex justify-between items-center">
@@ -423,7 +423,7 @@ const Workspace = () => {
           </div>
 
           {/* STYLE BUTTONS */}
-          <div className="flex bg-slate-950/50 p-1 rounded-xl border border-slate-800">
+          <div className="flex bg-[#050511]/50 p-1 rounded-xl border border-slate-800">
             {["Dolly", "Orbit", "Zoom"].map((style) => (
               <button
                 key={style}
@@ -461,7 +461,7 @@ const Workspace = () => {
       <div onMouseDown={startResizing} className="hidden md:flex w-4 -ml-2 cursor-col-resize hover:bg-purple-500/10 transition-all items-center justify-center z-50 group absolute h-full" style={{ left: `${sidebarWidth}px` }}><div className="w-[1px] h-full bg-slate-800 group-hover:bg-purple-500/50 transition-colors" /></div>
 
       {/* RIGHT PANEL - PREVIEW & HISTORY */}
-      <div className="flex-1 flex flex-col pt-24 pb-10 px-6 md:px-12 bg-slate-950 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+      <div className="flex-1 flex flex-col pt-24 pb-10 px-6 md:px-12 bg-[#050511] h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
         
         {/* Main Preview Card */}
         <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col mb-6 shrink-0">
@@ -554,7 +554,8 @@ const Workspace = () => {
           <div className="flex items-center justify-between mb-3 text-slate-400">
              <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <h3 className="text-sm font-semibold uppercase tracking-wider">History (Exp. 30m)</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wider">History</h3>
+                <h5 className="text-xs text-slate-500">Download Now, expires in 30 Minutes</h5>
              </div>
              <button onClick={fetchHistory} className="text-xs hover:text-white transition-colors">Refresh</button>
           </div>

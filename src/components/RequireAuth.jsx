@@ -8,7 +8,7 @@ const RequireAuth = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-950">
+      <div className="flex items-center justify-center min-h-screen bg-[#050511]">
         <div className="text-white">Loading...</div>
       </div>
     );

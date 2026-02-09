@@ -33,7 +33,7 @@ const GalleryPage = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-950 pt-24 pb-20 px-6 md:px-20">
+        <div className="min-h-screen bg-[#050511] pt-24 pb-20 px-6 md:px-20">
             
             {/* Header & Back Button */}
             <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">

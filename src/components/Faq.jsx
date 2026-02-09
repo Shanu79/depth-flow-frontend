@@ -36,7 +36,7 @@ const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(null);
 
   return (
-    <section className="py-20 px-6 md:px-20 bg-slate-950 border-t border-slate-900">
+    <section className="py-20 px-6 md:px-20 bg-[#050511] border-t border-slate-900">
       <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-white mb-4">
           Frequently Asked Questions

@@ -130,7 +130,7 @@ const PaymentPage = () => {
   )
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#050511] flex items-center justify-center p-6">
       <div className="max-w-4xl w-full bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-2xl">
 
         {/* LEFT: Summary */}
@@ -170,7 +170,7 @@ const PaymentPage = () => {
         </div>
 
         {/* RIGHT: Action */}
-        <div className="bg-slate-950 p-8 md:p-12 md:w-[400px] flex flex-col justify-center border-l border-slate-800">
+        <div className="bg-[#050511] p-8 md:p-12 md:w-[400px] flex flex-col justify-center border-l border-slate-800">
           <div className="mb-8 text-center">
             <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
               <CreditCard className="w-8 h-8 text-cyan-400" />

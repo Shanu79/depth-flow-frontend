@@ -33,12 +33,12 @@ const Features = () => {
   ];
 
   return (
-    <section id="features" className="py-20 px-6 md:px-20 bg-slate-950 border-t border-slate-900 scroll-mt-12">
+    <section id="features" className="py-20 px-6 md:px-20 bg-[#050511] border-t border-slate-900 scroll-mt-12">
       <h3 className="text-2xl text-white font-bold mb-8">Features</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {features.map((f, idx) => (
           <div key={idx} className="bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 p-8 rounded-2xl flex flex-col items-center text-center hover:border-slate-500 transition-colors group">
-            <div className="mb-4 p-4 rounded-full bg-slate-950 shadow-inner group-hover:scale-110 transition-transform">
+            <div className="mb-4 p-4 rounded-full bg-[#050511] shadow-inner group-hover:scale-110 transition-transform">
               {f.icon}
             </div>
             <h4 className="text-xl font-bold text-white mb-2">{f.title}</h4>
@@ -62,7 +62,7 @@ const Features = () => {
               
               <div className="flex flex-col items-center text-center mt-2">
                 {/* Icon Glow Effect */}
-                <div className="mb-6 p-4 rounded-full bg-slate-950 shadow-[0_0_20px_rgba(168,85,247,0.15)] group-hover:shadow-[0_0_25px_rgba(56,189,248,0.3)] transition-all duration-500">
+                <div className="mb-6 p-4 rounded-full bg-[#050511] shadow-[0_0_20px_rgba(168,85,247,0.15)] group-hover:shadow-[0_0_25px_rgba(56,189,248,0.3)] transition-all duration-500">
                   {step.icon}
                 </div>
                 

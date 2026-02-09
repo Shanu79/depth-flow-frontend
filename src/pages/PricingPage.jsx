@@ -3,7 +3,7 @@ import { Check, X, Sparkles, Plus, Minus } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
 import { useNavigate } from 'react-router-dom';
 
-// --- FAQ DATA (UPDATED) ---
+// --- FAQ DATA ---
 const faqs = [
   {
     question: "What is included in the $3.99 Trial plan?",
@@ -95,7 +95,7 @@ const PricingPage = () => {
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
   const navigate = useNavigate();
-  const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
+  const [billingCycle, setBillingCycle] = useState('monthly');
 
   const plans = [
     {
@@ -110,7 +110,6 @@ const PricingPage = () => {
         { text: "No commercial usage", included: true },
       ],
       highlight: false,
-      buttonText: "Get started",
     },
     {
       name: "Basic",
@@ -127,8 +126,6 @@ const PricingPage = () => {
         { text: "Commercial use allowed", included: true },
       ],
       highlight: true,
-      badge: "Most Popular",
-      buttonText: "Get started",
     },
     {
       name: "Pro",
@@ -146,12 +143,11 @@ const PricingPage = () => {
         { text: "Premium Support", included: true },
       ],
       highlight: false,
-      buttonText: "Get started",
     }
   ];
 
   return (
-    <section className="min-h-screen bg-slate-950 px-4 md:px-20 py-20 relative overflow-hidden font-sans">
+    <section className="min-h-screen bg-[#050511] px-4 md:px-20 py-20 relative overflow-hidden font-sans">
       {/* Background Ambience */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none" />
 
@@ -182,104 +178,141 @@ const PricingPage = () => {
         </div>
       </div>
 
-      {/* Cards Grid */}
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto items-center mb-20">
+      {/* Pricing Cards Grid */}
+      {/* UPDATE: Removed 'items-center' to allow default stretch behavior */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         {plans.map((plan, idx) => {
           const isCurrentPlan = user?.plan?.toLowerCase() === plan.name.toLowerCase();
           const isHighlighted = plan.highlight;
+          
+          const displayPrice = typeof plan.price === 'string' ? plan.price : plan.price[billingCycle];
+          const displayPeriod = typeof plan.period === 'string' ? plan.period : plan.period[billingCycle];
+          const displayOriginalPrice = plan.originalPrice ? plan.originalPrice[billingCycle] : null;
 
           return (
-            <div
-              key={idx}
-              className={`relative rounded-3xl p-8 flex flex-col transition-all duration-300
-                ${isHighlighted
-                  ? 'bg-slate-900/80 border border-purple-500 shadow-[0_0_50px_rgba(139,92,246,0.3)] z-10 scale-105 md:-mt-4'
-                  : 'bg-slate-900/40 border border-slate-800 hover:border-slate-700'
-                }
+            <div 
+              key={idx} 
+              // UPDATE: Added 'h-full' here
+              className={`relative group flex flex-col h-full transition-transform duration-300 
+                ${isHighlighted ? 'scale-105 z-10' : 'scale-100 z-0'}
               `}
             >
-              {/* Most Popular Badge & Sparkles */}
+              {/* Glow Background for Highlighted Card */}
               {isHighlighted && (
-                <>
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-slate-800/80 border border-purple-500/30 backdrop-blur-md text-white text-xs font-medium px-4 py-1 rounded-full shadow-lg">
-                    {plan.badge}
-                  </div>
-                  <Sparkles className="absolute top-6 right-6 text-purple-400 w-5 h-5 opacity-80 animate-pulse" />
-                  <Sparkles className="absolute top-12 right-12 text-purple-300 w-3 h-3 opacity-60" />
-                </>
+                <div className="absolute -inset-[1px] bg-gradient-to-b from-purple-500/40 via-purple-500/10 to-transparent rounded-3xl blur-md opacity-100 pointer-events-none" />
+              )}
+              {isHighlighted && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-500/10 blur-[60px] -z-10 rounded-full" />
               )}
 
-              {/* Card Header */}
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg text-slate-300 font-medium">{plan.name}</h3>
-                  {isHighlighted && <div className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold">Most Popular</div>}
-                </div>
-
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-bold text-white tracking-tight">
-                    ${plan.price[billingCycle]}
-                  </span>
-                  <span className="text-slate-500 text-sm font-medium">
-                    {plan.period[billingCycle]}
-                  </span>
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <button
-                onClick={() => {
-                  if (isCurrentPlan) return;
-                  const creditAmount = plan.features[0].text.split(' ')[0];
-                  navigate('/payment', {
-                    state: {
-                      planName: plan.name,
-                      price: plan.price[billingCycle],
-                      billingCycle: billingCycle,
-                      credits: creditAmount
-                    }
-                  });
-                }}
-                disabled={loading || isCurrentPlan}
-                className={`w-full py-3 rounded-xl font-medium transition-all mb-8
+              <div
+                // UPDATE: Added 'h-full' here to ensure inner background fills the height
+                className={`relative h-full rounded-3xl p-8 flex flex-col transition-all duration-300 backdrop-blur-sm
                   ${isHighlighted
-                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:to-indigo-500 text-white shadow-lg shadow-purple-900/20'
-                    : 'bg-slate-800/50 hover:bg-slate-800 text-white border border-slate-700'
+                    ? 'bg-[#0b0b15] border border-purple-500/30 shadow-[0_0_50px_-10px_rgba(124,58,237,0.15)]' 
+                    : 'bg-[#080810] border border-white/5 hover:border-white/10'
                   }
-                  ${isCurrentPlan ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}
                 `}
               >
-                {loading
-                  ? "Processing..."
-                  : (isCurrentPlan ? "Current Plan" : plan.buttonText)
-                }
-              </button>
+                {/* Top Inner Glow for Highlighted */}
+                {isHighlighted && (
+                  <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
+                )}
+                {isHighlighted && (
+                  <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-purple-500/10 to-transparent rounded-t-3xl pointer-events-none" />
+                )}
 
-              {/* Features List */}
-              <div className="flex-1">
-                <ul className="space-y-4">
-                  {plan.features.map((feature, fIdx) => (
-                    <li key={fIdx} className="flex items-start gap-3 text-sm group">
-                      <div className={`mt-0.5 rounded-full p-0.5 border flex items-center justify-center w-5 h-5 shrink-0
-                        ${feature.included
-                          ? 'border-slate-600 bg-slate-800'
-                          : 'border-slate-800 bg-transparent opacity-50'
-                        }`}>
-                        {feature.included ? (
-                          <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                        ) : (
-                          <X className="w-3 h-3 text-slate-500" />
-                        )}
+                {/* Sparkles */}
+                {isHighlighted && (
+                  <>
+                    <Sparkles className="absolute top-5 right-6 text-purple-300 w-5 h-5 opacity-80 animate-pulse" />
+                    <Sparkles className="absolute top-12 right-12 text-purple-300 w-3 h-3 opacity-60" />
+                  </>
+                )}
+
+                {/* Card Header */}
+                <div className="mb-6 relative z-10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <h3 className={`text-lg font-medium ${isHighlighted ? 'text-white' : 'text-slate-300'}`}>
+                      {plan.name}
+                    </h3>
+                    {plan.description && (
+                      <div className="bg-slate-700/50 text-slate-200 text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider font-semibold border border-slate-600/50 shadow-sm backdrop-blur-md">
+                        {plan.description}
                       </div>
+                    )}
+                  </div>
 
-                      <span className={`${feature.included ? 'text-slate-300' : 'text-slate-600'}`}>
-                        {billingCycle === 'yearly' && feature.yearlyText
-                          ? feature.yearlyText
-                          : feature.text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                  <div className="flex items-baseline gap-1">
+                    {displayOriginalPrice && (
+                        <span className="text-lg text-slate-500 line-through font-medium mr-1">
+                            ${displayOriginalPrice}
+                        </span>
+                    )}
+                    <span className="text-5xl font-bold text-white tracking-tight">
+                      ${displayPrice}
+                    </span>
+                    <span className="text-slate-500 text-sm font-medium">
+                      {displayPeriod}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Button */}
+                <button
+                  onClick={() => {
+                    if (isCurrentPlan) return;
+                    const creditAmount = plan.features[0].text.split(' ')[0];
+                    navigate('/payment', {
+                      state: {
+                        planName: plan.name,
+                        price: displayPrice,
+                        billingCycle: billingCycle,
+                        credits: creditAmount
+                      }
+                    });
+                  }}
+                  disabled={loading || isCurrentPlan}
+                  className={`w-full py-3 rounded-xl font-medium text-sm transition-all mb-8 relative z-10
+                    ${isHighlighted
+                      ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:brightness-110 text-white shadow-lg shadow-purple-500/25 border-t border-white/20'
+                      : 'bg-white/5 hover:bg-white/10 text-slate-200 border border-white/5 hover:border-white/10'
+                    }
+                    ${isCurrentPlan ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}
+                  `}
+                >
+                  {loading
+                    ? "Processing..."
+                    : (isCurrentPlan ? "Current Plan" : "Get started")
+                  }
+                </button>
+
+                {/* Divider */}
+                <div className={`h-px w-full mb-8 ${isHighlighted ? 'bg-gradient-to-r from-transparent via-purple-500/20 to-transparent' : 'bg-slate-800'}`} />
+
+                {/* Features List */}
+                <div className="flex-1 relative z-10">
+                  <ul className="space-y-4">
+                    {plan.features.map((feature, fIdx) => (
+                      <li key={fIdx} className="flex items-start gap-3 text-sm group">
+                        <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 border 
+                          ${feature.included 
+                            ? (isHighlighted ? 'border-purple-500/50 bg-purple-500/10' : 'border-slate-700 bg-slate-800/50') 
+                            : 'border-slate-800 bg-transparent'
+                          }`}
+                        >
+                          {feature.included && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                        </div>
+
+                        <span className={`${feature.included ? 'text-slate-300' : 'text-slate-600'}`}>
+                          {billingCycle === 'yearly' && feature.yearlyText
+                            ? feature.yearlyText
+                            : feature.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           );

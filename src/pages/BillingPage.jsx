@@ -94,7 +94,7 @@ const BillingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-28 pb-12 px-6 relative">
+    <div className="min-h-screen bg-[#050511] pt-28 pb-12 px-6 relative">
       
       {/* --- CUSTOM CANCEL MODAL --- */}
       {showCancelModal && (

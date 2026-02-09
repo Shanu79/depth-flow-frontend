@@ -67,7 +67,7 @@ const AuthSuccess = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-red-400">
+      <div className="min-h-screen bg-[#050511] flex items-center justify-center text-red-400">
         {error} Redirecting...
       </div>
     );

@@ -167,7 +167,7 @@ export default function Users() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-white font-sans selection:bg-purple-500/30 p-4 md:p-8">
+    <div className="relative min-h-screen bg-[#050511] text-white font-sans selection:bg-purple-500/30 p-4 md:p-8">
       
       {/* Background Gradients */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -200,7 +200,7 @@ export default function Users() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {stats.map((stat, index) => (
             <div key={index} className="bg-slate-900/50 border border-slate-800 p-4 rounded-xl flex items-center gap-4 hover:border-slate-700 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-[#050511] border border-slate-800 flex items-center justify-center">
                 {stat.icon}
               </div>
               <div>
@@ -239,7 +239,7 @@ export default function Users() {
         <div className="bg-slate-900/40 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm shadow-xl flex flex-col">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-slate-950/80 text-slate-400 uppercase text-xs border-b border-slate-800">
+              <thead className="bg-[#050511]/80 text-slate-400 uppercase text-xs border-b border-slate-800">
                 <tr>
                   {/* Sortable Header: ID */}
                   <th 
@@ -374,7 +374,7 @@ export default function Users() {
 
           {/* Pagination Controls */}
           {!loading && sortedUsers.length > 0 && (
-            <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between bg-slate-950/30">
+            <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between bg-[#050511]/30">
                 <span className="text-sm text-slate-500">
                     Showing <span className="text-white font-medium">{indexOfFirstUser + 1}</span> to <span className="text-white font-medium">{Math.min(indexOfLastUser, sortedUsers.length)}</span> of <span className="text-white font-medium">{sortedUsers.length}</span> entries
                 </span>

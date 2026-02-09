@@ -64,7 +64,7 @@ function App() {
   const redirectPath = location.state?.from?.pathname || "/";
   
   return (
-    <div className="bg-slate-950 min-h-screen font-sans selection:bg-purple-500/30">
+    <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
 
       {/* Global Page Loader */}
       {isLoading && <PageLoader />}

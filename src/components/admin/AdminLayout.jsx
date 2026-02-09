@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 
 export default function AdminLayout() {
   return (
-    <div className="flex min-h-screen bg-slate-950 pt-20"> 
+    <div className="flex min-h-screen bg-[#050511] pt-20"> 
       
       {/* Sidebar - Fixed width */}
       <div className="hidden md:block h-[calc(100vh-80px)] sticky top-20">

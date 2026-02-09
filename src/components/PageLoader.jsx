@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 
 const PageLoader = () => {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#050511]">
       <div className="flex flex-col items-center gap-4">
         {/* Animated Spinner */}
         <div className="relative">

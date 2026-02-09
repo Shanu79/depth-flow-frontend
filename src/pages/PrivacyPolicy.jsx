@@ -4,7 +4,7 @@ import { Shield, Lock, Eye, Server, Cookie, UserCheck, FileText, Mail, Layers } 
 const PrivacyPolicy = () => {
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white selection:bg-cyan-500/30 font-sans pt-20">
+    <div className="min-h-screen bg-[#050511] text-white selection:bg-cyan-500/30 font-sans pt-20">
       
       {/* --- Background Ambient Effects --- */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -53,19 +53,19 @@ const PrivacyPolicy = () => {
             </p>
             
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-slate-950/50 p-5 rounded-xl border border-slate-800/50">
+              <div className="bg-[#050511]/50 p-5 rounded-xl border border-slate-800/50">
                 <h3 className="font-bold text-white mb-2">a) Account Information</h3>
                 <p className="text-sm text-slate-400">When you create an account, we collect your <strong>name</strong> and <strong>email address</strong> to manage your account and provide support.</p>
               </div>
-              <div className="bg-slate-950/50 p-5 rounded-xl border border-slate-800/50">
+              <div className="bg-[#050511]/50 p-5 rounded-xl border border-slate-800/50">
                 <h3 className="font-bold text-white mb-2">b) Uploaded Content</h3>
                 <p className="text-sm text-slate-400">Images are processed by AI to generate results. We do not sell or publicly share your content. Images are stored temporarily for processing.</p>
               </div>
-              <div className="bg-slate-950/50 p-5 rounded-xl border border-slate-800/50">
+              <div className="bg-[#050511]/50 p-5 rounded-xl border border-slate-800/50">
                 <h3 className="font-bold text-white mb-2">c) Payment Information</h3>
                 <p className="text-sm text-slate-400">Payments are processed by trusted third-party providers. We <strong>do not store</strong> your credit card details on our servers.</p>
               </div>
-              <div className="bg-slate-950/50 p-5 rounded-xl border border-slate-800/50">
+              <div className="bg-[#050511]/50 p-5 rounded-xl border border-slate-800/50">
                 <h3 className="font-bold text-white mb-2">d) Usage Data</h3>
                 <p className="text-sm text-slate-400">We collect basic data like pages visited, features used, and device type to fix bugs and improve performance.</p>
               </div>

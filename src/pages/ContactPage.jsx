@@ -4,7 +4,7 @@ import { Mail, MessageSquare, User, Send, CheckCircle, HelpCircle } from 'lucide
 const ContactPage = () => {
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white selection:bg-cyan-500/30 font-sans pt-20">
+    <div className="min-h-screen bg-[#050511] text-white selection:bg-cyan-500/30 font-sans pt-20">
       
       {/* --- Background Ambient Effects --- */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -88,7 +88,7 @@ const ContactPage = () => {
           {/* --- RIGHT COLUMN: Contact Form --- */}
           <div className="relative">
              <div className="absolute -inset-1 bg-gradient-to-br from-cyan-500/20 to-purple-600/20 rounded-3xl blur-md opacity-50"></div>
-             <form className="relative bg-slate-950 border border-slate-800 p-8 rounded-3xl space-y-6 shadow-2xl">
+             <form className="relative bg-[#050511] border border-slate-800 p-8 rounded-3xl space-y-6 shadow-2xl">
                 
                 <h3 className="text-xl font-bold text-white mb-2">Send us a message</h3>
                 

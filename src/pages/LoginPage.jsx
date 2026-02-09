@@ -112,7 +112,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col lg:flex-row relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#050511] flex flex-col lg:flex-row relative overflow-hidden font-sans">
 
       {/* LEFT SIDE - FORM */}
       <div className="w-full min-w-[40%] min-h-screen flex flex-col items-center justify-center px-8 justify-center py-16 z-10">
