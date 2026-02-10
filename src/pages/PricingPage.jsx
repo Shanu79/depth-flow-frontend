@@ -50,13 +50,12 @@ const FAQSection = () => {
 
       <div className="space-y-4">
         {faqs.map((faq, index) => (
-          <div 
-            key={index} 
-            className={`border rounded-xl transition-all duration-300 ${
-              openIndex === index 
-                ? 'bg-slate-900 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.1)]' 
+          <div
+            key={index}
+            className={`border rounded-xl transition-all duration-300 ${openIndex === index
+                ? 'bg-slate-900 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.1)]'
                 : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
-            }`}
+              }`}
           >
             <button
               onClick={() => setOpenIndex(openIndex === index ? null : index)}
@@ -71,11 +70,10 @@ const FAQSection = () => {
                 <Plus className="w-5 h-5 text-slate-500 flex-shrink-0" />
               )}
             </button>
-            
-            <div 
-              className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-                openIndex === index ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-              }`}
+
+            <div
+              className={`grid transition-[grid-template-rows] duration-300 ease-out ${openIndex === index ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                }`}
             >
               <div className="overflow-hidden">
                 <div className="px-6 pb-6 text-slate-400 leading-relaxed border-t border-slate-800/50 pt-4 mt-2">
@@ -184,14 +182,14 @@ const PricingPage = () => {
         {plans.map((plan, idx) => {
           const isCurrentPlan = user?.plan?.toLowerCase() === plan.name.toLowerCase();
           const isHighlighted = plan.highlight;
-          
+
           const displayPrice = typeof plan.price === 'string' ? plan.price : plan.price[billingCycle];
           const displayPeriod = typeof plan.period === 'string' ? plan.period : plan.period[billingCycle];
           const displayOriginalPrice = plan.originalPrice ? plan.originalPrice[billingCycle] : null;
 
           return (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               // UPDATE: Added 'h-full' here
               className={`relative group flex flex-col h-full transition-transform duration-300 
                 ${isHighlighted ? 'scale-105 z-10' : 'scale-100 z-0'}
@@ -199,20 +197,27 @@ const PricingPage = () => {
             >
               {/* Glow Background for Highlighted Card */}
               {isHighlighted && (
-                <div className="absolute -inset-[1px] bg-gradient-to-b from-purple-500/40 via-purple-500/10 to-transparent rounded-3xl blur-md opacity-100 pointer-events-none" />
+                <div
+                  // UPDATE: Changed to allow glow on all 4 sides. 
+                  // Removed 'bg-gradient-to-b' and 'to-transparent'. 
+                  // Increased inset slightly to make it pop behind the thicker border.
+                  className="absolute -inset-1 bg-purple-500/40 rounded-3xl blur-lg opacity-100 pointer-events-none"
+                />
               )}
+
+              {/* Ambient background blob (Keep as is) */}
               {isHighlighted && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-500/10 blur-[60px] -z-10 rounded-full" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-500/10 blur-[90px] -z-10 rounded-full" />
               )}
 
               <div
-                // UPDATE: Added 'h-full' here to ensure inner background fills the height
-                className={`relative h-full rounded-3xl p-8 flex flex-col transition-all duration-300 backdrop-blur-sm
-                  ${isHighlighted
-                    ? 'bg-[#0b0b15] border border-purple-500/30 shadow-[0_0_50px_-10px_rgba(124,58,237,0.15)]' 
-                    : 'bg-[#080810] border border-white/5 hover:border-white/10'
+                className={`relative h-full rounded-3xl p-8 flex flex-col transition-all duration-300 backdrop-blur-lg
+          ${isHighlighted
+                    // UPDATE: Changed 'border' to 'border-2' for a thicker border
+                    ? 'bg-[#0b0b15] border-2 border-purple-500/30 shadow-[0_0_50px_-10px_rgba(124,58,237,0.15)]'
+                    : 'bg-[#080810] border-2 border-white/5 hover:border-white/10'
                   }
-                `}
+        `}
               >
                 {/* Top Inner Glow for Highlighted */}
                 {isHighlighted && (
@@ -245,9 +250,9 @@ const PricingPage = () => {
 
                   <div className="flex items-baseline gap-1">
                     {displayOriginalPrice && (
-                        <span className="text-lg text-slate-500 line-through font-medium mr-1">
-                            ${displayOriginalPrice}
-                        </span>
+                      <span className="text-lg text-slate-500 line-through font-medium mr-1">
+                        ${displayOriginalPrice}
+                      </span>
                     )}
                     <span className="text-5xl font-bold text-white tracking-tight">
                       ${displayPrice}
@@ -296,8 +301,8 @@ const PricingPage = () => {
                     {plan.features.map((feature, fIdx) => (
                       <li key={fIdx} className="flex items-start gap-3 text-sm group">
                         <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 border 
-                          ${feature.included 
-                            ? (isHighlighted ? 'border-purple-500/50 bg-purple-500/10' : 'border-slate-700 bg-slate-800/50') 
+                          ${feature.included
+                            ? (isHighlighted ? 'border-purple-500/50 bg-purple-500/10' : 'border-slate-700 bg-slate-800/50')
                             : 'border-slate-800 bg-transparent'
                           }`}
                         >
@@ -321,7 +326,7 @@ const PricingPage = () => {
 
       {/* FAQ SECTION */}
       <FAQSection />
-      
+
     </section>
   );
 };

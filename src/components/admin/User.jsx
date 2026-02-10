@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import * as XLSX from 'xlsx'; // Import Excel Library
-import useAuthStore from "../../stores/authStore"; 
 import { API_BASE_URL } from "../../config";
 import { 
   Search, Users as UsersIcon, Shield, Activity, 
   ChevronLeft, ChevronRight, Trash2, Loader2, 
-  Download, ArrowUpDown, ArrowUp, ArrowDown // New Icons
+  Download, ArrowUpDown, ArrowUp, ArrowDown,
+  Edit, Save, X, CheckCircle // New Icons
 } from "lucide-react";
 
 export default function Users() {
@@ -15,11 +15,20 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   
+  // --- NEW: Plan Filter State ---
+  const [selectedPlan, setSelectedPlan] = useState("ALL"); // ALL, TRIAL, BASIC, PRO
+
   // Sorting State
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   // Delete State
   const [deletingId, setDeletingId] = useState(null);
+
+  // --- NEW: Edit State ---
+  const [editingUser, setEditingUser] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({ credits: 0, plan: "" });
+  const [updating, setUpdating] = useState(false);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,7 +81,6 @@ export default function Users() {
 
       const updatedUsers = users.filter(u => u.id !== userId);
       setUsers(updatedUsers);
-      // Re-trigger filter logic handled by useEffect below
     } catch (err) {
       alert("Error: " + err.message);
     } finally {
@@ -80,17 +88,76 @@ export default function Users() {
     }
   };
 
-  // --- SEARCH FILTER ---
+  // --- NEW: EDIT USER LOGIC ---
+  const openEditModal = (user) => {
+    setEditingUser(user);
+    setEditFormData({ 
+      credits: user.credits || 0, 
+      plan: user.plan || "Free" 
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateUser = async () => {
+    setUpdating(true);
+    try {
+      // Example endpoint: PUT /admin/users/:id
+      // Adjust the body payload based on your actual backend requirement
+      const response = await fetch(`${API_BASE_URL}/admin/users/${editingUser.id}`, {
+        method: "PUT", // or PATCH
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          credits: parseInt(editFormData.credits), // Ensure it's a number
+          plan: editFormData.plan
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to update user");
+
+      // Update local state locally to reflect changes immediately
+      const updatedList = users.map(u => 
+        u.id === editingUser.id 
+          ? { ...u, credits: parseInt(editFormData.credits), plan: editFormData.plan } 
+          : u
+      );
+      
+      setUsers(updatedList);
+      setIsEditModalOpen(false);
+      setEditingUser(null);
+    } catch (err) {
+      alert("Update failed: " + err.message);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // --- UPDATED SEARCH & FILTER ---
   useEffect(() => {
-    const results = users.filter(user => 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      user.id.toString().includes(searchTerm)
-    );
+    let results = users;
+
+    // 1. Filter by Search Term
+    if (searchTerm) {
+      results = results.filter(user => 
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        user.id.toString().includes(searchTerm)
+      );
+    }
+
+    // 2. Filter by Plan (Trial, Basic, Pro)
+    if (selectedPlan !== "ALL") {
+      results = results.filter(user => 
+        user.plan?.toLowerCase() === selectedPlan.toLowerCase()
+      );
+    }
+
     setFilteredUsers(results);
     setCurrentPage(1); 
-  }, [searchTerm, users]);
+  }, [searchTerm, selectedPlan, users]);
 
-  // --- SORTING LOGIC (New) ---
+  // --- SORTING LOGIC ---
   const handleSort = (key) => {
     let direction = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -99,34 +166,26 @@ export default function Users() {
     setSortConfig({ key, direction });
   };
 
-  // Apply sorting to the filtered list
   const sortedUsers = useMemo(() => {
     let sortableItems = [...filteredUsers];
     if (sortConfig.key !== null) {
       sortableItems.sort((a, b) => {
-        // Handle null values gracefully
         let aValue = a[sortConfig.key] || "";
         let bValue = b[sortConfig.key] || "";
 
-        // Check for numbers vs strings
         if (typeof aValue === 'string') aValue = aValue.toLowerCase();
         if (typeof bValue === 'string') bValue = bValue.toLowerCase();
 
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
     }
     return sortableItems;
   }, [filteredUsers, sortConfig]);
 
-  // --- EXPORT TO EXCEL (New) ---
+  // --- EXPORT TO EXCEL ---
   const handleExport = () => {
-    // Create a clean version of data for excel (removing internal react IDs if needed, or formatting)
     const exportData = sortedUsers.map(u => ({
         ID: u.id,
         Email: u.email,
@@ -143,7 +202,7 @@ export default function Users() {
     XLSX.writeFile(workbook, "User_Export.xlsx");
   };
 
-  // --- PAGINATION ON SORTED DATA ---
+  // --- PAGINATION ---
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
@@ -151,7 +210,6 @@ export default function Users() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Helper to render sort icon
   const getSortIcon = (columnName) => {
     if (sortConfig.key !== columnName) return <ArrowUpDown className="w-3 h-3 ml-1 text-slate-600 opacity-50 group-hover:opacity-100" />;
     return sortConfig.direction === 'asc' 
@@ -159,7 +217,6 @@ export default function Users() {
       : <ArrowDown className="w-3 h-3 ml-1 text-cyan-400" />;
   };
 
-  // Stats
   const stats = [
     { label: "Total Users", value: users.length, icon: <UsersIcon className="w-5 h-5 text-blue-400"/> },
     { label: "Pro Plans", value: users.filter(u => u.plan?.toLowerCase() === 'pro').length, icon: <Activity className="w-5 h-5 text-purple-400"/> },
@@ -186,7 +243,6 @@ export default function Users() {
             <p className="text-slate-400 text-sm mt-1">Manage accounts, plans, and permissions.</p>
           </div>
           
-          {/* EXPORT BUTTON */}
           <button 
             onClick={handleExport}
             className="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-4 py-2.5 rounded-xl font-medium transition-all"
@@ -211,7 +267,24 @@ export default function Users() {
           ))}
         </div>
 
-        {/* Search & Filter Bar */}
+        {/* --- NEW: PLAN FILTERS --- */}
+        <div className="flex flex-wrap gap-2 mb-6">
+            {['ALL', 'TRIAL', 'BASIC', 'PRO'].map((plan) => (
+                <button
+                    key={plan}
+                    onClick={() => setSelectedPlan(plan)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+                        selectedPlan === plan 
+                        ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/20' 
+                        : 'bg-slate-900/50 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-200'
+                    }`}
+                >
+                    {plan === 'ALL' ? 'All Users' : `${plan.charAt(0) + plan.slice(1).toLowerCase()} Plan`}
+                </button>
+            ))}
+        </div>
+
+        {/* Search Bar */}
         <div className="flex justify-between items-center mb-6">
             <div className="relative w-full md:w-96">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -256,8 +329,8 @@ export default function Users() {
                     className="px-6 py-4 font-semibold tracking-wider cursor-pointer hover:bg-slate-800/50 hover:text-white transition-colors group select-none"
                     onClick={() => handleSort('email')}
                   >
-                     <div className="flex items-center">
-                      User {getSortIcon('email')}
+                      <div className="flex items-center">
+                       User {getSortIcon('email')}
                     </div>
                   </th>
 
@@ -266,8 +339,8 @@ export default function Users() {
                     className="px-6 py-4 font-semibold tracking-wider cursor-pointer hover:bg-slate-800/50 hover:text-white transition-colors group select-none"
                     onClick={() => handleSort('plan')}
                   >
-                     <div className="flex items-center">
-                      Plan {getSortIcon('plan')}
+                      <div className="flex items-center">
+                       Plan {getSortIcon('plan')}
                     </div>
                   </th>
 
@@ -348,22 +421,34 @@ export default function Users() {
                         </td>
 
                         <td className="px-6 py-4 text-right">
-                            <button
-                                onClick={() => handleDeleteUser(u.id, u.email)}
-                                disabled={deletingId === u.id || u.is_admin} 
-                                className={`p-2 rounded-lg transition-colors ${
-                                    u.is_admin 
-                                    ? "text-slate-700 cursor-not-allowed" 
-                                    : "text-slate-500 hover:text-red-400 hover:bg-red-500/10"
-                                }`}
-                                title="Delete User"
-                            >
-                                {deletingId === u.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Trash2 className="w-4 h-4" />
-                                )}
-                            </button>
+                            <div className="flex items-center justify-end gap-2">
+                                {/* EDIT BUTTON */}
+                                <button
+                                    onClick={() => openEditModal(u)}
+                                    className="p-2 rounded-lg text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+                                    title="Edit User"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                </button>
+
+                                {/* DELETE BUTTON */}
+                                <button
+                                    onClick={() => handleDeleteUser(u.id, u.email)}
+                                    disabled={deletingId === u.id || u.is_admin} 
+                                    className={`p-2 rounded-lg transition-colors ${
+                                        u.is_admin 
+                                        ? "text-slate-700 cursor-not-allowed" 
+                                        : "text-slate-500 hover:text-red-400 hover:bg-red-500/10"
+                                    }`}
+                                    title="Delete User"
+                                >
+                                    {deletingId === u.id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Trash2 className="w-4 h-4" />
+                                    )}
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     ))
@@ -422,6 +507,92 @@ export default function Users() {
           )}
         </div>
       </div>
+
+      {/* --- EDIT USER MODAL --- */}
+      {isEditModalOpen && editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div 
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={() => setIsEditModalOpen(false)}
+            ></div>
+
+            {/* Modal Content */}
+            <div className="relative bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl shadow-purple-900/20">
+                <div className="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 className="text-xl font-bold text-white">Edit User</h2>
+                        <p className="text-slate-400 text-sm mt-1">{editingUser.email}</p>
+                    </div>
+                    <button 
+                        onClick={() => setIsEditModalOpen(false)}
+                        className="text-slate-500 hover:text-white transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    {/* Credits Input */}
+                    <div>
+                        <label className="block text-slate-400 text-xs uppercase font-bold mb-2">
+                            Credits (Balance)
+                        </label>
+                        <div className="relative">
+                            <input 
+                                type="number" 
+                                value={editFormData.credits}
+                                onChange={(e) => setEditFormData({...editFormData, credits: e.target.value})}
+                                className="w-full bg-[#050511] border border-slate-700 text-white rounded-lg px-4 py-3 focus:border-cyan-500 focus:outline-none transition-colors"
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1">
+                                <button onClick={() => setEditFormData(prev => ({...prev, credits: parseInt(prev.credits) + 1}))} className="text-slate-500 hover:text-white">
+                                    <ChevronRight className="w-3 h-3 -rotate-90" />
+                                </button>
+                                <button onClick={() => setEditFormData(prev => ({...prev, credits: Math.max(0, parseInt(prev.credits) - 1)}))} className="text-slate-500 hover:text-white">
+                                    <ChevronRight className="w-3 h-3 rotate-90" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Plan Select */}
+                    <div>
+                        <label className="block text-slate-400 text-xs uppercase font-bold mb-2">
+                            Subscription Plan
+                        </label>
+                        <select 
+                            value={editFormData.plan}
+                            onChange={(e) => setEditFormData({...editFormData, plan: e.target.value})}
+                            className="w-full bg-[#050511] border border-slate-700 text-white rounded-lg px-4 py-3 focus:border-cyan-500 focus:outline-none transition-colors appearance-none"
+                        >
+                            <option value="Trial">Trial Plan</option>
+                            <option value="Basic">Basic Plan</option>
+                            <option value="Pro">Pro Plan</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                    <button 
+                        onClick={() => setIsEditModalOpen(false)}
+                        className="flex-1 py-3 px-4 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 font-medium transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onClick={handleUpdateUser}
+                        disabled={updating}
+                        className="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-cyan-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    >
+                        {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
     </div>
   );
 }
