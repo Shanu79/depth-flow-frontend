@@ -58,7 +58,9 @@ const PaymentPage = () => {
   const handlePayment = async () => {
     setIsProcessing(true);
 
-    const finalBillingCycle = planName === "Trial" ? "one_time" : billingCycle;
+    // Ensure we send "one_time" to backend for any add-on or trial
+    const isOneTimePurchase = planName === "Trial" || planName === "Credit Pack" || billingCycle === "onetime";
+    const finalBillingCycle = isOneTimePurchase ? "one_time" : billingCycle;
 
     try {
       const token = localStorage.getItem("token");
@@ -124,10 +126,13 @@ const PaymentPage = () => {
     }
   };
 
+  // Check if this is a subscription upgrade (Active sub AND not buying an add-on)
+  const isOneTime = planName === "Credit Pack" || planName === "Trial" || billingCycle === "onetime" || billingCycle === "one_time";
+  
   const isUpgrade = user?.subscription_id && (
     user.subscription_status === 'active' ||
     user.subscription_status?.startsWith('Scheduled')
-  )
+  ) && !isOneTime; 
 
   return (
     <div className="min-h-screen bg-[#050511] flex items-center justify-center p-6">
@@ -145,7 +150,7 @@ const PaymentPage = () => {
             <div className="flex justify-between items-center border-b border-slate-700 pb-4">
               <div>
                 <h3 className="text-xl font-semibold text-white">{planName} Plan</h3>
-                <p className="text-slate-400 text-sm capitalize">{planName==="Trial" ? "One time" : billingCycle} Billing</p>
+                <p className="text-slate-400 text-sm capitalize">{isOneTime ? "One time" : billingCycle} Billing</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-white">${price}</p>
@@ -187,6 +192,7 @@ const PaymentPage = () => {
             {isProcessing ? (
               <Loader2 className="animate-spin" />
             ) : (
+              // FIX: Only show "Confirm Plan Change" if it is an actual upgrade/downgrade, NOT an add-on
               isUpgrade ? `Confirm Plan Change ($${price})` : `Pay $${price}`
             )}
           </button>
