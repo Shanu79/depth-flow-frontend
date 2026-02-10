@@ -20,67 +20,75 @@ function Sparkle({ className }) {
 // --- ADD-ON CREDIT PACK COMPONENT ---
 const AddOnCreditPack = ({ navigate }) => {
   return (
-    <div className="mt-32 w-full max-w-5xl mx-auto px-4 relative">
+    <div className="mt-24 md:mt-32 w-full max-w-5xl mx-auto px-4 relative">
       
       {/* Main Title */}
-      <h3 className="text-3xl md:text-4xl font-bold text-center text-white mb-10 relative z-10">
+      <h3 className="text-3xl md:text-4xl font-bold text-center text-white mb-8 md:mb-10 relative z-10">
         Add-on Credit Pack
       </h3>
 
       {/* Credit Pack Pill Component */}
-      <div className="relative z-10 w-full bg-gradient-to-r from-[#1E152A] to-[#120F21] rounded-full p-1 shadow-2xl shadow-purple-900/20">
-        <div className="bg-[#161123] rounded-full p-8 pr-10 flex flex-col md:flex-row items-center justify-between border border-purple-500/20 relative overflow-hidden">
+      {/* Changed rounded-full to rounded-3xl on mobile for better aesthetics */}
+      <div className="relative z-10 w-full bg-gradient-to-r from-[#1E152A] to-[#120F21] rounded-3xl md:rounded-full p-1 shadow-2xl shadow-purple-900/20">
+        
+        <div className="bg-[#161123] rounded-[22px] md:rounded-full p-6 md:p-8 md:pr-10 flex flex-col md:flex-row items-center justify-between border border-purple-500/20 relative overflow-hidden gap-6 md:gap-0">
           
-          {/* Top Right Gradient Glow (As requested) */}
-          <div className="absolute top-[-50%] right-[-20%] w-[60%] h-[150%] bg-gradient-to-bl from-purple-600/40 via-indigo-600/20 to-transparent blur-[60px] rounded-full pointer-events-none"></div>
+          {/* Top Right Gradient Glow */}
+          <div className="absolute top-[-50%] right-[-20%] w-[80%] md:w-[60%] h-[150%] bg-gradient-to-bl from-purple-600/40 via-indigo-600/20 to-transparent blur-[60px] rounded-full pointer-events-none"></div>
           
           {/* Subtle sparkles */}
-          <Sparkle className="absolute top-4 right-16 w-3 h-3 text-white opacity-70 animate-pulse" />
-          <Sparkle className="absolute top-8 right-10 w-2 h-2 text-white opacity-50" />
+          <Sparkle className="absolute top-4 right-6 md:right-16 w-3 h-3 text-white opacity-70 animate-pulse" />
+          <Sparkle className="absolute top-8 right-10 md:right-10 w-2 h-2 text-white opacity-50" />
 
           {/* Left Section: Price */}
-          <div className="flex flex-col mb-6 md:mb-0 relative z-20 text-center md:text-left">
+          <div className="flex flex-col relative z-20 text-center md:text-left min-w-fit">
             <span className="text-purple-300/80 text-sm font-medium mb-1">Credit Pack</span>
             <div className="flex items-baseline justify-center md:justify-start">
               <span className="text-4xl font-bold text-white mr-2">$15</span>
-              <span className="text-purple-300/70 text-sm font-medium">/ One Time</span>
+              <span className="text-purple-300/70 text-sm font-medium whitespace-nowrap">/ One Time</span>
             </div>
           </div>
 
-          {/* Divider for mobile */}
-          <div className="md:hidden w-full h-px bg-white/5 my-6" />
+          {/* Divider (Mobile Only) */}
+          <div className="md:hidden w-full h-px bg-white/5" />
+
+          {/* Divider (Desktop Only) */}
+          <div className="hidden md:block w-px h-12 bg-white/10 mx-6" />
 
           {/* Middle Section: Details & Credits */}
-          <div className="flex flex-col mb-6 md:mb-0 md:mx-8 relative z-20 text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start space-x-4 mb-3 text-purple-300/70 text-xs md:text-sm">
-              <div className="flex items-center">
+          <div className="flex flex-col relative z-20 text-center md:text-left flex-1">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 mb-2 text-purple-300/70 text-xs md:text-sm">
+              <div className="flex items-center whitespace-nowrap">
                 <Calendar className="w-4 h-4 mr-1.5" />
                 <span>One-time purchase</span>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center whitespace-nowrap">
                 <Infinity className="w-4 h-4 mr-1.5" />
                 <span>No expiration</span>
               </div>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight whitespace-nowrap">
               750 Credits
             </h2>
           </div>
 
           {/* Right Section: Buy Button */}
-          <button 
-            onClick={() => navigate("/payment", {
-              state: {
-                planName: "Credit Pack",
-                price: "15",
-                billingCycle: "onetime",
-                credits: "750",
-              },
-            })}
-            className="relative z-20 w-full md:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-3 px-10 rounded-full transition-all duration-200 shadow-lg shadow-purple-600/30 active:scale-95"
-          >
-            Buy Now
-          </button>
+          <div className="w-full md:w-auto relative z-20">
+            <button 
+              onClick={() => navigate("/payment", {
+                state: {
+                  planName: "Credit Pack",
+                  price: "15",
+                  billingCycle: "onetime",
+                  credits: "750",
+                },
+              })}
+              className="w-full md:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-3 px-8 md:px-10 rounded-xl md:rounded-full transition-all duration-200 shadow-lg shadow-purple-600/30 active:scale-95 whitespace-nowrap"
+            >
+              Buy Now
+            </button>
+          </div>
+          
         </div>
       </div>
     </div>
