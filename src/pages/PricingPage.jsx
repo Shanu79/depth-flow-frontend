@@ -302,7 +302,7 @@ const PricingPage = () => {
                   className={`w-full py-3 rounded-xl font-medium text-sm transition-all duration-300 mb-8 relative z-10 
               ${isHighlighted
                       ? "bg-gradient-to-b from-[#9061F9] to-[#6D28D9] text-white border-t border-white/20 shadow-[inset_0_1px_0px_rgba(255,255,255,0.35),0_4px_20px_rgba(124,58,237,0.3)] hover:shadow-[inset_0_1px_0px_rgba(255,255,255,0.5),0_0_20px_rgba(124,58,237,0.6)] hover:brightness-110"
-                      : "bg-gradient-to-b from-slate-800 to-slate-950 text-white border border-slate-600 border-t-slate-500 shadow-[inset_0_1px_0px_rgba(255,255,255,0.1)] hover:brightness-110 hover:shadow-[inset_0_1px_0px_rgba(255,255,255,0.2)]"
+                      : "bg-gradient-to-b from-slate-900 to-slate-800 text-white border border-slate-700 shadow-[inset_0_1px_0px_rgba(255,255,255,0.1)] hover:brightness-110 hover:shadow-[inset_0_1px_0px_rgba(255,255,255,0.2)]"
                     }
               ${isButtonDisabled ? "opacity-50 cursor-not-allowed active:scale-100" : "active:scale-95"}
             `}
