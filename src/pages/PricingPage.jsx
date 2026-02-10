@@ -1,7 +1,91 @@
 import { useState } from 'react';
-import { Check, Plus, Minus } from 'lucide-react';
+import { Check, Plus, Minus, Calendar, Infinity } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
 import { useNavigate } from 'react-router-dom';
+
+// --- REUSABLE SPARKLE COMPONENT ---
+function Sparkle({ className }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+    </svg>
+  );
+}
+
+// --- ADD-ON CREDIT PACK COMPONENT ---
+const AddOnCreditPack = ({ navigate }) => {
+  return (
+    <div className="mt-32 w-full max-w-5xl mx-auto px-4 relative">
+      
+      {/* Main Title */}
+      <h3 className="text-3xl md:text-4xl font-bold text-center text-white mb-10 relative z-10">
+        Add-on Credit Pack
+      </h3>
+
+      {/* Credit Pack Pill Component */}
+      <div className="relative z-10 w-full bg-gradient-to-r from-[#1E152A] to-[#120F21] rounded-full p-1 shadow-2xl shadow-purple-900/20">
+        <div className="bg-[#161123] rounded-full p-8 pr-10 flex flex-col md:flex-row items-center justify-between border border-purple-500/20 relative overflow-hidden">
+          
+          {/* Top Right Gradient Glow (As requested) */}
+          <div className="absolute top-[-50%] right-[-20%] w-[60%] h-[150%] bg-gradient-to-bl from-purple-600/40 via-indigo-600/20 to-transparent blur-[60px] rounded-full pointer-events-none"></div>
+          
+          {/* Subtle sparkles */}
+          <Sparkle className="absolute top-4 right-16 w-3 h-3 text-white opacity-70 animate-pulse" />
+          <Sparkle className="absolute top-8 right-10 w-2 h-2 text-white opacity-50" />
+
+          {/* Left Section: Price */}
+          <div className="flex flex-col mb-6 md:mb-0 relative z-20 text-center md:text-left">
+            <span className="text-purple-300/80 text-sm font-medium mb-1">Credit Pack</span>
+            <div className="flex items-baseline justify-center md:justify-start">
+              <span className="text-4xl font-bold text-white mr-2">$15</span>
+              <span className="text-purple-300/70 text-sm font-medium">/ One Time</span>
+            </div>
+          </div>
+
+          {/* Divider for mobile */}
+          <div className="md:hidden w-full h-px bg-white/5 my-6" />
+
+          {/* Middle Section: Details & Credits */}
+          <div className="flex flex-col mb-6 md:mb-0 md:mx-8 relative z-20 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start space-x-4 mb-3 text-purple-300/70 text-xs md:text-sm">
+              <div className="flex items-center">
+                <Calendar className="w-4 h-4 mr-1.5" />
+                <span>One-time purchase</span>
+              </div>
+              <div className="flex items-center">
+                <Infinity className="w-4 h-4 mr-1.5" />
+                <span>No expiration</span>
+              </div>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+              750 Credits
+            </h2>
+          </div>
+
+          {/* Right Section: Buy Button */}
+          <button 
+            onClick={() => navigate("/payment", {
+              state: {
+                planName: "Credit Pack",
+                price: "15",
+                billingCycle: "onetime",
+                credits: "750",
+              },
+            })}
+            className="relative z-20 w-full md:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-3 px-10 rounded-full transition-all duration-200 shadow-lg shadow-purple-600/30 active:scale-95"
+          >
+            Buy Now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // --- FAQ DATA ---
 const faqs = [
@@ -228,7 +312,7 @@ const PricingPage = () => {
               <div
                 className={`relative h-full rounded-3xl p-8 flex flex-col transition-all duration-300 backdrop-blur-lg overflow-hidden
             ${isHighlighted
-                    ? 'bg-[#080810] border border-white/10 shadow-xl' // Updated to match shiny card bg
+                    ? 'bg-[#080810] border border-white/10 shadow-xl' 
                     : 'bg-[#080810] border-2 border-white/5 hover:border-white/10'
                   }
           `}
@@ -243,13 +327,9 @@ const PricingPage = () => {
 
                     {/* 3. CUSTOM STAR CLUSTER */}
                     <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none z-0">
-                      {/* Big Star */}
                       <Sparkle className="absolute top-12 right-6 w-5 h-5 text-purple-100 opacity-90" />
-                      {/* Medium Star */}
                       <Sparkle className="absolute top-5 right-14 w-3 h-3 text-purple-200 opacity-70" />
-                      {/* Small Star */}
                       <Sparkle className="absolute top-4 right-5 w-2.5 h-2.5 text-purple-300 opacity-60" />
-                      {/* Tiny Dots */}
                       <div className="absolute top-8 right-24 w-0.5 h-0.5 bg-white rounded-full opacity-50" />
                       <div className="absolute top-10 right-10 w-0.5 h-0.5 bg-white rounded-full opacity-40" />
                     </div>
@@ -288,7 +368,7 @@ const PricingPage = () => {
                 <button
                   onClick={() => {
                     if (isButtonDisabled) return;
-                    const creditAmount = plan.features[0].text.split(" ")[0]; // Careful with this split if text changes
+                    const creditAmount = plan.features[0].text.split(" ")[0];
                     navigate("/payment", {
                       state: {
                         planName: plan.name,
@@ -342,25 +422,14 @@ const PricingPage = () => {
         })}
       </div>
 
+      {/* --- ADD-ON COMPONENT --- */}
+      <AddOnCreditPack navigate={navigate} />
+
       {/* FAQ SECTION */}
       <FAQSection />
 
     </section>
   );
 };
-
-{/* --- ADD THIS COMPONENT OUTSIDE THE LOOP OR IN A SEPARATE FILE --- */ }
-function Sparkle({ className }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
-    </svg>
-  );
-}
 
 export default PricingPage;
