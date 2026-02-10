@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, X, Sparkles, Plus, Minus } from 'lucide-react';
+import { Check, Plus, Minus } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
 import { useNavigate } from 'react-router-dom';
 
@@ -95,6 +95,9 @@ const PricingPage = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly');
 
+  // --- HELPER: Check Cancellation Status ---
+  const isScheduledForCancel = user?.subscription_status && user.subscription_status.includes("Scheduled for cancellation");
+
   const plans = [
     {
       name: "Trial",
@@ -177,7 +180,6 @@ const PricingPage = () => {
       </div>
 
       {/* Pricing Cards Grid */}
-      {/* UPDATE: Removed 'items-center' to allow default stretch behavior */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         {plans.map((plan, idx) => {
           const isCurrentPlan = user?.plan?.toLowerCase() === plan.name.toLowerCase();
@@ -187,51 +189,70 @@ const PricingPage = () => {
           const displayPeriod = typeof plan.period === 'string' ? plan.period : plan.period[billingCycle];
           const displayOriginalPrice = plan.originalPrice ? plan.originalPrice[billingCycle] : null;
 
+          // --- LOGIC: DETERMINE BUTTON STATE ---
+          let buttonText = "Get started";
+          let isButtonDisabled = false;
+
+          if (loading) {
+            buttonText = "Processing...";
+            isButtonDisabled = true;
+          } else if (isCurrentPlan) {
+            if (plan.name !== "Trial" && isScheduledForCancel) {
+              buttonText = "Resume Subscription";
+              isButtonDisabled = false;
+            } else {
+              buttonText = "Current Plan";
+              isButtonDisabled = true;
+            }
+          }
+
           return (
             <div
               key={idx}
-              // UPDATE: Added 'h-full' here
               className={`relative group flex flex-col h-full transition-transform duration-300 
-                ${isHighlighted ? 'scale-105 z-10' : 'scale-100 z-0'}
-              `}
+          ${isHighlighted ? 'scale-105 z-10' : 'scale-100 z-0'}
+        `}
             >
-              {/* Glow Background for Highlighted Card */}
+              {/* Glow Background for Highlighted Card (Outer Glow) */}
               {isHighlighted && (
                 <div
-                  // UPDATE: Changed to allow glow on all 4 sides. 
-                  // Removed 'bg-gradient-to-b' and 'to-transparent'. 
-                  // Increased inset slightly to make it pop behind the thicker border.
                   className="absolute -inset-1 bg-purple-500/40 rounded-3xl blur-lg opacity-100 pointer-events-none"
                 />
               )}
 
-              {/* Ambient background blob (Keep as is) */}
+              {/* Ambient background blob */}
               {isHighlighted && (
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-500/10 blur-[90px] -z-10 rounded-full" />
               )}
 
               <div
-                className={`relative h-full rounded-3xl p-8 flex flex-col transition-all duration-300 backdrop-blur-lg
-          ${isHighlighted
-                    // UPDATE: Changed 'border' to 'border-2' for a thicker border
-                    ? 'bg-[#0b0b15] border-2 border-purple-500/30 shadow-[0_0_50px_-10px_rgba(124,58,237,0.15)]'
+                className={`relative h-full rounded-3xl p-8 flex flex-col transition-all duration-300 backdrop-blur-lg overflow-hidden
+            ${isHighlighted
+                    ? 'bg-[#080810] border border-white/10 shadow-xl' // Updated to match shiny card bg
                     : 'bg-[#080810] border-2 border-white/5 hover:border-white/10'
                   }
-        `}
+          `}
               >
-                {/* Top Inner Glow for Highlighted */}
-                {isHighlighted && (
-                  <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-                )}
-                {isHighlighted && (
-                  <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-purple-500/10 to-transparent rounded-t-3xl pointer-events-none" />
-                )}
-
-                {/* Sparkles */}
+                {/* --- SHINY CARD EFFECTS (Only for Highlighted) --- */}
                 {isHighlighted && (
                   <>
-                    <Sparkles className="absolute top-5 right-6 text-purple-300 w-5 h-5 opacity-80 animate-pulse" />
-                    <Sparkles className="absolute top-12 right-12 text-purple-300 w-3 h-3 opacity-60" />
+                    {/* 1. Top Highlight Line */}
+                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-50" />
+
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#1a103c] from-0% via-purple-500/40 via-25% to-transparent to-50% pointer-events-none" />
+
+                    {/* 3. CUSTOM STAR CLUSTER */}
+                    <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none z-0">
+                      {/* Big Star */}
+                      <Sparkle className="absolute top-12 right-6 w-5 h-5 text-purple-100 opacity-90" />
+                      {/* Medium Star */}
+                      <Sparkle className="absolute top-5 right-14 w-3 h-3 text-purple-200 opacity-70" />
+                      {/* Small Star */}
+                      <Sparkle className="absolute top-4 right-5 w-2.5 h-2.5 text-purple-300 opacity-60" />
+                      {/* Tiny Dots */}
+                      <div className="absolute top-8 right-24 w-0.5 h-0.5 bg-white rounded-full opacity-50" />
+                      <div className="absolute top-10 right-10 w-0.5 h-0.5 bg-white rounded-full opacity-40" />
+                    </div>
                   </>
                 )}
 
@@ -266,30 +287,27 @@ const PricingPage = () => {
                 {/* Action Button */}
                 <button
                   onClick={() => {
-                    if (isCurrentPlan) return;
-                    const creditAmount = plan.features[0].text.split(' ')[0];
-                    navigate('/payment', {
+                    if (isButtonDisabled) return;
+                    const creditAmount = plan.features[0].text.split(" ")[0]; // Careful with this split if text changes
+                    navigate("/payment", {
                       state: {
                         planName: plan.name,
                         price: displayPrice,
                         billingCycle: billingCycle,
-                        credits: creditAmount
-                      }
+                        credits: creditAmount,
+                      },
                     });
                   }}
-                  disabled={loading || isCurrentPlan}
-                  className={`w-full py-3 rounded-xl font-medium text-sm transition-all mb-8 relative z-10
-                    ${isHighlighted
-                      ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:brightness-110 text-white shadow-lg shadow-purple-500/25 border-t border-white/20'
-                      : 'bg-white/5 hover:bg-white/10 text-slate-200 border border-white/5 hover:border-white/10'
+                  disabled={isButtonDisabled}
+                  className={`w-full py-3 rounded-xl font-medium text-sm transition-all duration-300 mb-8 relative z-10 
+              ${isHighlighted
+                      ? "bg-gradient-to-b from-[#9061F9] to-[#6D28D9] text-white border-t border-white/20 shadow-[inset_0_1px_0px_rgba(255,255,255,0.35),0_4px_20px_rgba(124,58,237,0.3)] hover:shadow-[inset_0_1px_0px_rgba(255,255,255,0.5),0_0_20px_rgba(124,58,237,0.6)] hover:brightness-110"
+                      : "bg-gradient-to-b from-slate-800 to-slate-950 text-white border border-slate-600 border-t-slate-500 shadow-[inset_0_1px_0px_rgba(255,255,255,0.1)] hover:brightness-110 hover:shadow-[inset_0_1px_0px_rgba(255,255,255,0.2)]"
                     }
-                    ${isCurrentPlan ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}
-                  `}
+              ${isButtonDisabled ? "opacity-50 cursor-not-allowed active:scale-100" : "active:scale-95"}
+            `}
                 >
-                  {loading
-                    ? "Processing..."
-                    : (isCurrentPlan ? "Current Plan" : "Get started")
-                  }
+                  {buttonText}
                 </button>
 
                 {/* Divider */}
@@ -301,7 +319,7 @@ const PricingPage = () => {
                     {plan.features.map((feature, fIdx) => (
                       <li key={fIdx} className="flex items-start gap-3 text-sm group">
                         <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 border 
-                          ${feature.included
+                    ${feature.included
                             ? (isHighlighted ? 'border-purple-500/50 bg-purple-500/10' : 'border-slate-700 bg-slate-800/50')
                             : 'border-slate-800 bg-transparent'
                           }`}
@@ -330,5 +348,19 @@ const PricingPage = () => {
     </section>
   );
 };
+
+{/* --- ADD THIS COMPONENT OUTSIDE THE LOOP OR IN A SEPARATE FILE --- */ }
+function Sparkle({ className }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+    </svg>
+  );
+}
 
 export default PricingPage;
