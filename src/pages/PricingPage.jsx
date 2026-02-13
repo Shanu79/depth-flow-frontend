@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react'; // Added useRef
 import { Check, Plus, Minus, Calendar, Infinity } from 'lucide-react';
 import useAuthStore from '../stores/authStore.js';
 import { useNavigate } from 'react-router-dom';
@@ -21,21 +21,20 @@ function Sparkle({ className }) {
 const AddOnCreditPack = ({ navigate }) => {
   return (
     <div className="mt-24 md:mt-32 w-full max-w-5xl mx-auto px-4 relative">
-      
+
       {/* Main Title */}
       <h3 className="text-3xl md:text-4xl font-bold text-center text-white mb-8 md:mb-10 relative z-10">
         Add-on Credit Pack
       </h3>
 
       {/* Credit Pack Pill Component */}
-      {/* Changed rounded-full to rounded-3xl on mobile for better aesthetics */}
       <div className="relative z-10 w-full bg-gradient-to-r from-[#1E152A] to-[#120F21] rounded-3xl md:rounded-full p-1 shadow-2xl shadow-purple-900/20">
-        
+
         <div className="bg-[#161123] rounded-[22px] md:rounded-full p-6 md:p-8 md:pr-10 flex flex-col md:flex-row items-center justify-between border border-purple-500/20 relative overflow-hidden gap-6 md:gap-0">
-          
+
           {/* Top Right Gradient Glow */}
           <div className="absolute top-[-50%] right-[-20%] w-[80%] md:w-[60%] h-[150%] bg-gradient-to-bl from-purple-600/40 via-indigo-600/20 to-transparent blur-[60px] rounded-full pointer-events-none"></div>
-          
+
           {/* Subtle sparkles */}
           <Sparkle className="absolute top-4 right-6 md:right-16 w-3 h-3 text-white opacity-70 animate-pulse" />
           <Sparkle className="absolute top-8 right-10 md:right-10 w-2 h-2 text-white opacity-50" />
@@ -74,7 +73,7 @@ const AddOnCreditPack = ({ navigate }) => {
 
           {/* Right Section: Buy Button */}
           <div className="w-full md:w-auto relative z-20">
-            <button 
+            <button
               onClick={() => navigate("/payment", {
                 state: {
                   planName: "Credit Pack",
@@ -88,7 +87,7 @@ const AddOnCreditPack = ({ navigate }) => {
               Buy Now
             </button>
           </div>
-          
+
         </div>
       </div>
     </div>
@@ -145,8 +144,8 @@ const FAQSection = () => {
           <div
             key={index}
             className={`border rounded-xl transition-all duration-300 ${openIndex === index
-                ? 'bg-slate-900 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.1)]'
-                : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
+              ? 'bg-slate-900 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.1)]'
+              : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
               }`}
           >
             <button
@@ -186,6 +185,14 @@ const PricingPage = () => {
   const loading = useAuthStore((state) => state.loading);
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly');
+
+  // 1. Create a reference for the Credit Pack section
+  const creditPackRef = useRef(null);
+
+  // 2. Helper function to handle scrolling
+  const scrollToCreditPack = () => {
+    creditPackRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // --- HELPER: Check Cancellation Status ---
   const isScheduledForCancel = user?.subscription_status && user.subscription_status.includes("Scheduled for cancellation");
@@ -249,25 +256,39 @@ const PricingPage = () => {
         <h2 className="text-4xl md:text-5xl font-bold text-white my-4 tracking-tight">Flexible Pricing Plans</h2>
         <p className="text-slate-400 text-lg">Choose the perfect plan for your creative needs.</p>
 
-        {/* Toggle Switch */}
-        <div className="flex justify-center items-center mt-8 gap-4">
-          <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-slate-500'}`}>
-            Monthly
-          </span>
+        {/* CONTROLS CONTAINER: Switch + Scroll Button */}
+        <div className="relative flex flex-col md:flex-row justify-center items-center mt-8 w-full max-w-6xl mx-auto">
 
-          <button
-            onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-            className={`w-14 h-8 rounded-full p-1 relative transition-colors border border-slate-700 cursor-pointer ${billingCycle === 'yearly' ? 'bg-purple-600 border-purple-500' : 'bg-slate-800'}`}
-          >
-            <div className={`w-6 h-6 rounded-full shadow-md transform transition-all duration-300 ${billingCycle === 'yearly' ? 'translate-x-6 bg-white' : 'translate-x-0 bg-slate-400/80'}`}></div>
-          </button>
-
-          <span className={`text-sm font-medium flex items-center gap-2 ${billingCycle === 'yearly' ? 'text-white' : 'text-slate-500'}`}>
-            Yearly
-            <span className="bg-green-500/10 text-green-400 text-xs font-semibold px-2 py-0.5 rounded-full border border-green-500/20">
-              20% off
+          {/* 1. Centered Toggle Group */}
+          <div className="flex justify-center items-center gap-4 z-10">
+            <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-slate-500'}`}>
+              Monthly
             </span>
-          </span>
+
+            <button
+              onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
+              className={`w-14 h-8 rounded-full p-1 relative transition-colors border border-slate-700 cursor-pointer ${billingCycle === 'yearly' ? 'bg-purple-600 border-purple-500' : 'bg-slate-800'}`}
+            >
+              <div className={`w-6 h-6 rounded-full shadow-md transform transition-all duration-300 ${billingCycle === 'yearly' ? 'translate-x-6 bg-white' : 'translate-x-0 bg-slate-400/80'}`}></div>
+            </button>
+
+            <span className={`text-sm font-medium flex items-center gap-2 ${billingCycle === 'yearly' ? 'text-white' : 'text-slate-500'}`}>
+              Yearly
+              <span className="bg-green-500/10 text-green-400 text-xs font-semibold px-2 py-0.5 rounded-full border border-green-500/20">
+                20% off
+              </span>
+            </span>
+          </div>
+          {/* 2. Right-Aligned Action Button (Absolute on Desktop, Stacked on Mobile) */}
+          <div className="mt-6 md:mt-0 md:absolute md:right-0 z-10">
+            <button
+              onClick={scrollToCreditPack}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-200 text-sm font-medium transition-all group shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+            >
+              <Sparkle className="w-4 h-4 text-purple-400 group-hover:text-white transition-colors" />
+              <span>Buy Credit Pack</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -320,7 +341,7 @@ const PricingPage = () => {
               <div
                 className={`relative h-full rounded-3xl p-8 flex flex-col transition-all duration-300 backdrop-blur-lg overflow-hidden
             ${isHighlighted
-                    ? 'bg-[#080810] border border-white/10 shadow-xl' 
+                    ? 'bg-[#080810] border border-white/10 shadow-xl'
                     : 'bg-[#080810] border-2 border-white/5 hover:border-white/10'
                   }
           `}
@@ -430,8 +451,10 @@ const PricingPage = () => {
         })}
       </div>
 
-      {/* --- ADD-ON COMPONENT --- */}
-      <AddOnCreditPack navigate={navigate} />
+      {/* --- ADD-ON COMPONENT (Attached the Ref here) --- */}
+      <div ref={creditPackRef}>
+        <AddOnCreditPack navigate={navigate} />
+      </div>
 
       {/* FAQ SECTION */}
       <FAQSection />
