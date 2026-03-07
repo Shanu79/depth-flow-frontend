@@ -110,7 +110,7 @@ const Workspace = () => {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
-  
+
   // NEW: Refactored Result State to handle complex objects instead of just strings
   const [resultItem, setResultItem] = useState(() => {
     const saved = localStorage.getItem("ws_resultItem");
@@ -121,9 +121,9 @@ const Workspace = () => {
   const [history, setHistory] = useState([]);
   const [failedLoadIds, setFailedLoadIds] = useState(new Set());
 
-  // NEW: State to manage background polling
   const [isPolling, setIsPolling] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [statusMessage, setStatusMessage] = useState("Initializing..."); // NEW
 
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem("ws_resultItem") ? "output" : "input");
 
@@ -267,27 +267,36 @@ const Workspace = () => {
 
     pollingIntervalRef.current = setInterval(async () => {
       const newHistory = await fetchHistory();
-      
-      // Look for a video created AFTER we clicked the generate button
-      const newestItem = newHistory[0];
-      if (newestItem && new Date(newestItem.created_at).getTime() > startTime) {
-        
-        // Stop polling
-        clearInterval(pollingIntervalRef.current);
-        setIsPolling(false);
-        setProgress(100);
 
-        // Update UI with the final result (whether it is a video or an error)
-        setResultItem(newestItem);
-        localStorage.setItem("ws_resultItem", JSON.stringify(newestItem));
-        setActiveTab("output");
-        
-        // If it was a failure, refund credits in the local store
-        if (newestItem.is_failed) {
-          updateCredits(credits + GENERATION_COST);
+      // Get ALL items created after we clicked the button
+      const newItems = newHistory.filter(item => new Date(item.created_at).getTime() > startTime);
+
+      if (newItems.length > 0) {
+        // The newest item is always at index 0 because of descending order
+        const newestItem = newItems[0];
+
+        // 1. If it's just a status update, update the UI message
+        if (newestItem.is_status) {
+          setStatusMessage(newestItem.status_message);
+        }
+        // 2. If it's a final result (success or failure)
+        else {
+          clearInterval(pollingIntervalRef.current);
+          setIsPolling(false);
+          setProgress(100);
+
+          // Update UI with the final result
+          setResultItem(newestItem);
+          localStorage.setItem("ws_resultItem", JSON.stringify(newestItem));
+          setActiveTab("output");
+
+          // Refund credits locally if it failed
+          if (newestItem.is_failed) {
+            updateCredits(credits + GENERATION_COST);
+          }
         }
       }
-    }, 3000); // Check every 3 seconds
+    }, 3000);
   };
 
   const handleGenerate = async () => {
@@ -331,13 +340,13 @@ const Workspace = () => {
       }
 
       if (!response.ok) {
-         const errorData = await response.json();
-         throw new Error(errorData.detail || "Generation failed to initiate.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Generation failed to initiate.");
       }
 
       const data = await response.json();
       updateCredits(data.remaining_credits);
-      
+
       // Start checking the database for the background task to finish!
       startPollingForCompletion(generationStartTime);
 
@@ -525,8 +534,10 @@ const Workspace = () => {
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
                 <div className="text-center">
-                    <span className="text-purple-400 font-bold text-lg block mb-1">Rendering your video...</span>
-                    <span className="text-slate-500 text-sm">This usually takes 15-30 seconds</span>
+                  <span className="text-purple-400 font-bold text-lg block mb-1">
+                    {statusMessage} {/* Display dynamic status here */}
+                  </span>
+                  <span className="text-slate-500 text-sm">This usually takes 15-30 seconds</span>
                 </div>
               </div>
             ) :
@@ -535,17 +546,17 @@ const Workspace = () => {
                   resultItem.is_failed ? (
                     // --- THE ERROR CARD WORKAROUND ---
                     <div className="flex flex-col items-center justify-center text-center p-8 max-w-md">
-                        <AlertTriangle className="w-16 h-16 text-red-500 mb-4 opacity-80" />
-                        <h3 className="text-xl font-bold text-white mb-2">Generation Failed</h3>
-                        <p className="text-slate-400 leading-relaxed text-sm">
-                            {resultItem.error_message || "An unknown error occurred."}
-                        </p>
-                        <button 
-                            onClick={() => setActiveTab('input')}
-                            className="mt-6 px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors font-medium text-sm"
-                        >
-                            Try Again
-                        </button>
+                      <AlertTriangle className="w-16 h-16 text-red-500 mb-4 opacity-80" />
+                      <h3 className="text-xl font-bold text-white mb-2">Generation Failed</h3>
+                      <p className="text-slate-400 leading-relaxed text-sm">
+                        {resultItem.error_message || "An unknown error occurred."}
+                      </p>
+                      <button
+                        onClick={() => setActiveTab('input')}
+                        className="mt-6 px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors font-medium text-sm"
+                      >
+                        Try Again
+                      </button>
                     </div>
                   ) : (
                     <video
@@ -654,8 +665,8 @@ const Workspace = () => {
                 const isExpired = item.is_expired;
                 const isDeadImage = failedLoadIds.has(item.id);
                 // We use our custom is_failed flag from the backend
-                const isFailedGeneration = item.is_failed; 
-                
+                const isFailedGeneration = item.is_failed;
+
                 const isDead = isExpired || isDeadImage || isFailedGeneration;
                 const isActive = !isDead && resultItem?.id === item.id;
 
@@ -682,10 +693,10 @@ const Workspace = () => {
                     {isDead ? (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
                         {isFailedGeneration ? (
-                           <>
-                             <AlertTriangle className="w-6 h-6 text-red-500/80 mb-1" />
-                             <span className="text-[10px] font-bold text-red-500/80 uppercase tracking-wider">Failed</span>
-                           </>
+                          <>
+                            <AlertTriangle className="w-6 h-6 text-red-500/80 mb-1" />
+                            <span className="text-[10px] font-bold text-red-500/80 uppercase tracking-wider">Failed</span>
+                          </>
                         ) : isDeadImage && !isExpired ? (
                           <>
                             <AlertCircle className="w-6 h-6 text-orange-400/80 mb-1" />
