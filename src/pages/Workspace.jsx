@@ -11,7 +11,6 @@ import {
   Sparkles,
   RefreshCw,
   Play,
-  AlertTriangle, // Added a new icon for the error state
 } from "lucide-react";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -69,7 +68,7 @@ const ExpiryTimer = ({ seconds, onExpire }) => {
   const [timeLeft, setTimeLeft] = useState(seconds);
 
   useEffect(() => {
-    setTimeLeft(seconds);
+    setTimeLeft(seconds); // Reset if props change
   }, [seconds]);
 
   useEffect(() => {
@@ -110,22 +109,17 @@ const Workspace = () => {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(() => localStorage.getItem("ws_previewUrl") || null);
-
-  // NEW: Refactored Result State to handle complex objects instead of just strings
-  const [resultItem, setResultItem] = useState(() => {
-    const saved = localStorage.getItem("ws_resultItem");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [resultVideoUrl, setResultVideoUrl] = useState(() => localStorage.getItem("ws_resultVideoUrl") || null);
 
   // History State
   const [history, setHistory] = useState([]);
+  // NEW: Track IDs that technically exist in DB but return 404 (deleted files)
   const [failedLoadIds, setFailedLoadIds] = useState(new Set());
 
-  const [isPolling, setIsPolling] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [statusMessage, setStatusMessage] = useState("Initializing..."); // NEW
 
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem("ws_resultItem") ? "output" : "input");
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem("ws_resultVideoUrl") ? "output" : "input");
 
   const [showCreditModal, setShowCreditModal] = useState(false);
   const { user, updateCredits } = useAuthStore();
@@ -133,13 +127,12 @@ const Workspace = () => {
 
   const fileInputRef = useRef(null);
   const previewRef = useRef(null);
-  const pollingIntervalRef = useRef(null);
 
   // --- FETCH HISTORY ---
   const fetchHistory = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return [];
+      if (!token) return;
 
       const res = await fetch(`${API_BASE_URL}/ai/history`, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -148,12 +141,9 @@ const Workspace = () => {
       if (res.ok) {
         const data = await res.json();
         setHistory(data);
-        return data;
       }
-      return [];
     } catch (error) {
       console.error("Failed to load history", error);
-      return [];
     }
   }, []);
 
@@ -161,6 +151,7 @@ const Workspace = () => {
     fetchHistory();
   }, [fetchHistory]);
 
+  // --- HANDLE 404 / EXPIRED VIDEOS GRACEFULLY ---
   const handleVideoError = (id) => {
     setFailedLoadIds(prev => {
       const newSet = new Set(prev);
@@ -172,7 +163,7 @@ const Workspace = () => {
   // --- PROGRESS BAR SIMULATION ---
   useEffect(() => {
     let interval;
-    if (isPolling) {
+    if (isLoading) {
       interval = setInterval(() => {
         setProgress((prev) => {
           let step = 0;
@@ -187,14 +178,7 @@ const Workspace = () => {
       setProgress(0);
     }
     return () => clearInterval(interval);
-  }, [isPolling]);
-
-  // --- CLEANUP POLLING ON UNMOUNT ---
-  useEffect(() => {
-    return () => {
-      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
-    };
-  }, []);
+  }, [isLoading]);
 
   // --- RESTORE FILE ---
   useEffect(() => {
@@ -245,8 +229,8 @@ const Workspace = () => {
         console.warn("Image too large to save locally", err);
       }
 
-      setResultItem(null);
-      localStorage.removeItem("ws_resultItem");
+      setResultVideoUrl(null);
+      localStorage.removeItem("ws_resultVideoUrl");
       setActiveTab("input");
       setPreviewHeight(null);
     }
@@ -256,47 +240,10 @@ const Workspace = () => {
     e.stopPropagation();
     setPreviewUrl(null);
     setSelectedFile(null);
-    setResultItem(null);
+    setResultVideoUrl(null);
     localStorage.removeItem("ws_previewUrl");
-    localStorage.removeItem("ws_resultItem");
+    localStorage.removeItem("ws_resultVideoUrl");
     if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const startPollingForCompletion = (startTime) => {
-    if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
-
-    pollingIntervalRef.current = setInterval(async () => {
-      const newHistory = await fetchHistory();
-
-      // Get ALL items created after we clicked the button
-      const newItems = newHistory.filter(item => new Date(item.created_at).getTime() > startTime);
-
-      if (newItems.length > 0) {
-        // The newest item is always at index 0 because of descending order
-        const newestItem = newItems[0];
-
-        // 1. If it's just a status update, update the UI message
-        if (newestItem.is_status) {
-          setStatusMessage(newestItem.status_message);
-        }
-        // 2. If it's a final result (success or failure)
-        else {
-          clearInterval(pollingIntervalRef.current);
-          setIsPolling(false);
-          setProgress(100);
-
-          // Update UI with the final result
-          setResultItem(newestItem);
-          localStorage.setItem("ws_resultItem", JSON.stringify(newestItem));
-          setActiveTab("output");
-
-          // Refund credits locally if it failed
-          if (newestItem.is_failed) {
-            updateCredits(credits + GENERATION_COST);
-          }
-        }
-      }
-    }, 3000);
   };
 
   const handleGenerate = async () => {
@@ -307,10 +254,8 @@ const Workspace = () => {
       return;
     }
 
-    setIsPolling(true);
+    setIsLoading(true);
     setProgress(0);
-    setActiveTab("output"); // Immediately switch to output tab to show loading
-    setResultItem(null); // Clear previous result
 
     try {
       const token = localStorage.getItem("token");
@@ -323,8 +268,6 @@ const Workspace = () => {
       formData.append("speed", speed);
       formData.append("duration", duration);
 
-      const generationStartTime = Date.now(); // Record exact time we hit the button
-
       const response = await fetch(`${API_BASE_URL}/ai/generate-3d`, {
         method: "POST",
         headers: {
@@ -335,27 +278,35 @@ const Workspace = () => {
 
       if (response.status === 402) {
         setShowCreditModal(true);
-        setIsPolling(false);
+        setIsLoading(false);
         return;
       }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Generation failed to initiate.");
-      }
+      if (!response.ok) throw new Error("Generation failed.");
 
       const data = await response.json();
-      updateCredits(data.remaining_credits);
 
-      // Start checking the database for the background task to finish!
-      startPollingForCompletion(generationStartTime);
+      setProgress(100);
+
+      const newVideoUrl = data.video_url;
+      setResultVideoUrl(newVideoUrl);
+      localStorage.setItem("ws_resultVideoUrl", newVideoUrl);
+
+      updateCredits(data.remaining_credits);
+      setActiveTab("output");
+      setPreviewHeight(null);
+
+      // Refresh history to see the new item immediately
+      fetchHistory();
 
     } catch (error) {
       console.error("Error:", error);
       alert(error.message);
-      setIsPolling(false);
-      setProgress(0);
-      setActiveTab("input");
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+        setProgress(0);
+      }, 500);
     }
   };
 
@@ -490,14 +441,14 @@ const Workspace = () => {
         {/* Generate Button */}
         <button
           onClick={handleGenerate}
-          disabled={isPolling || !selectedFile}
+          disabled={isLoading || !selectedFile}
           className={`relative w-full py-4 rounded-xl flex items-center justify-center gap-2 font-extrabold text-lg transition-all mt-4 overflow-hidden
-            ${isPolling || !selectedFile
+            ${isLoading || !selectedFile
               ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
               : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20'}`
           }
         >
-          {isPolling ? (
+          {isLoading ? (
             <>
               <Loader2 className="animate-spin w-5 h-5" />
               <span>Generating...</span>
@@ -520,58 +471,35 @@ const Workspace = () => {
           {/* Tabs */}
           <div className="flex gap-1 bg-slate-800 w-fit p-1 rounded-lg mb-6 flex-shrink-0">
             <button onClick={() => setActiveTab("input")} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === "input" ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>Input</button>
-            <button onClick={() => (resultItem || isPolling) && setActiveTab("output")} disabled={!resultItem && !isPolling} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === 'output' ? 'bg-purple-600 text-white' : 'text-slate-400'} ${(!resultItem && !isPolling) ? 'opacity-50' : 'hover:text-white'}`}>Result</button>
+            <button onClick={() => resultVideoUrl && setActiveTab("output")} disabled={!resultVideoUrl} className={`px-4 py-1.5 text-sm rounded-md transition-colors ${activeTab === 'output' ? 'bg-purple-600 text-white' : 'text-slate-400'} ${!resultVideoUrl ? 'opacity-50' : 'hover:text-white'}`}>Result</button>
           </div>
 
           {/* Viewer Container */}
           <div
             ref={previewRef}
-            className={`w-full aspect-video max-h-[60vh] rounded-xl overflow-hidden relative group flex items-center justify-center transition-all duration-75 ease-linear 
-              ${(activeTab === 'output' && resultItem?.is_failed) ? 'bg-red-950/20 border-2 border-dashed border-red-900/50' : 'bg-black'}`}
+            className="w-full aspect-video max-h-[60vh] bg-black rounded-xl overflow-hidden relative group flex items-center justify-center transition-all duration-75 ease-linear"
             style={{ height: previewHeight ? `${previewHeight}px` : 'auto' }}
           >
-            {isPolling && activeTab === 'output' ? (
-              <div className="flex flex-col items-center gap-4">
+            {isLoading ? (
+              <div className="flex flex-col items-center gap-3">
                 <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-                <div className="text-center">
-                  <span className="text-purple-400 font-bold text-lg block mb-1">
-                    {statusMessage} {/* Display dynamic status here */}
-                  </span>
-                  <span className="text-slate-500 text-sm">This usually takes 15-30 seconds</span>
-                </div>
+                <span className="text-purple-400 font-mono text-sm">Working magic...</span>
               </div>
             ) :
-              activeTab === 'output' && resultItem ?
+              activeTab === 'output' && resultVideoUrl ?
                 (
-                  resultItem.is_failed ? (
-                    // --- THE ERROR CARD WORKAROUND ---
-                    <div className="flex flex-col items-center justify-center text-center p-8 max-w-md">
-                      <AlertTriangle className="w-16 h-16 text-red-500 mb-4 opacity-80" />
-                      <h3 className="text-xl font-bold text-white mb-2">Generation Failed</h3>
-                      <p className="text-slate-400 leading-relaxed text-sm">
-                        {resultItem.error_message || "An unknown error occurred."}
-                      </p>
-                      <button
-                        onClick={() => setActiveTab('input')}
-                        className="mt-6 px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors font-medium text-sm"
-                      >
-                        Try Again
-                      </button>
-                    </div>
-                  ) : (
-                    <video
-                      src={resultItem.video_url}
-                      controls
-                      autoPlay
-                      loop
-                      className="w-full h-full object-contain"
-                      onError={() => {
-                        alert("The video you are trying to view has expired or was deleted.");
-                        setResultItem(null);
-                        setActiveTab('input');
-                      }}
-                    />
-                  )
+                  <video
+                    src={resultVideoUrl}
+                    controls
+                    autoPlay
+                    loop
+                    className="w-full h-full object-contain"
+                    onError={() => {
+                      alert("The video you are trying to view has expired or was deleted.");
+                      setResultVideoUrl(null);
+                      setActiveTab('input');
+                    }}
+                  />
                 ) :
                 previewUrl ? <img src={previewUrl} className="w-full h-full object-contain" alt="Preview" /> :
                   <div className="text-slate-600">No Image Selected</div>
@@ -582,18 +510,18 @@ const Workspace = () => {
           {/* Actions - DOWNLOAD BUTTON WITH PROGRESS BAR */}
           <div className="flex gap-3 mt-6 flex-shrink-0">
             <button
-              onClick={() => handleDownload(resultItem?.video_url)}
-              disabled={(!resultItem || resultItem.is_failed) && !isPolling}
+              onClick={() => handleDownload(resultVideoUrl)}
+              disabled={!resultVideoUrl && !isLoading}
               className={`
                 relative flex-1 py-3 rounded-xl overflow-hidden flex items-center justify-center gap-2 font-semibold transition-all
-                ${((!resultItem || resultItem.is_failed) && !isPolling)
+                ${(!resultVideoUrl && !isLoading)
                   ? 'bg-slate-800 text-slate-500 opacity-50 cursor-not-allowed' // Disabled State
                   : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/25' // Active or Loading State
                 }
               `}
             >
               {/* PROGRESS BAR OVERLAY */}
-              {isPolling && (
+              {isLoading && (
                 <div
                   className="absolute left-0 top-0 h-full bg-purple-800/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)] z-0"
                   style={{ width: `${progress}%` }}
@@ -604,7 +532,7 @@ const Workspace = () => {
 
               {/* Button Text Content */}
               <div className="relative z-10 flex items-center gap-2">
-                {isPolling ? (
+                {isLoading ? (
                   <>
                     <Loader2 className="animate-spin w-5 h-5" />
                     <span>Processing... {Math.round(progress)}%</span>
@@ -645,7 +573,7 @@ const Workspace = () => {
               onClick={fetchHistory}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all active:scale-95"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isPolling ? 'animate-spin' : ''}`} />
+              <RefreshCw className="w-3.5 h-3.5" />
               <span>Refresh</span>
             </button>
           </div>
@@ -663,19 +591,16 @@ const Workspace = () => {
               {history.map((item) => {
                 // Determine status
                 const isExpired = item.is_expired;
-                const isDeadImage = failedLoadIds.has(item.id);
-                // We use our custom is_failed flag from the backend
-                const isFailedGeneration = item.is_failed;
-
-                const isDead = isExpired || isDeadImage || isFailedGeneration;
-                const isActive = !isDead && resultItem?.id === item.id;
+                const isFailed = failedLoadIds.has(item.id);
+                const isDead = isExpired || isFailed;
+                const isActive = !isDead && resultVideoUrl === item.video_url;
 
                 return (
                   <div
                     key={item.id}
                     onClick={() => {
-                      if (!isDead || isFailedGeneration) {
-                        setResultItem(item);
+                      if (!isDead) {
+                        setResultVideoUrl(item.video_url);
                         setActiveTab('output');
                       }
                     }}
@@ -689,15 +614,10 @@ const Workspace = () => {
               ${isActive ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-[#05050a]' : 'border border-white/10 hover:border-purple-500/50'}
             `}
                   >
-                    {/* --- ERROR/DEAD STATE --- */}
+                    {/* --- DEAD STATE (Expired/Error) --- */}
                     {isDead ? (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
-                        {isFailedGeneration ? (
-                          <>
-                            <AlertTriangle className="w-6 h-6 text-red-500/80 mb-1" />
-                            <span className="text-[10px] font-bold text-red-500/80 uppercase tracking-wider">Failed</span>
-                          </>
-                        ) : isDeadImage && !isExpired ? (
+                        {isFailed && !isExpired ? (
                           <>
                             <AlertCircle className="w-6 h-6 text-orange-400/80 mb-1" />
                             <span className="text-[10px] font-bold text-orange-400/80 uppercase tracking-wider">Missing File</span>
