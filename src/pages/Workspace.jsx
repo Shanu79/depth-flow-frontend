@@ -95,6 +95,10 @@ const ExpiryTimer = ({ seconds, onExpire }) => {
 };
 
 const Workspace = () => {
+  // --- MAINTENANCE TOGGLE ---
+  // Set to false when the technical issue is resolved
+  const IS_MAINTENANCE = true;
+
   // --- UI State ---
   const [sidebarWidth, setSidebarWidth] = useState(450);
   const [isResizing, setIsResizing] = useState(false);
@@ -438,12 +442,26 @@ const Workspace = () => {
           </div>
         </div>
 
+        {/* Temporary Maintenance Banner */}
+        {IS_MAINTENANCE && (
+          <div className="mt-2 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1.5">
+                <p className="font-bold">Generation is temporarily unavailable due to a technical issue.</p>
+                <p>Our team is currently working to resolve it. We will notify you by email as soon as the issue is fixed.</p>
+                <p>Thank you for your patience.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Generate Button */}
         <button
           onClick={handleGenerate}
-          disabled={isLoading || !selectedFile}
+          disabled={IS_MAINTENANCE || isLoading || !selectedFile}
           className={`relative w-full py-4 rounded-xl flex items-center justify-center gap-2 font-extrabold text-lg transition-all mt-4 overflow-hidden
-            ${isLoading || !selectedFile
+            ${IS_MAINTENANCE || isLoading || !selectedFile
               ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
               : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20'}`
           }
