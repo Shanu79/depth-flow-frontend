@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'; // Added useRef
-import { Check, Plus, Minus, Calendar, Infinity } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Check, Plus, Minus, Calendar, Infinity, AlertCircle } from 'lucide-react'; // Added AlertCircle
 import useAuthStore from '../stores/authStore.js';
 import { useNavigate } from 'react-router-dom';
 
@@ -254,7 +254,26 @@ const PricingPage = () => {
       {/* Section Header */}
       <div className="relative z-10 text-center mb-16">
         <h2 className="text-4xl md:text-5xl font-bold text-white my-4 tracking-tight">Flexible Pricing Plans</h2>
-        <p className="text-slate-400 text-lg">Choose the perfect plan for your creative needs.</p>
+        <p className="text-slate-400 text-lg mb-8">Choose the perfect plan for your creative needs.</p>
+
+        {/* IMPORTANT NOTICE BANNER */}
+        <div className="max-w-3xl mx-auto mb-10 p-5 md:p-6 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-left relative overflow-hidden">
+          <div className="flex items-start gap-3 md:gap-4 relative z-10">
+            <AlertCircle className="w-6 h-6 text-orange-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-lg font-bold text-orange-400 mb-2">Important Notice</h4>
+              <p className="text-slate-300 text-sm leading-relaxed mb-2">
+                Generation is currently facing a technical issue and our team is working to fix it. The solution may take a few days or up to one week. You may purchase one-time plans now and use them later, or wait until the issue is fixed before buying.
+              </p>
+              <p className="text-slate-300 text-sm leading-relaxed mb-2">
+                Once this notice is removed from the site, it means the issue has been resolved and you can safely purchase a plan.
+              </p>
+              <p className="text-orange-300/80 text-sm font-medium mt-3">
+                Thank you for your patience.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* CONTROLS CONTAINER: Switch + Scroll Button */}
         <div className="relative flex flex-col md:flex-row justify-center items-center mt-8 w-full max-w-6xl mx-auto">
