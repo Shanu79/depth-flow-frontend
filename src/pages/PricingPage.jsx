@@ -185,6 +185,7 @@ const PricingPage = () => {
   const loading = useAuthStore((state) => state.loading);
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly');
+  const IS_MAINTENANCE = false;
 
   // 1. Create a reference for the Credit Pack section
   const creditPackRef = useRef(null);
@@ -257,6 +258,7 @@ const PricingPage = () => {
         <p className="text-slate-400 text-lg mb-8">Choose the perfect plan for your creative needs.</p>
 
         {/* IMPORTANT NOTICE BANNER */}
+        {IS_MAINTENANCE && (
         <div className="max-w-3xl mx-auto mb-10 p-5 md:p-6 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-left relative overflow-hidden">
           <div className="flex items-start gap-3 md:gap-4 relative z-10">
             <AlertCircle className="w-6 h-6 text-orange-400 flex-shrink-0 mt-0.5" />
@@ -274,6 +276,7 @@ const PricingPage = () => {
             </div>
           </div>
         </div>
+      )}
 
         {/* CONTROLS CONTAINER: Switch + Scroll Button */}
         <div className="relative flex flex-col md:flex-row justify-center items-center mt-8 w-full max-w-6xl mx-auto">

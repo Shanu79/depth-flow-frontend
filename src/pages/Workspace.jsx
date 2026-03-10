@@ -97,7 +97,7 @@ const ExpiryTimer = ({ seconds, onExpire }) => {
 const Workspace = () => {
   // --- MAINTENANCE TOGGLE ---
   // Set to false when the technical issue is resolved
-  const IS_MAINTENANCE = true;
+  const IS_MAINTENANCE = false;
 
   // --- UI State ---
   const [sidebarWidth, setSidebarWidth] = useState(450);
