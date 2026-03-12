@@ -185,7 +185,7 @@ const PricingPage = () => {
   const loading = useAuthStore((state) => state.loading);
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly');
-  const IS_MAINTENANCE = true;
+  const IS_MAINTENANCE = false;
 
   // 1. Create a reference for the Credit Pack section
   const creditPackRef = useRef(null);
