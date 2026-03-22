@@ -21,13 +21,23 @@ const SliderControl = ({ label, value, min = 0, max = 100, step = 1, onChange, u
     const percentage = ((value - min) / (max - min)) * 100;
 
     return (
-        <div className="flex items-center gap-2 md:gap-[5%] group">
-            {/* Label with hover color shift */}
-            <span className="text-xs text-gray-300 w-[25%] shrink-0 truncate transition-colors duration-300 group-hover:text-purple-300">
-                {label}
-            </span>
+        <div className="flex flex-col gap-2.5 w-full group">
+            
+            {/* Top Row: Label & Value Display */}
+            <div className="flex justify-between items-center w-full">
+                {/* Label with hover color shift */}
+                <span className="text-xs text-gray-300 font-medium transition-colors duration-300 group-hover:text-purple-300 tracking-wide">
+                    {label}
+                </span>
 
-            <div className="relative flex-1 w-full flex items-center h-4">
+                {/* Value Display: Inset glass-screen look */}
+                <span className="text-[10px] md:text-xs font-mono font-medium bg-black/40 text-purple-200 px-2.5 py-1 rounded-md border border-purple-500/20 text-center shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
+                    {value}{unit}
+                </span>
+            </div>
+
+            {/* Bottom Row: Slider Track */}
+            <div className="relative w-full flex items-center h-4">
                 <input
                     type="range"
                     min={min}
@@ -63,11 +73,7 @@ const SliderControl = ({ label, value, min = 0, max = 100, step = 1, onChange, u
                     }}
                 />
             </div>
-
-            {/* Value Display: Upgraded to an inset glass-screen look */}
-            <span className="text-xs font-mono font-medium bg-black/40 text-purple-200 px-2 py-1.5 rounded-md border border-purple-500/20 min-w-[15%] text-center shrink-0 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
-                {value}{unit}
-            </span>
+            
         </div>
     );
 };
@@ -326,10 +332,10 @@ const DepthFlowWorkspace = () => {
                     {/* ================= LEFT SIDEBAR ================= */}
                     <aside className="w-full md:w-[35%] lg:w-[25%] flex flex-col shrink-0 h-fit">
                         {/* Outer container: Exact border glow and dark glass background */}
-                        <div className="bg-[#0b081a]/90 backdrop-blur-xl border-2 border-purple-500/40 rounded-2xl p-4 md:p-5 flex shadow-[0_0_30px_rgba(168,85,247,0.3)] flex-col h-fit">
+                        <div className="bg-[#0b081a]/90 backdrop-blur-xl border-2 border-purple-500/40 rounded-2xl p-3 md:p-5 flex shadow-[0_0_30px_rgba(168,85,247,0.3)] flex-col h-fit">
 
                             {/* Basic / Advanced Toggle */}
-                            <div className="flex p-1 bg-[#151029] rounded-full mb-5 border border-white/5 shrink-0 shadow-inner">
+                            <div className="flex p-1 bg-[#151029] rounded-full mb-3 border border-white/5 shrink-0 shadow-inner">
                                 <button
                                     onClick={() => setActiveMode('basic')}
                                     className={`flex-1 py-2 rounded-full text-xs md:text-sm font-medium transition-all truncate ${activeMode === 'basic' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-[0_2px_10px_rgba(168,85,247,0.4)] text-white' : 'text-gray-400 hover:text-white'}`}
@@ -346,7 +352,7 @@ const DepthFlowWorkspace = () => {
 
                             <div className="max-h-[55vh] overflow-x-hidden overflow-y-auto custom-scrollbar pr-2 pb-2">
                                 {activeMode === 'basic' ? (
-                                    <div className="flex flex-col gap-4 animate-in fade-in">
+                                    <div className="flex flex-col gap-3 animate-in fade-in">
 
                                         {/* Render Compartment */}
                                         <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
@@ -376,7 +382,7 @@ const DepthFlowWorkspace = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col gap-4 animate-in fade-in">
+                                    <div className="flex flex-col gap-3 animate-in fade-in">
 
                                         {/* Render Compartment */}
                                         <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
@@ -437,7 +443,7 @@ const DepthFlowWorkspace = () => {
                             </div>
 
                             {/* Generate Button - Pushed below the content naturally */}
-                            <div className="pt-4 shrink-0 w-full mt-2">
+                            <div className="shrink-0 w-full mt-3">
                                 <button
                                     onClick={handleGenerate}
                                     disabled={isLoading || (!selectedFile && !previewUrl)}
@@ -463,7 +469,7 @@ const DepthFlowWorkspace = () => {
                             <div className="bg-[#0b081a]/95 backdrop-blur-xl rounded-2xl p-[3%] md:p-[2%] flex flex-col h-full w-full relative z-10">
 
                                 {/* Input / Result Pill Toggle */}
-                                <div className="flex p-1 bg-[#130c27] rounded-lg mb-4 md:mb-[4%] border border-purple-500/20 w-fit shrink-0 shadow-inner h-fit mx-auto md:mx-0">
+                                <div className="flex p-1 bg-[#130c27] rounded-lg mb-4 md:mb-3 border border-purple-500/20 w-fit shrink-0 shadow-inner h-fit mx-auto md:mx-0">
                                     <button
                                         onClick={() => setActiveTab('input')}
                                         className={`px-6 md:px-8 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-semibold transition-all ${activeTab === 'input' ? 'bg-[#3b1d75] text-purple-100 shadow-[0_2px_10px_rgba(88,33,167,0.4)]' : 'text-gray-400 hover:text-white'}`}
@@ -486,7 +492,7 @@ const DepthFlowWorkspace = () => {
                                     {/* Inset Dashed Border matching the image */}
                                     <div className="absolute inset-3 md:inset-4 border border-dashed border-purple-500/40 rounded-xl pointer-events-none z-0"></div>
 
-                                    <div className="flex-1 w-full min-h-[40vh] md:min-h-[57vh] relative overflow-hidden group transition-colors flex flex-col items-center justify-center p-4 md:p-6 z-10">
+                                    <div className="flex-1 w-full min-h-[40vh] md:min-h-[60vh] relative overflow-hidden group transition-colors flex flex-col items-center justify-center p-4 md:p-6 z-10">
                                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp" />
 
                                         {isLoading ? (
