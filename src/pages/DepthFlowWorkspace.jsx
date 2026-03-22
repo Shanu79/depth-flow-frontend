@@ -1,8 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
     Upload, Download, Share2, Orbit, ZoomIn, ArrowRight,
-    MoveHorizontal, MoveVertical, Circle, ChevronDown, Settings,
-    Loader2, AlertCircle, Clock, Trash2, X, Sparkles, RefreshCw
+    MoveHorizontal, MoveVertical, Circle, ChevronDown,
+    Loader2, AlertCircle, X
 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 
@@ -16,25 +16,66 @@ const GENERATION_COST = 20;
 // --- HELPER COMPONENTS ---
 // ==========================================
 
-const SliderControl = ({ label, value, min, max, step, onChange, unit = "" }) => (
-    <div className="flex items-center gap-4">
-        <span className="text-xs text-gray-300 w-24 shrink-0 truncate">{label}</span>
-        <input
-            type="range" min={min} max={max} step={step} value={value}
-            onChange={(e) => onChange(Number(e.target.value))}
-            className="flex-1 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500 min-w-0"
-        />
-        <span className="text-xs font-medium bg-white/10 px-2 py-1 rounded border border-white/5 min-w-[36px] text-center shrink-0">
-            {value}{unit}
-        </span>
-    </div>
-);
+const SliderControl = ({ label, value, min = 0, max = 100, step = 1, onChange, unit = "" }) => {
+    // Calculate the percentage to determine where the color fill should stop
+    const percentage = ((value - min) / (max - min)) * 100;
+
+    return (
+        <div className="flex items-center gap-2 md:gap-[5%] group">
+            {/* Label with hover color shift */}
+            <span className="text-xs text-gray-300 w-[25%] shrink-0 truncate transition-colors duration-300 group-hover:text-purple-300">
+                {label}
+            </span>
+
+            <div className="relative flex-1 w-full flex items-center h-4">
+                <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={step}
+                    value={value}
+                    onChange={(e) => onChange(Number(e.target.value))}
+                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer outline-none transition-all
+                        /* Chrome/Safari Thumb */
+                        [&::-webkit-slider-thumb]:appearance-none 
+                        [&::-webkit-slider-thumb]:w-3.5 
+                        [&::-webkit-slider-thumb]:h-3.5 
+                        [&::-webkit-slider-thumb]:bg-white 
+                        [&::-webkit-slider-thumb]:rounded-full 
+                        [&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(217,70,239,0.8)]
+                        [&::-webkit-slider-thumb]:border-2
+                        [&::-webkit-slider-thumb]:border-purple-200
+                        [&::-webkit-slider-thumb]:transition-transform
+                        [&::-webkit-slider-thumb]:hover:scale-125
+                        /* Firefox Thumb */
+                        [&::-moz-range-thumb]:w-3.5 
+                        [&::-moz-range-thumb]:h-3.5 
+                        [&::-moz-range-thumb]:bg-white 
+                        [&::-moz-range-thumb]:rounded-full 
+                        [&::-moz-range-thumb]:shadow-[0_0_12px_rgba(217,70,239,0.8)]
+                        [&::-moz-range-thumb]:border-2
+                        [&::-moz-range-thumb]:border-purple-200
+                        [&::-moz-range-thumb]:transition-transform
+                        [&::-moz-range-thumb]:hover:scale-125"
+                    style={{
+                        // Dynamic fill: Indigo to Pink for the active part, Gray-800 for the rest
+                        background: `linear-gradient(to right, #6366f1 0%, #d946ef ${percentage}%, #1f2937 ${percentage}%, #1f2937 100%)`
+                    }}
+                />
+            </div>
+
+            {/* Value Display: Upgraded to an inset glass-screen look */}
+            <span className="text-xs font-mono font-medium bg-black/40 text-purple-200 px-2 py-1.5 rounded-md border border-purple-500/20 min-w-[15%] text-center shrink-0 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
+                {value}{unit}
+            </span>
+        </div>
+    );
+};
 
 const SelectControl = ({ label, value, options, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    // Close the dropdown if clicking outside of it
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -49,14 +90,12 @@ const SelectControl = ({ label, value, options, onChange }) => {
 
     return (
         <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-300 truncate pr-2">{label}</span>
-            <div className="relative w-32 shrink-0" ref={dropdownRef}>
-
-                {/* Dropdown Trigger Button */}
+            <span className="text-xs text-gray-300 truncate w-[30%]">{label}</span>
+            <div className="relative w-[65%] shrink-0" ref={dropdownRef}>
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`w-full flex items-center justify-between bg-white/5 border transition-all duration-200 text-xs rounded-lg px-3 py-1.5 outline-none
+                    className={`w-full flex items-center justify-between bg-white/5 border transition-all duration-200 text-xs rounded-lg px-2 md:px-3 py-1.5 outline-none
             ${isOpen
                             ? 'border-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.3)] text-white'
                             : 'border-white/10 text-gray-200 hover:border-white/20 hover:bg-white/10'}`}
@@ -64,16 +103,15 @@ const SelectControl = ({ label, value, options, onChange }) => {
                     <span className="truncate pr-2">{selectedOption?.label}</span>
                     <ChevronDown
                         size={14}
-                        className={`transition-transform duration-300 ${isOpen ? 'rotate-180 text-purple-400' : 'text-gray-400'}`}
+                        className={`transition-transform duration-300 shrink-0 ${isOpen ? 'rotate-180 text-purple-400' : 'text-gray-400'}`}
                     />
                 </button>
 
-                {/* Dropdown Menu */}
                 <div
                     className={`absolute top-[calc(100%+6px)] right-0 w-full bg-[#130f2d]/95 backdrop-blur-xl border border-purple-500/30 rounded-lg shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-50 overflow-hidden origin-top transition-all duration-200 ease-out
             ${isOpen ? 'opacity-100 scale-y-100 visible' : 'opacity-0 scale-y-95 invisible pointer-events-none'}`}
                 >
-                    <div className="max-h-48 overflow-y-auto custom-scrollbar flex flex-col p-1.5 gap-0.5">
+                    <div className="max-h-[30vh] overflow-y-auto custom-scrollbar flex flex-col p-1.5 gap-0.5">
                         {options.map((opt, i) => {
                             const isActive = value === opt.value;
                             return (
@@ -91,14 +129,13 @@ const SelectControl = ({ label, value, options, onChange }) => {
                                 >
                                     <span className="truncate">{opt.label}</span>
                                     {isActive && (
-                                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_5px_rgba(168,85,247,0.8)]" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_5px_rgba(168,85,247,0.8)] shrink-0 ml-2" />
                                     )}
                                 </button>
                             );
                         })}
                     </div>
                 </div>
-
             </div>
         </div>
     );
@@ -107,7 +144,7 @@ const SelectControl = ({ label, value, options, onChange }) => {
 const MotionButton = ({ icon, label, active = false, onClick }) => (
     <button
         onClick={onClick}
-        className={`flex items-center justify-center gap-1.5 px-1 py-2 rounded-lg text-[11px] font-medium border transition-colors min-w-0
+        className={`flex items-center justify-center gap-1.5 px-1 py-2 rounded-lg text-[11px] font-medium border transition-colors min-w-0 w-full
     ${active
                 ? 'bg-purple-600/30 border-purple-500 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.2)]'
                 : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200'}`}
@@ -122,7 +159,7 @@ const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#0f0c29] border border-purple-500/30 rounded-2xl max-w-md w-full p-6 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+            <div className="bg-[#0f0c29] border border-purple-500/30 rounded-2xl w-[90%] md:w-[40%] max-w-md p-6 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
                 <div className="flex justify-between items-start mb-4">
                     <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-2">
                         <AlertCircle className="w-6 h-6" />
@@ -146,7 +183,7 @@ const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
 
 const DepthFlowWorkspace = () => {
     // UI State
-    const [activeMode, setActiveMode] = useState('basic'); // 'basic' or 'advanced'
+    const [activeMode, setActiveMode] = useState('basic');
     const [activeTab, setActiveTab] = useState(() => localStorage.getItem("df_resultVideoUrl") ? "result" : "input");
     const [showCreditModal, setShowCreditModal] = useState(false);
 
@@ -170,6 +207,8 @@ const DepthFlowWorkspace = () => {
     const { user, updateCredits } = useAuthStore();
     const credits = user?.credits || 0;
     const fileInputRef = useRef(null);
+
+    const navigate = useNavigate();
 
     // Fetch History
     const fetchHistory = useCallback(async () => {
@@ -218,7 +257,6 @@ const DepthFlowWorkspace = () => {
             if (selectedFile) {
                 formData.append("file", selectedFile);
             } else {
-                // Fallback if testing with cached image
                 const res = await fetch(previewUrl);
                 const blob = await res.blob();
                 formData.append("file", blob, "cached_image.jpg");
@@ -264,65 +302,69 @@ const DepthFlowWorkspace = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#070514] text-white font-sans overflow-hidden relative flex flex-col">
+        <div className="flex-1 w-full bg-[#070514] text-white font-sans relative flex flex-col overflow-x-hidden">
             <CreditAlertModal isOpen={showCreditModal} onClose={() => setShowCreditModal(false)} currentCredits={credits} />
 
-            {/* Background Glows (Matching Design) */}
-            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[150px] pointer-events-none"></div>
+            {/* Percentage-Based Background Glows */}
+            <div className="absolute top-0 left-0 md:left-[20%] w-[60vw] md:w-[40vw] h-[60vw] md:h-[40vw] bg-purple-600/20 rounded-full blur-[100px] md:blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-0 right-0 md:right-[20%] w-[80vw] md:w-[45vw] h-[80vw] md:h-[45vw] bg-indigo-600/10 rounded-full blur-[120px] md:blur-[150px] pointer-events-none"></div>
             <div
-                className="absolute bottom-0 left-0 w-full h-32 pointer-events-none opacity-20"
+                className="absolute bottom-0 left-0 w-full h-[15vh] pointer-events-none opacity-20"
                 style={{
                     backgroundImage: 'linear-gradient(transparent 95%, #a855f7 100%), linear-gradient(90deg, transparent 95%, #a855f7 100%)',
                     backgroundSize: '40px 40px', transform: 'perspective(500px) rotateX(60deg)', transformOrigin: 'bottom'
                 }}
             ></div>
 
-            {/* Main Content Area */}
-            <main className="relative z-10 max-w-[1600px] w-full mx-auto px-6 py-24 flex flex-col flex-1 h-[calc(100vh-80px)]">
-                <h1 className="text-2xl font-bold mb-6">Create 3D Image</h1>
+            {/* Main Content Area - Relies on viewports (%) instead of fixed px widths */}
+            <main className="relative z-10 w-[95%] max-w-[95%] mx-auto px-[2%] md:px-[3%] pt-[10vh] md:pt-[12vh] pb-[5vh] flex flex-col flex-1 min-h-[80vh]">
+                <h1 className="text-xl md:text-2xl font-bold mb-[3%] md:mb-[2%]">Create 3D Image</h1>
 
-                <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
+                <div className="flex flex-col-reverse md:flex-row gap-[3%] flex-1 md:min-h-0 md:h-full md:items-start w-full">
 
-                    {/* ================= LEFT SIDEBAR (Controls) ================= */}
-                    <aside className="w-full md:w-[340px] flex flex-col shrink-0">
-                        <div className="bg-[#0f0c29]/80 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-5 flex-1 shadow-[0_0_20px_rgba(168,85,247,0.15)] flex flex-col overflow-x-hidden overflow-y-auto custom-scrollbar">
+                    {/* ================= LEFT SIDEBAR ================= */}
+                    <aside className="w-full md:w-[35%] lg:w-[25%] flex flex-col shrink-0 h-fit">
+                        {/* Outer container: Exact border glow and dark glass background */}
+                        <div className="bg-[#0b081a]/90 backdrop-blur-xl border-2 border-purple-500/40 rounded-2xl p-4 md:p-5 flex shadow-[0_0_30px_rgba(168,85,247,0.3)] flex-col h-fit">
 
                             {/* Basic / Advanced Toggle */}
-                            <div className="flex p-1 bg-black/40 rounded-full mb-6 border border-white/5 shrink-0">
+                            <div className="flex p-1 bg-[#151029] rounded-full mb-5 border border-white/5 shrink-0 shadow-inner">
                                 <button
                                     onClick={() => setActiveMode('basic')}
-                                    className={`flex-1 py-2 rounded-full text-sm font-medium transition-all truncate ${activeMode === 'basic' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg text-white' : 'text-gray-400 hover:text-white'}`}
+                                    className={`flex-1 py-2 rounded-full text-xs md:text-sm font-medium transition-all truncate ${activeMode === 'basic' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-[0_2px_10px_rgba(168,85,247,0.4)] text-white' : 'text-gray-400 hover:text-white'}`}
                                 >
                                     Basic Mode
                                 </button>
                                 <button
                                     onClick={() => setActiveMode('advanced')}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-sm font-medium transition-all truncate ${activeMode === 'advanced' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg text-white' : 'text-gray-400 hover:text-white'}`}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs md:text-sm font-medium transition-all truncate ${activeMode === 'advanced' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-[0_2px_10px_rgba(168,85,247,0.4)] text-white' : 'text-gray-400 hover:text-white'}`}
                                 >
-                                    <span className="truncate">Advanced Mode</span> <Settings size={14} className="shrink-0" />
+                                    <span className="truncate">Advanced Mode</span>
                                 </button>
                             </div>
 
-                            {/* Dynamic Controls based on Active Mode */}
-                            <div className="flex-1 overflow-x-hidden overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="max-h-[55vh] overflow-x-hidden overflow-y-auto custom-scrollbar pr-2 pb-2">
                                 {activeMode === 'basic' ? (
-                                    // BASIC MODE (Matches Image 1)
-                                    <div className="space-y-6 animate-in fade-in">
-                                        <div>
-                                            <h3 className="text-sm font-semibold mb-4 flex justify-between text-white">Render <ChevronDown size={16} /></h3>
-                                            <div className="space-y-4">
+                                    <div className="flex flex-col gap-4 animate-in fade-in">
+
+                                        {/* Render Compartment */}
+                                        <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
+                                            <h3 className="text-sm font-semibold mb-4 flex justify-between items-center text-white">
+                                                Render
+                                            </h3>
+                                            <div className="space-y-5">
                                                 <SliderControl label="Depth Intensity" value={motion.amplitude} min={0} max={5} step={0.1} onChange={(v) => setMotion({ ...motion, amplitude: v })} />
                                                 <SliderControl label="Motion Speed" value={motion.speed} min={0.1} max={3} step={0.1} onChange={(v) => setMotion({ ...motion, speed: v })} unit="x" />
                                                 <SliderControl label="Video Length" value={render.duration} min={1} max={15} step={1} onChange={(v) => setRender({ ...render, duration: v })} unit="s" />
                                             </div>
                                         </div>
 
-                                        <div className="h-px bg-white/10 my-6"></div>
-
-                                        <div>
-                                            <h3 className="text-sm font-semibold mb-4 flex justify-between text-white">Camera Motion <ChevronDown size={16} /></h3>
-                                            <div className="grid grid-cols-3 gap-1.5">
+                                        {/* Camera Motion Compartment */}
+                                        <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
+                                            <h3 className="text-sm font-semibold mb-4 flex justify-between items-center text-white">
+                                                Camera Motion
+                                            </h3>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                                 <MotionButton icon={<ArrowRight size={14} />} label="Dolly" active={motion.style === 'dolly'} onClick={() => setMotion({ ...motion, style: 'dolly' })} />
                                                 <MotionButton icon={<Orbit size={14} />} label="Orbit" active={motion.style === 'orbit'} onClick={() => setMotion({ ...motion, style: 'orbit' })} />
                                                 <MotionButton icon={<ZoomIn size={14} />} label="Zoom" active={motion.style === 'zoom'} onClick={() => setMotion({ ...motion, style: 'zoom' })} />
@@ -333,24 +375,26 @@ const DepthFlowWorkspace = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    // ADVANCED MODE (Matches Image 2)
-                                    <div className="space-y-6 animate-in fade-in">
-                                        <div>
-                                            <h3 className="text-sm font-semibold mb-4 flex justify-between text-white">Render <ChevronDown size={16} /></h3>
+                                    <div className="flex flex-col gap-4 animate-in fade-in">
+
+                                        {/* Render Compartment */}
+                                        <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
+                                            <h3 className="text-sm font-semibold mb-4 flex justify-between items-center text-white">
+                                                Render
+                                            </h3>
                                             <div className="space-y-4">
-                                                <SliderControl label="Duration" value={render.duration} min={1} max={15} step={1} onChange={(v) => setRender({ ...render, duration: v })} unit="s" />
+                                                <SliderControl label="Duration" value={render.duration} min={1} max={30} step={1} onChange={(v) => setRender({ ...render, duration: v })} unit="s" />
                                                 <SelectControl label="SSAA" value={render.ssaa} options={[{ label: '1.0x', value: 1.0 }, { label: '2.0x', value: 2.0 }, { label: '4.0x', value: 4.0 }]} onChange={(v) => setRender({ ...render, ssaa: parseFloat(v) })} />
                                                 <SelectControl label="FPS" value={render.fps} options={[{ label: '24p', value: 24 }, { label: '30p', value: 30 }, { label: '60p', value: 60 }]} onChange={(v) => setRender({ ...render, fps: parseInt(v) })} />
                                             </div>
                                         </div>
 
-                                        <div className="h-px bg-white/10 my-4"></div>
-
-                                        <div>
-                                            <h3 className="text-sm font-semibold mb-4 flex justify-between text-white">Camera & Motions <ChevronDown size={16} /></h3>
+                                        {/* Camera & Motions Compartment */}
+                                        <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
+                                            <h3 className="text-sm font-semibold mb-4 flex justify-between items-center text-white">
+                                                Camera & Motions
+                                            </h3>
                                             <div className="space-y-4">
-
-                                                {/* --- UPDATED CAMERA STYLE DROPDOWN --- */}
                                                 <SelectControl
                                                     label="Style"
                                                     value={motion.style}
@@ -366,7 +410,7 @@ const DepthFlowWorkspace = () => {
                                                     onChange={(v) => setMotion({ ...motion, style: v })}
                                                 />
 
-                                                <div className="flex gap-2">
+                                                <div className="flex gap-2 w-full">
                                                     <button onClick={() => setMotion({ ...motion, reverse: !motion.reverse })} className={`flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors truncate ${motion.reverse ? 'bg-purple-600/80 border border-purple-500 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>Reverse</button>
                                                     <button onClick={() => setMotion({ ...motion, smooth: !motion.smooth })} className={`flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors truncate ${motion.smooth ? 'bg-purple-600/80 border border-purple-500 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>Smooth</button>
                                                     <button onClick={() => setMotion({ ...motion, loop: !motion.loop })} className={`flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors truncate ${motion.loop ? 'bg-purple-600/80 border border-purple-500 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>Loop</button>
@@ -377,20 +421,10 @@ const DepthFlowWorkspace = () => {
                                             </div>
                                         </div>
 
-                                        <div className="h-px bg-white/10 my-4"></div>
-
-                                        <div>
+                                        {/* Cinematic Effects Compartment */}
+                                        <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
                                             <div className="flex items-center justify-between mb-4">
                                                 <h3 className="text-sm font-semibold text-white truncate">Cinematic Effects</h3>
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    <span className="text-xs text-gray-400">{effects.dof.enable ? 'ON' : 'OFF'}</span>
-                                                    <button
-                                                        onClick={() => setEffects({ ...effects, dof: { ...effects.dof, enable: !effects.dof.enable } })}
-                                                        className={`w-8 h-4 rounded-full transition-colors relative ${effects.dof.enable ? 'bg-purple-500' : 'bg-gray-600'}`}
-                                                    >
-                                                        <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${effects.dof.enable ? 'left-4.5 translate-x-[14px]' : 'left-0.5'}`}></div>
-                                                    </button>
-                                                </div>
                                             </div>
                                             <div className="space-y-4">
                                                 <SliderControl label="Intensity" value={effects.dof.intensity} min={0} max={2} step={0.1} onChange={(v) => setEffects({ ...effects, dof: { ...effects.dof, intensity: v } })} />
@@ -401,13 +435,13 @@ const DepthFlowWorkspace = () => {
                                 )}
                             </div>
 
-                            {/* Generate Button */}
-                            <div className="pt-4 shrink-0">
+                            {/* Generate Button - Pushed below the content naturally */}
+                            <div className="pt-4 shrink-0 w-full mt-2">
                                 <button
                                     onClick={handleGenerate}
                                     disabled={isLoading || (!selectedFile && !previewUrl)}
-                                    className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2
-                    ${isLoading || (!selectedFile && !previewUrl) ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10' : 'bg-gradient-to-r from-indigo-600 to-pink-500 hover:from-indigo-500 hover:to-pink-400 text-white shadow-[0_0_15px_rgba(236,72,153,0.4)]'}`}
+                                    className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 text-sm md:text-base
+                ${isLoading || (!selectedFile && !previewUrl) ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10' : 'bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white shadow-[0_0_20px_rgba(217,70,239,0.4)]'}`}
                                 >
                                     Generate 3D Image
                                 </button>
@@ -416,118 +450,156 @@ const DepthFlowWorkspace = () => {
                     </aside>
 
                     {/* ================= RIGHT MAIN AREA ================= */}
-                    <section className="flex-1 flex flex-col min-w-0">
-                        <div className="bg-[#0f0c29]/60 backdrop-blur-xl border border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.1)] rounded-2xl p-6 flex flex-col flex-1">
+                    <section className="flex-1 flex flex-col min-w-0 md:h-full md:min-h-0 w-full relative">
 
-                            {/* Input / Result Tabs */}
-                            <div className="flex gap-2 mb-4">
-                                <button
-                                    onClick={() => setActiveTab('input')}
-                                    className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors ${activeTab === 'input' ? 'bg-purple-600/20 text-purple-300 border-t border-l border-r border-purple-500/30' : 'text-gray-400 hover:text-gray-200'}`}
-                                >
-                                    Input
-                                </button>
-                                <button
-                                    onClick={() => resultVideoUrl && setActiveTab('result')}
-                                    disabled={!resultVideoUrl}
-                                    className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors ${activeTab === 'result' ? 'bg-purple-600/20 text-purple-300 border-t border-l border-r border-purple-500/30' : 'text-gray-400'} ${!resultVideoUrl ? 'opacity-50 cursor-not-allowed' : 'hover:text-gray-200'}`}
-                                >
-                                    Result
-                                </button>
-                            </div>
+                        {/* Asymmetrical Outer Background Glow (Focused on Bottom-Left) */}
+                        <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-bl from-transparent via-purple-600/20 to-purple-500/50 blur-md pointer-events-none"></div>
 
-                            {/* Upload Area / Viewer */}
-                            <div className="flex-1 w-full min-h-[350px] border-2 border-dashed border-purple-500/30 rounded-xl bg-black/20 relative overflow-hidden group hover:border-purple-400/50 transition-colors">
-                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp" />
+                        {/* Gradient Border Wrapper -> Creates the bright-left, bright-bottom edge effect */}
+                        <div className="relative flex flex-col md:h-full w-full bg-gradient-to-bl from-white/5 via-purple-500/40 to-purple-400 p-[1px] rounded-2xl shadow-[-15px_15px_40px_-10px_rgba(168,85,247,0.4)]">
 
-                                {isLoading ? (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10 bg-black/40 backdrop-blur-sm">
-                                        <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-                                        <span className="text-purple-300 font-mono text-sm uppercase tracking-widest">Raymarching Shaders...</span>
-                                    </div>
-                                ) : activeTab === 'result' && resultVideoUrl ? (
-                                    <video src={resultVideoUrl} controls autoPlay loop className="absolute inset-0 w-full h-full object-contain p-2 z-10" />
-                                ) : previewUrl ? (
-                                    <>
-                                        <img src={previewUrl} className="absolute inset-0 w-full h-full object-contain p-2 z-10" alt="Preview" />
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); setPreviewUrl(null); setSelectedFile(null); }}
-                                            className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-red-500 text-white rounded-lg backdrop-blur-md transition-colors z-20"
-                                        >
-                                            <X size={16} />
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div
-                                        onClick={() => fileInputRef.current.click()}
-                                        className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer z-10"
+                            {/* Main Inner Dark Glass Container */}
+                            <div className="bg-[#0b081a]/95 backdrop-blur-xl rounded-2xl p-[3%] md:p-[2%] flex flex-col h-full w-full relative z-10">
+
+                                {/* Input / Result Pill Toggle */}
+                                <div className="flex p-1 bg-[#130c27] rounded-lg mb-[2%] border border-purple-500/20 w-fit shrink-0 shadow-inner">
+                                    <button
+                                        onClick={() => setActiveTab('input')}
+                                        className={`px-6 md:px-8 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-semibold transition-all ${activeTab === 'input' ? 'bg-[#3b1d75] text-purple-100 shadow-[0_2px_10px_rgba(88,33,167,0.4)]' : 'text-gray-400 hover:text-white'}`}
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent pointer-events-none"></div>
-                                        <div className="w-16 h-16 rounded-full border border-purple-500/30 flex items-center justify-center mb-4 bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                                            <Upload size={28} className="text-purple-300" />
-                                        </div>
-                                        <h2 className="text-xl font-semibold mb-2 text-white">Click to Upload Image</h2>
-                                        <div className="flex items-center gap-4 text-purple-400/70 mb-4 w-full max-w-xs">
-                                            <div className="h-px flex-1 bg-purple-500/30 border-dashed border-t border-purple-500/30"></div>
-                                            <span className="text-sm shrink-0">or Drag & Drop</span>
-                                            <div className="h-px flex-1 bg-purple-500/30 border-dashed border-t border-purple-500/30"></div>
-                                        </div>
-                                        <p className="text-xs text-gray-400 bg-white/5 px-4 py-1.5 rounded-full">Supports: JPG, PNG, WebP (Max 20MB)</p>
-                                    </div>
-                                )}
-                            </div>
+                                        Input
+                                    </button>
+                                    <button
+                                        onClick={() => resultVideoUrl && setActiveTab('result')}
+                                        disabled={!resultVideoUrl}
+                                        className={`px-6 md:px-8 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-semibold transition-all ${activeTab === 'result' ? 'bg-[#3b1d75] text-purple-100 shadow-[0_2px_10px_rgba(88,33,167,0.4)]' : 'text-gray-400 hover:text-white'} ${!resultVideoUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        Result
+                                    </button>
+                                </div>
 
-                            {/* Bottom Actions - WITH PROGRESS BAR OVERLAY */}
-                            <div className="flex gap-4 mt-6 shrink-0">
-                                <button
-                                    onClick={() => handleDownload(resultVideoUrl)}
-                                    disabled={!resultVideoUrl && !isLoading}
-                                    className={`relative flex-1 py-3 rounded-xl overflow-hidden flex items-center justify-center gap-2 font-semibold transition-all 
-                    ${(!resultVideoUrl && !isLoading)
-                                            ? 'bg-white/5 border border-white/10 text-gray-500 cursor-not-allowed'
-                                            : 'bg-gradient-to-r from-indigo-600 to-pink-500 hover:from-indigo-500 hover:to-pink-400 text-white shadow-[0_0_15px_rgba(236,72,153,0.3)]'}`}
-                                >
-                                    {/* PROGRESS BAR OVERLAY */}
-                                    {isLoading && (
-                                        <div
-                                            className="absolute left-0 top-0 h-full bg-indigo-900/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)] z-0"
-                                            style={{ width: `${progress}%` }}
-                                        >
-                                            <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-white/50 shadow-[0_0_10px_white]" />
-                                        </div>
-                                    )}
+                                {/* Upload Area / Viewer -> Dark Compartment */}
+                                <div className="flex-1 w-full bg-[#05030e] border border-purple-500/30 rounded-2xl flex flex-col relative shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
 
-                                    {/* Inner Content */}
-                                    <div className="relative z-10 flex items-center gap-2">
+                                    {/* Inset Dashed Border matching the image */}
+                                    <div className="absolute inset-3 md:inset-4 border border-dashed border-purple-500/40 rounded-xl pointer-events-none z-0"></div>
+
+                                    <div className="flex-1 w-full min-h-[40vh] md:min-h-[50vh] relative overflow-hidden group transition-colors flex flex-col items-center justify-center p-4 md:p-6 z-10">
+                                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp" />
+
                                         {isLoading ? (
-                                            <><Loader2 className="animate-spin w-4 h-4" /> Processing {Math.round(progress)}%</>
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-[4%] z-10 bg-[#070514]/80 backdrop-blur-sm">
+                                                <Loader2 className="w-[10vw] max-w-[48px] h-[10vw] max-h-[48px] text-purple-400 animate-spin drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                                                <span className="text-purple-300 font-mono text-xs md:text-sm uppercase tracking-widest text-center px-[4%]">Raymarching Shaders...</span>
+                                            </div>
+                                        ) : activeTab === 'result' && resultVideoUrl ? (
+                                            <video src={resultVideoUrl} controls autoPlay loop className="absolute inset-0 w-full h-full object-contain p-[3%] z-10" />
+                                        ) : previewUrl ? (
+                                            <>
+                                                <img src={previewUrl} className="absolute inset-0 w-full h-full object-contain p-[3%] z-10" alt="Preview" />
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setPreviewUrl(null); setSelectedFile(null); }}
+                                                    className="absolute top-[4%] right-[4%] p-[2%] md:p-2 bg-black/60 hover:bg-red-500 text-white rounded-lg backdrop-blur-md transition-colors z-20 border border-white/10"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </>
                                         ) : (
-                                            <><Download size={18} /> Download</>
+                                            <div
+                                                onClick={() => fileInputRef.current.click()}
+                                                className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer z-10 p-[4%]"
+                                            >
+                                                <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent pointer-events-none"></div>
+
+                                                {/* Naked glowing icon exactly as in image_c2212f.jpg */}
+                                                <Upload className="text-purple-200 w-10 h-10 md:w-12 md:h-12 mb-3 md:mb-4 filter drop-shadow-[0_0_15px_rgba(168,85,247,0.8)]" strokeWidth={1.5} />
+
+                                                <h2 className="text-lg md:text-2xl font-bold mb-2 text-white text-center tracking-wide">Click to Upload Image</h2>
+
+                                                <div className="flex items-center gap-3 text-purple-400/70 mb-4 md:mb-5 w-[80%] max-w-[280px] justify-center">
+                                                    <div className="h-px flex-1 border-t-2 border-dotted border-purple-500/50"></div>
+                                                    <span className="text-xs md:text-base font-medium text-purple-300/80">or Drag & Drop</span>
+                                                    <div className="h-px flex-1 border-t-2 border-dotted border-purple-500/50"></div>
+                                                </div>
+
+                                                <p className="text-[10px] md:text-sm text-gray-300 font-medium bg-white/5 border border-white/10 px-5 md:px-6 py-1.5 md:py-2 rounded-full text-center shadow-inner">
+                                                    Supports: JPG, PNG, WebP (Max 20MB)
+                                                </p>
+                                            </div>
                                         )}
                                     </div>
-                                </button>
-                                <button className="px-6 flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 py-3 rounded-xl text-sm font-medium transition-colors">
-                                    <Share2 size={16} /> Share
-                                </button>
-                            </div>
-
-                            {/* History Row */}
-                            {history.length > 0 && (
-                                <div className="mt-4 pt-4 border-t border-white/10">
-                                    <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-                                        {history.map((item) => (
-                                            <div
-                                                key={item.id}
-                                                onClick={() => { setResultVideoUrl(item.video_url); setActiveTab('result'); }}
-                                                className="w-24 h-16 bg-black rounded-lg overflow-hidden cursor-pointer border border-white/10 hover:border-purple-500 shrink-0 relative group"
-                                            >
-                                                <video src={item.video_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100" muted loop onMouseOver={e => e.target.play()} onMouseOut={e => e.target.pause()} />
-                                            </div>
-                                        ))}
-                                    </div>
                                 </div>
-                            )}
 
+                                {/* Bottom Actions */}
+                                <div className="flex flex-row gap-[3%] md:gap-4 mt-[4%] md:mt-5 shrink-0 w-full">
+                                    <button
+                                        onClick={() => handleDownload(resultVideoUrl)}
+                                        disabled={!resultVideoUrl && !isLoading}
+                                        className={`relative flex-1 py-3 md:py-4 rounded-xl overflow-hidden flex items-center justify-center gap-[2%] text-sm md:text-lg font-bold transition-all w-full tracking-wide border border-white/10
+                    ${(!resultVideoUrl && !isLoading)
+                                                ? 'bg-[#151029] text-gray-500 cursor-not-allowed opacity-70'
+                                                : 'bg-gradient-to-r from-[#6b21a8] via-[#c026d3] to-[#db2777] text-white shadow-[0_5px_30px_-5px_rgba(219,39,119,0.7)] hover:brightness-110'}`}
+                                    >
+                                        {isLoading && (
+                                            <div
+                                                className="absolute left-0 top-0 h-full bg-[#3b0764]/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)] z-0"
+                                                style={{ width: `${progress}%` }}
+                                            >
+                                                <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-white/50 shadow-[0_0_10px_white]" />
+                                            </div>
+                                        )}
+
+                                        <div className="relative z-10 flex items-center gap-[2%] md:gap-2">
+                                            {isLoading ? (
+                                                <><Loader2 className="animate-spin w-[16px] md:w-[20px] h-[16px] md:h-[20px]" /> <span className="hidden sm:inline">Processing</span> {Math.round(progress)}%</>
+                                            ) : (
+                                                <><Download size={20} className="md:w-[22px] md:h-[22px]" /> Download</>
+                                            )}
+                                        </div>
+                                    </button>
+                                    <button className="px-[5%] md:px-8 flex items-center gap-[5%] md:gap-2 bg-[#151029] border border-white/5 hover:bg-white/10 py-[2%] md:py-4 rounded-xl text-xs md:text-base font-medium transition-colors shrink-0 text-white shadow-sm">
+                                        <Share2 size={18} className="md:w-[20px] md:h-[20px]" /> <span className="hidden sm:inline">Share</span>
+                                    </button>
+                                </div>
+
+                                {/* History Row */}
+                                {history.length > 0 && (
+                                    <div className="mt-[3%] md:mt-[4%] pt-[3%] md:pt-[4%] border-t border-white/10 w-full">
+                                        <div className="flex gap-[3%] md:gap-[2%] overflow-x-auto pb-[2%] custom-scrollbar w-full items-center">
+
+                                            {/* Sliced to map only the first 10 items */}
+                                            {history.slice(0, 10).map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    onClick={() => { setResultVideoUrl(item.video_url); setActiveTab('result'); }}
+                                                    className="w-[25%] md:w-[15%] aspect-video bg-black rounded-lg overflow-hidden cursor-pointer border border-white/10 hover:border-purple-500 shrink-0 relative group"
+                                                >
+                                                    <video src={item.video_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100" muted loop onMouseOver={e => e.target.play()} onMouseOut={e => e.target.pause()} />
+                                                </div>
+                                            ))}
+
+                                            {/* Modern "View More" Button - Only shows if there are more than 10 items */}
+                                            {history.length > 10 && (
+                                                <button
+                                                    onClick={() => navigate('/history')}
+                                                    className="w-[25%] md:w-[15%] aspect-video rounded-lg shrink-0 relative group border border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/20 backdrop-blur-sm transition-all flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)]"
+                                                >
+                                                    {/* Pulsing glow background on hover */}
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-500/10 to-pink-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
+
+                                                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#151029] border border-purple-500/40 flex items-center justify-center mb-1 md:mb-2 group-hover:bg-[#291456] transition-colors relative z-10 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                                                        <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-purple-300 group-hover:translate-x-1 transition-transform" />
+                                                    </div>
+
+                                                    <span className="text-[10px] md:text-xs font-bold text-purple-200 tracking-wider uppercase relative z-10">View All</span>
+                                                    <span className="text-[8px] md:text-[10px] text-gray-400 font-medium relative z-10">{history.length} Total</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                            </div>
                         </div>
                     </section>
 

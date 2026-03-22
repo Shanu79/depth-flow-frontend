@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="border-t border-slate-800 mt-20 bg-[#050511] py-10 px-6 md:px-20">
+    <footer className="border-t border-slate-800 bg-[#050511] py-16 px-6 md:px-20">
       <div className="flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex items-center gap-2 h-16">
           <FullLogo />

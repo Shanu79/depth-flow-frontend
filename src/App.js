@@ -21,6 +21,7 @@ import GalleryPage from "./pages/GalleryPage";
 import AuthSuccess from "./pages/AuthSuccess";
 import PaymentPage from "./pages/PaymentPage";
 import BillingPage from "./pages/BillingPage";
+import UserHistoryPage from "./pages/UserHistoryPage";
 
 // --- AUTH & SECURITY ---
 import useAuthStore from "./stores/authStore";
@@ -121,6 +122,7 @@ function App() {
             </RequireAuth>
           }
         />
+        <Route path="/history" element={<UserHistoryPage />} />
 
         {/* ================= ADMIN PROTECTED ================= */}
         <Route
