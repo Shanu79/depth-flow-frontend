@@ -11,6 +11,7 @@ import PageLoader from "./components/PageLoader";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import Workspace from "./pages/Workspace";
+import DepthFlowWorkspace from "./pages/DepthFlowWorkspace"; // <-- Add this
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -99,6 +100,15 @@ function App() {
           element={
             <RequireAuth>
               <Workspace />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/pro-workspace" 
+          element={
+            <RequireAuth>
+              <DepthFlowWorkspace />
             </RequireAuth>
           }
         />
