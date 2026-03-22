@@ -194,12 +194,32 @@ const DepthFlowWorkspace = () => {
     const [showCreditModal, setShowCreditModal] = useState(false);
 
     // Core Engine States
-    const [motion, setMotion] = useState({ style: "dolly", amplitude: 1.5, speed: 1.0, focus: 0.5, phase: 0.0, reverse: false, smooth: true, loop: true });
-    const [render, setRender] = useState({ duration: 8, fps: 30, quality: 80, ssaa: 1.0, edge_fix: 5, invert_depth: 0.0, tiling_mode: "mirror" });
+    const [motion, setMotion] = useState({ 
+        style: "dolly", 
+        amplitude: 0.2,   // WebGL uHeight default
+        speed: 1.0, 
+        focus: 0.0,       // WebGL uFocus default
+        phase: 0.0, 
+        reverse: false, 
+        smooth: true, 
+        loop: true 
+    });
+
+    const [render, setRender] = useState({ 
+        duration: 5,      // Optimal for the 5-second FFmpeg loop strategy
+        fps: 30, 
+        quality: 50,      // WebGL uQuality 0.5 default
+        ssaa: 1.0,        // WebGL uSSAA default
+        edge_fix: 5,      // Keep at 5 to prevent harsh AI depth map edges
+        invert_depth: 0.0, 
+        tiling_mode: "mirror" 
+    });
+
     const [effects, setEffects] = useState({
-        dof: { enable: true, intensity: 1.0, start: 0.6, end: 1.0 },
+        // All effects disabled by default to match raw WebGL renderer
+        dof: { enable: false, intensity: 1.0, start: 0.6, end: 1.0 },
         color: { enable: false, saturation: 110, contrast: 100, brightness: 100, sepia: 0 },
-        vignette: { enable: true, intensity: 0.4, decay: 20.0 }
+        vignette: { enable: false, intensity: 0.4, decay: 20.0 }
     });
 
     // File & API States
@@ -268,8 +288,30 @@ const DepthFlowWorkspace = () => {
                 formData.append("file", blob, "cached_image.jpg");
             }
 
-            const engine_payload = { render, motion, effects };
+            // --- 🚀 THE FIX: Flatten the effects object for the Python Backend 🚀 ---
+            const flattenedEffects = {
+                dof_enable: effects.dof.enable,
+                dof_intensity: effects.dof.intensity,
+                dof_start: effects.dof.start,
+                dof_end: effects.dof.end,
+                vignette_enable: effects.vignette.enable,
+                vignette_intensity: effects.vignette.intensity,
+                vignette_decay: effects.vignette.decay,
+                color_enable: effects.color.enable,
+                color_saturation: effects.color.saturation,
+                color_contrast: effects.color.contrast,
+                color_brightness: effects.color.brightness,
+                color_sepia: effects.color.sepia,
+            };
+
+            const engine_payload = { 
+                render, 
+                motion, 
+                effects: flattenedEffects, 
+                plan: user?.plan || user?.tier || 'free' 
+            };
             formData.append("payload", JSON.stringify(engine_payload));
+            // -------------------------------------------------------------------------
 
             const response = await fetch(`${API_BASE_URL}/ai/depthflow/generate-3d`, {
                 method: "POST", headers: { "Authorization": `Bearer ${token}` }, body: formData,
@@ -360,7 +402,15 @@ const DepthFlowWorkspace = () => {
                                                 Render
                                             </h3>
                                             <div className="space-y-5">
-                                                <SliderControl label="Depth Intensity" value={motion.amplitude} min={0} max={5} step={0.1} onChange={(v) => setMotion({ ...motion, amplitude: v })} />
+                                                {/* FIX: Max Depth Intensity is strictly 2.0 based on GLSL uHeight bounds */}
+                                                <SliderControl
+                                                    label="Motion Amplitude"
+                                                    value={motion.amplitude}
+                                                    min={0.1}
+                                                    max={3.0}
+                                                    step={0.1}
+                                                    onChange={(v) => setMotion({ ...motion, amplitude: v })}
+                                                />
                                                 <SliderControl label="Motion Speed" value={motion.speed} min={0.1} max={3} step={0.1} onChange={(v) => setMotion({ ...motion, speed: v })} unit="x" />
                                                 <SliderControl label="Video Length" value={render.duration} min={1} max={15} step={1} onChange={(v) => setRender({ ...render, duration: v })} unit="s" />
                                             </div>
@@ -391,7 +441,8 @@ const DepthFlowWorkspace = () => {
                                             </h3>
                                             <div className="space-y-4">
                                                 <SliderControl label="Duration" value={render.duration} min={1} max={30} step={1} onChange={(v) => setRender({ ...render, duration: v })} unit="s" />
-                                                <SelectControl label="SSAA" value={render.ssaa} options={[{ label: '1.0x', value: 1.0 }, { label: '2.0x', value: 2.0 }, { label: '4.0x', value: 4.0 }]} onChange={(v) => setRender({ ...render, ssaa: parseFloat(v) })} />
+                                                {/* FIX: SSAA strictly capped at 2.0x based on GLSL uSSAA bounds to prevent crashes */}
+                                                <SelectControl label="SSAA" value={render.ssaa} options={[{ label: '1.0x', value: 1.0 }, { label: '1.5x', value: 1.5 }, { label: '2.0x', value: 2.0 }]} onChange={(v) => setRender({ ...render, ssaa: parseFloat(v) })} />
                                                 <SelectControl label="FPS" value={render.fps} options={[{ label: '24p', value: 24 }, { label: '30p', value: 30 }, { label: '60p', value: 60 }]} onChange={(v) => setRender({ ...render, fps: parseInt(v) })} />
                                             </div>
                                         </div>
@@ -423,7 +474,9 @@ const DepthFlowWorkspace = () => {
                                                     <button onClick={() => setMotion({ ...motion, loop: !motion.loop })} className={`flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors truncate ${motion.loop ? 'bg-purple-600/80 border border-purple-500 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>Loop</button>
                                                 </div>
 
-                                                <SelectControl label="Speed" value={motion.speed} options={[{ label: '0.5x', value: 0.5 }, { label: '1.0x', value: 1.0 }, { label: '2.0x', value: 2.0 }]} onChange={(v) => setMotion({ ...motion, speed: parseFloat(v) })} />
+                                                <SliderControl label="Speed" value={motion.speed} min={0.5} max={3} step={0.1} onChange={(v) => setMotion({ ...motion, speed: parseFloat(v) })} />
+
+                                                {/* NOTE: Focus matches the GLSL uFocus bounds of 0.0 - 1.0 perfectly */}
                                                 <SliderControl label="Focus" value={motion.focus} min={0} max={1} step={0.05} onChange={(v) => setMotion({ ...motion, focus: v })} />
                                             </div>
                                         </div>
