@@ -230,7 +230,6 @@ const DepthFlowWorkspace = () => {
           
           {/* ================= LEFT SIDEBAR (Controls) ================= */}
           <aside className="w-full md:w-[340px] flex flex-col shrink-0">
-            {/* Added overflow-x-hidden here to strictly prevent horizontal scrolling */}
             <div className="bg-[#0f0c29]/80 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-5 flex-1 shadow-[0_0_20px_rgba(168,85,247,0.15)] flex flex-col overflow-x-hidden overflow-y-auto custom-scrollbar">
               
               {/* Basic / Advanced Toggle */}
@@ -334,10 +333,10 @@ const DepthFlowWorkspace = () => {
                 <button 
                   onClick={handleGenerate} 
                   disabled={isLoading || (!selectedFile && !previewUrl)}
-                  className={`w-full py-3 rounded-xl font-semibold shadow-[0_0_15px_rgba(236,72,153,0.4)] transition-all flex items-center justify-center gap-2
-                    ${isLoading || (!selectedFile && !previewUrl) ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10' : 'bg-gradient-to-r from-indigo-600 to-pink-500 hover:from-indigo-500 hover:to-pink-400 text-white'}`}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2
+                    ${isLoading || (!selectedFile && !previewUrl) ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10' : 'bg-gradient-to-r from-indigo-600 to-pink-500 hover:from-indigo-500 hover:to-pink-400 text-white shadow-[0_0_15px_rgba(236,72,153,0.4)]'}`}
                 >
-                  {isLoading ? <><Loader2 className="animate-spin w-4 h-4" /> Generating {Math.round(progress)}%...</> : 'Generate 3D Image'}
+                  Generate 3D Image
                 </button>
               </div>
             </div>
@@ -364,7 +363,7 @@ const DepthFlowWorkspace = () => {
                 </button>
               </div>
 
-              {/* Upload Area / Viewer - Fully Absolutely Positioned to maintain perfect static outer bounds */}
+              {/* Upload Area / Viewer */}
               <div className="flex-1 w-full min-h-[350px] border-2 border-dashed border-purple-500/30 rounded-xl bg-black/20 relative overflow-hidden group hover:border-purple-400/50 transition-colors">
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp" />
                 
@@ -405,14 +404,34 @@ const DepthFlowWorkspace = () => {
                 )}
               </div>
 
-              {/* Bottom Actions */}
-              <div className="flex gap-4 mt-6">
+              {/* Bottom Actions - WITH PROGRESS BAR OVERLAY */}
+              <div className="flex gap-4 mt-6 shrink-0">
                 <button 
                   onClick={() => handleDownload(resultVideoUrl)} 
-                  disabled={!resultVideoUrl}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all ${!resultVideoUrl ? 'bg-white/5 border border-white/10 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-pink-500 hover:from-indigo-500 hover:to-pink-400 text-white shadow-[0_0_15px_rgba(236,72,153,0.3)]'}`}
+                  disabled={!resultVideoUrl && !isLoading}
+                  className={`relative flex-1 py-3 rounded-xl overflow-hidden flex items-center justify-center gap-2 font-semibold transition-all 
+                    ${(!resultVideoUrl && !isLoading) 
+                      ? 'bg-white/5 border border-white/10 text-gray-500 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-indigo-600 to-pink-500 hover:from-indigo-500 hover:to-pink-400 text-white shadow-[0_0_15px_rgba(236,72,153,0.3)]'}`}
                 >
-                  <Download size={18} /> Download
+                  {/* PROGRESS BAR OVERLAY */}
+                  {isLoading && (
+                    <div 
+                      className="absolute left-0 top-0 h-full bg-indigo-900/80 transition-all duration-300 ease-linear shadow-[0_0_20px_rgba(168,85,247,0.6)] z-0" 
+                      style={{ width: `${progress}%` }}
+                    >
+                      <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-white/50 shadow-[0_0_10px_white]" />
+                    </div>
+                  )}
+                  
+                  {/* Inner Content */}
+                  <div className="relative z-10 flex items-center gap-2">
+                    {isLoading ? (
+                      <><Loader2 className="animate-spin w-4 h-4" /> Processing {Math.round(progress)}%</>
+                    ) : (
+                      <><Download size={18} /> Download</>
+                    )}
+                  </div>
                 </button>
                 <button className="px-6 flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 py-3 rounded-xl text-sm font-medium transition-colors">
                   <Share2 size={16} /> Share
