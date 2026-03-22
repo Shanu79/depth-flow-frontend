@@ -22,7 +22,7 @@ const SliderControl = ({ label, value, min = 0, max = 100, step = 1, onChange, u
 
     return (
         <div className="flex flex-col gap-2.5 w-full group">
-            
+
             {/* Top Row: Label & Value Display */}
             <div className="flex justify-between items-center w-full">
                 {/* Label with hover color shift */}
@@ -73,7 +73,7 @@ const SliderControl = ({ label, value, min = 0, max = 100, step = 1, onChange, u
                     }}
                 />
             </div>
-            
+
         </div>
     );
 };
@@ -448,7 +448,7 @@ const DepthFlowWorkspace = () => {
                                     onClick={handleGenerate}
                                     disabled={isLoading || (!selectedFile && !previewUrl)}
                                     className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 text-sm md:text-base
-                ${isLoading || (!selectedFile && !previewUrl) ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10' : 'bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white shadow-[0_0_20px_rgba(217,70,239,0.4)]'}`}
+                ${isLoading || (!selectedFile && !previewUrl) ? 'bg-[#151029] text-gray-500 cursor-not-allowed border border-white/10' : 'bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white shadow-[0_0_20px_rgba(217,70,239,0.4)]'}`}
                                 >
                                     Generate 3D Image
                                 </button>
@@ -543,10 +543,10 @@ const DepthFlowWorkspace = () => {
                                     <button
                                         onClick={() => handleDownload(resultVideoUrl)}
                                         disabled={!resultVideoUrl && !isLoading}
-                                        className={`relative flex-1 py-3 md:py-4 rounded-xl overflow-hidden flex items-center justify-center gap-[2%] text-sm md:text-lg font-bold transition-all w-full tracking-wide border border-white/10
-                    ${(!resultVideoUrl && !isLoading)
-                                                ? 'bg-[#151029] text-gray-500 cursor-not-allowed opacity-70'
-                                                : 'bg-gradient-to-r from-[#6b21a8] via-[#c026d3] to-[#db2777] text-white shadow-[0_5px_30px_-5px_rgba(219,39,119,0.7)] hover:brightness-110'}`}
+                                        className={`relative flex-1 py-3 md:py-4 rounded-xl overflow-hidden flex items-center justify-center gap-[2%] text-sm md:text-lg font-bold transition-all w-full tracking-wide
+    ${(!resultVideoUrl && !isLoading)
+                                                ? 'bg-[#151029] text-gray-500 cursor-not-allowed border border-white/10'
+                                                : 'bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white shadow-[0_0_20px_rgba(217,70,239,0.4)]'}`}
                                     >
                                         {isLoading && (
                                             <div
