@@ -466,7 +466,7 @@ const DepthFlowWorkspace = () => {
                                 <div className="flex p-1 bg-[#130c27] rounded-lg mb-4 md:mb-[4%] border border-purple-500/20 w-fit shrink-0 shadow-inner h-fit mx-auto md:mx-0">
                                     <button
                                         onClick={() => setActiveTab('input')}
-                                        className={`px-8 py-2 rounded-md text-sm font-semibold transition-all ${activeTab === 'input' ? 'bg-[#3b1d75] text-purple-100 shadow-[0_2px_10px_rgba(88,33,167,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                                        className={`px-6 md:px-8 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-semibold transition-all ${activeTab === 'input' ? 'bg-[#3b1d75] text-purple-100 shadow-[0_2px_10px_rgba(88,33,167,0.4)]' : 'text-gray-400 hover:text-white'}`}
                                     >
                                         Input
                                     </button>
@@ -486,7 +486,7 @@ const DepthFlowWorkspace = () => {
                                     {/* Inset Dashed Border matching the image */}
                                     <div className="absolute inset-3 md:inset-4 border border-dashed border-purple-500/40 rounded-xl pointer-events-none z-0"></div>
 
-                                    <div className="flex-1 w-full min-h-[40vh] md:min-h-[50vh] relative overflow-hidden group transition-colors flex flex-col items-center justify-center p-4 md:p-6 z-10">
+                                    <div className="flex-1 w-full min-h-[40vh] md:min-h-[57vh] relative overflow-hidden group transition-colors flex flex-col items-center justify-center p-4 md:p-6 z-10">
                                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp" />
 
                                         {isLoading ? (
@@ -501,7 +501,7 @@ const DepthFlowWorkspace = () => {
                                                 <img src={previewUrl} className="absolute inset-0 w-full h-full object-contain p-[3%] z-10" alt="Preview" />
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setPreviewUrl(null); setSelectedFile(null); }}
-                                                    className="absolute top-[4%] right-[4%] p-[2%] md:p-2 bg-black/60 hover:bg-red-500 text-white rounded-lg backdrop-blur-md transition-colors z-20 border border-white/10"
+                                                    className="absolute top-[3vh] right-[3vh] p-[2vh] md:p-2 bg-black/60 hover:bg-red-500 text-white rounded-lg backdrop-blur-md transition-colors z-20 border border-white/10"
                                                 >
                                                     <X size={16} />
                                                 </button>
