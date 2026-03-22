@@ -316,11 +316,12 @@ const DepthFlowWorkspace = () => {
                 }}
             ></div>
 
-            {/* Main Content Area - Relies on viewports (%) instead of fixed px widths */}
-            <main className="relative z-10 w-[95%] max-w-[95%] mx-auto px-[2%] md:px-[3%] pt-[10vh] md:pt-[12vh] pb-[5vh] flex flex-col flex-1 min-h-[80vh]">
-                <h1 className="text-xl md:text-2xl font-bold mb-[3%] md:mb-[2%]">Create 3D Image</h1>
+            {/* Main Content Area */}
+            <main className="relative z-10 w-[95%] max-w-[95%] mx-auto px-[2%] md:px-[3%] pt-[12vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh]">
+                <h1 className="text-2xl font-bold mb-[4%] md:mb-[2%] tracking-wide text-center md:text-left">Create 3D Image</h1>
 
-                <div className="flex flex-col-reverse md:flex-row gap-[3%] flex-1 md:min-h-0 md:h-full md:items-start w-full">
+                {/* Mobile: Stack vertically (viewer on top). Desktop: Row side-by-side */}
+                <div className="flex flex-col-reverse md:flex-row gap-6 md:gap-[3%] flex-1 h-auto md:h-full items-stretch md:items-start w-full">
 
                     {/* ================= LEFT SIDEBAR ================= */}
                     <aside className="w-full md:w-[35%] lg:w-[25%] flex flex-col shrink-0 h-fit">
@@ -449,11 +450,11 @@ const DepthFlowWorkspace = () => {
                         </div>
                     </aside>
 
-                    {/* ================= RIGHT MAIN AREA ================= */}
+                    {/* ================= RIGHT MAIN AREA (VIEWER) ================= */}
                     <section className="flex-1 flex flex-col min-w-0 md:h-full md:min-h-0 w-full relative">
 
-                        {/* Asymmetrical Outer Background Glow (Focused on Bottom-Left) */}
-                        <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-bl from-transparent via-purple-600/20 to-purple-500/50 blur-md pointer-events-none"></div>
+                        {/* Asymmetrical Outer Background Glow */}
+                        <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-bl from-transparent via-purple-600/20 to-purple-500/50 blur-md pointer-events-none hidden md:block"></div>
 
                         {/* Gradient Border Wrapper -> Creates the bright-left, bright-bottom edge effect */}
                         <div className="relative flex flex-col md:h-full w-full bg-gradient-to-bl from-white/5 via-purple-500/40 to-purple-400 p-[1px] rounded-2xl shadow-[-15px_15px_40px_-10px_rgba(168,85,247,0.4)]">
@@ -462,10 +463,10 @@ const DepthFlowWorkspace = () => {
                             <div className="bg-[#0b081a]/95 backdrop-blur-xl rounded-2xl p-[3%] md:p-[2%] flex flex-col h-full w-full relative z-10">
 
                                 {/* Input / Result Pill Toggle */}
-                                <div className="flex p-1 bg-[#130c27] rounded-lg mb-[2%] border border-purple-500/20 w-fit shrink-0 shadow-inner">
+                                <div className="flex p-1 bg-[#130c27] rounded-lg mb-4 md:mb-[4%] border border-purple-500/20 w-fit shrink-0 shadow-inner h-fit mx-auto md:mx-0">
                                     <button
                                         onClick={() => setActiveTab('input')}
-                                        className={`px-6 md:px-8 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-semibold transition-all ${activeTab === 'input' ? 'bg-[#3b1d75] text-purple-100 shadow-[0_2px_10px_rgba(88,33,167,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                                        className={`px-8 py-2 rounded-md text-sm font-semibold transition-all ${activeTab === 'input' ? 'bg-[#3b1d75] text-purple-100 shadow-[0_2px_10px_rgba(88,33,167,0.4)]' : 'text-gray-400 hover:text-white'}`}
                                     >
                                         Input
                                     </button>
@@ -478,8 +479,9 @@ const DepthFlowWorkspace = () => {
                                     </button>
                                 </div>
 
-                                {/* Upload Area / Viewer -> Dark Compartment */}
-                                <div className="flex-1 w-full bg-[#05030e] border border-purple-500/30 rounded-2xl flex flex-col relative shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
+                                {/* Upload Area / Viewer */}
+                                {/* MOBILE FIX: Locked height to 40vh on mobile to prevent stretching */}
+                                <div className="w-full h-[40vh] md:flex-1 md:min-h-[50vh] bg-[#05030e] border border-purple-500/30 rounded-2xl flex flex-col relative shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
 
                                     {/* Inset Dashed Border matching the image */}
                                     <div className="absolute inset-3 md:inset-4 border border-dashed border-purple-500/40 rounded-xl pointer-events-none z-0"></div>
@@ -567,8 +569,7 @@ const DepthFlowWorkspace = () => {
                                     <div className="mt-[3%] md:mt-[4%] pt-[3%] md:pt-[4%] border-t border-white/10 w-full">
                                         <div className="flex gap-[3%] md:gap-[2%] overflow-x-auto pb-[2%] custom-scrollbar w-full items-center">
 
-                                            {/* Sliced to map only the first 10 items */}
-                                            {history.slice(0, 10).map((item) => (
+                                            {history.slice(0, 7).map((item) => (
                                                 <div
                                                     key={item.id}
                                                     onClick={() => { setResultVideoUrl(item.video_url); setActiveTab('result'); }}
@@ -578,27 +579,22 @@ const DepthFlowWorkspace = () => {
                                                 </div>
                                             ))}
 
-                                            {/* Modern "View More" Button - Only shows if there are more than 10 items */}
+                                            {/* Modern "View More" Button */}
                                             {history.length > 10 && (
                                                 <button
                                                     onClick={() => navigate('/history')}
                                                     className="w-[25%] md:w-[15%] aspect-video rounded-lg shrink-0 relative group border border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/20 backdrop-blur-sm transition-all flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)]"
                                                 >
-                                                    {/* Pulsing glow background on hover */}
                                                     <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-500/10 to-pink-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
-
                                                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#151029] border border-purple-500/40 flex items-center justify-center mb-1 md:mb-2 group-hover:bg-[#291456] transition-colors relative z-10 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
                                                         <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-purple-300 group-hover:translate-x-1 transition-transform" />
                                                     </div>
-
                                                     <span className="text-[10px] md:text-xs font-bold text-purple-200 tracking-wider uppercase relative z-10">View All</span>
-                                                    <span className="text-[8px] md:text-[10px] text-gray-400 font-medium relative z-10">{history.length} Total</span>
                                                 </button>
                                             )}
                                         </div>
                                     </div>
                                 )}
-
                             </div>
                         </div>
                     </section>
