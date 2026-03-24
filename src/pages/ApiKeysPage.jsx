@@ -181,7 +181,7 @@ const ApiKeysPage = () => {
                   {/* Headers Area */}
                   <div>
                     <h4 className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">Required Headers</h4>
-                    <div className="bg-black/60 border border-white/5 p-4 rounded-xl shadow-inner overflow-x-auto">
+                    <div className="bg-black/60 border border-white/5 p-4 rounded-xl shadow-inner overflow-x-auto custom-scrollbar pb-1">
                       <code className="text-sm font-mono">
                         <span className="text-indigo-400">X-API-Key</span>
                         <span className="text-gray-500">: </span>
@@ -203,7 +203,7 @@ const ApiKeysPage = () => {
                         <div className="text-sm text-gray-400 mt-1 md:mt-0">
                           <strong className="text-gray-200">Required.</strong> A stringified JSON object defining the engine behavior.
                           
-                          <div className="mt-3 bg-black/50 border border-white/5 rounded-lg p-3 overflow-x-auto">
+                          <div className="mt-3 bg-black/50 border border-white/5 rounded-lg p-3 overflow-x-auto custom-scrollbar pb-1">
                             <pre className="text-xs font-mono text-gray-300">
                               {payloadExample}
                             </pre>
@@ -216,7 +216,7 @@ const ApiKeysPage = () => {
                   {/* cURL Example */}
                   <div>
                     <h4 className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">cURL Request Example</h4>
-                    <div className="bg-black/80 border border-purple-500/20 p-5 rounded-xl shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] overflow-x-auto relative group">
+                    <div className="bg-black/80 border border-purple-500/20 p-5 rounded-xl shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] overflow-x-auto custom-scrollbar pb-1 relative group">
                       <button 
                         onClick={() => {
                           navigator.clipboard.writeText(`curl -X POST "${API_BASE_URL}/ai/depthflow/generate-3d" -H "X-API-Key: ${showKey && apiKey !== 'Loading...' && apiKey !== 'No key generated yet' ? apiKey : 'your_api_key_here'}" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "file=@/path/to/your/image.jpg" -F 'payload={"motion":{"style":"dolly","amplitude":0.2,"speed":1.0,"focus":0.0,"phase":0.0,"reverse":false,"smooth":true,"loop":true},"render":{"duration":5,"fps":30,"quality":50,"ssaa":1.0,"edge_fix":5,"invert_depth":0.0,"tiling_mode":"mirror"},"effects":{"dof_enable":false,"dof_intensity":1.0,"dof_start":0.6,"dof_end":1.0,"vignette_enable":false,"vignette_intensity":0.4,"vignette_decay":20.0,"color_enable":false,"color_saturation":110,"color_contrast":100,"color_brightness":100,"color_sepia":0},"plan":"free"}'`);
