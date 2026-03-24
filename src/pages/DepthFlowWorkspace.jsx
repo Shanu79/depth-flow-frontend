@@ -194,25 +194,25 @@ const DepthFlowWorkspace = () => {
     const [showCreditModal, setShowCreditModal] = useState(false);
 
     // Core Engine States
-    const [motion, setMotion] = useState({ 
-        style: "dolly", 
+    const [motion, setMotion] = useState({
+        style: "dolly",
         amplitude: 0.2,   // WebGL uHeight default
-        speed: 1.0, 
+        speed: 1.0,
         focus: 0.0,       // WebGL uFocus default
-        phase: 0.0, 
-        reverse: false, 
-        smooth: true, 
-        loop: true 
+        phase: 0.0,
+        reverse: false,
+        smooth: true,
+        loop: true
     });
 
-    const [render, setRender] = useState({ 
+    const [render, setRender] = useState({
         duration: 5,      // Optimal for the 5-second FFmpeg loop strategy
-        fps: 30, 
+        fps: 30,
         quality: 50,      // WebGL uQuality 0.5 default
         ssaa: 1.0,        // WebGL uSSAA default
         edge_fix: 5,      // Keep at 5 to prevent harsh AI depth map edges
-        invert_depth: 0.0, 
-        tiling_mode: "mirror" 
+        invert_depth: 0.0,
+        tiling_mode: "mirror"
     });
 
     const [effects, setEffects] = useState({
@@ -304,11 +304,11 @@ const DepthFlowWorkspace = () => {
                 color_sepia: effects.color.sepia,
             };
 
-            const engine_payload = { 
-                render, 
-                motion, 
-                effects: flattenedEffects, 
-                plan: user?.plan || user?.tier || 'free' 
+            const engine_payload = {
+                render,
+                motion,
+                effects: flattenedEffects,
+                plan: user?.plan || user?.tier || 'free'
             };
             formData.append("payload", JSON.stringify(engine_payload));
             // -------------------------------------------------------------------------
@@ -365,8 +365,14 @@ const DepthFlowWorkspace = () => {
             ></div>
 
             {/* Main Content Area */}
-            <main className="relative z-10 w-[95%] max-w-[95%] mx-auto px-[2%] md:px-[3%] pt-[12vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh]">
-                <h1 className="text-2xl font-bold mb-[4%] md:mb-[2%] tracking-wide text-center md:text-left">Create 3D Image</h1>
+            <main className="relative z-10 w-[95%] max-w-[95%] mx-auto px-[2%] md:px-[3%] pt-[14vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh]">
+
+                <h1 className="text-2xl md:text-3xl font-bold mb-[5%] md:mb-[3%] tracking-wide text-center md:text-left flex items-center justify-center md:justify-start gap-3">
+                    Create 3D Image
+                    <span className="text-sm md:text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 drop-shadow-[0_0_15px_rgba(217,70,239,0.8)] px-1">
+                        (Version 2.0✨)
+                    </span>
+                </h1>
 
                 {/* Mobile: Stack vertically (viewer on top). Desktop: Row side-by-side */}
                 <div className="flex flex-col-reverse md:flex-row gap-6 md:gap-[3%] flex-1 h-auto md:h-full items-stretch md:items-start w-full">
@@ -639,7 +645,7 @@ const DepthFlowWorkspace = () => {
                                             ))}
 
                                             {/* Modern "View More" Button */}
-                                            {history.length > 10 && (
+                                            {history.length > 4 && (
                                                 <button
                                                     onClick={() => navigate('/history')}
                                                     className="w-[25%] md:w-[15%] aspect-video rounded-lg shrink-0 relative group border border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/20 backdrop-blur-sm transition-all flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)]"
