@@ -365,10 +365,9 @@ const DepthFlowWorkspace = () => {
             ></div>
 
             {/* Main Content Area */}
-            <main className="relative z-10 w-[95%] max-w-[95%] mx-auto px-[2%] md:px-[3%] pt-[14vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh]">
+            <main className="relative z-10 w-[95%] max-w-[95%] mx-auto px-[2%] md:px-[3%] pt-[12vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh]">
 
-                <h1 className="text-2xl md:text-3xl font-bold mb-[5%] md:mb-[3%] tracking-wide text-center md:text-left flex items-center justify-center md:justify-start gap-3">
-                    Create 3D Image
+                <h1 className="text-2xl md:text-3xl font-bold pt-[2vh] md:pt-[1vh] mb-[3vh] md:mb-[2vh] tracking-wide text-center md:text-left flex items-center justify-center md:justify-start gap-3">                    Create 3D Image
                     <span className="text-sm md:text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 drop-shadow-[0_0_15px_rgba(217,70,239,0.8)] px-1">
                         (Version 2.0✨)
                     </span>
