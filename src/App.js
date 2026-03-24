@@ -32,6 +32,8 @@ import RequireAdmin from "./components/RequireAdmin";
 import AdminLayout from "./components/admin/AdminLayout";
 import Users from "./components/admin/User";
 
+import ApiKeysPage from './pages/ApiKeysPage';
+
 function App() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +66,7 @@ function App() {
   }, [location.pathname]);
 
   const redirectPath = location.state?.from?.pathname || "/";
-  
+
   return (
     <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
 
@@ -106,10 +108,10 @@ function App() {
         />
 
         <Route
-          path="/pro-workspace" 
+          path="/pro-workspace"
           element={
             // <RequireAuth>
-              <DepthFlowWorkspace />
+            <DepthFlowWorkspace />
             // </RequireAuth>
           }
         />
@@ -123,6 +125,12 @@ function App() {
           }
         />
         <Route path="/history" element={<UserHistoryPage />} />
+
+        <Route path="/api-keys" element={
+          <RequireAuth>
+            <ApiKeysPage />
+          </RequireAuth>
+        } />
 
         {/* ================= ADMIN PROTECTED ================= */}
         <Route
