@@ -172,8 +172,9 @@ const ApiKeysPage = () => {
                   <div>
                     <h4 className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">Endpoint</h4>
                     <div className="flex items-center bg-[#151029] border border-white/10 p-1.5 rounded-xl">
-                      <span className="bg-purple-600/30 text-purple-300 text-xs px-3 py-1.5 rounded-lg font-bold mx-1 border border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]">POST</span>
-                      <code className="text-sm font-mono text-gray-300 ml-2 overflow-x-auto whitespace-nowrap px-2">{API_BASE_URL}/ai/depthflow/generate-3d</code>
+                      <span className="bg-purple-600/30 text-purple-300 text-xs px-3 py-1.5 rounded-lg font-bold mx-1 border border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)] shrink-0">POST</span>
+                      {/* Added custom-scrollbar and pb-1 here 👇 */}
+                      <code className="text-sm font-mono text-gray-300 ml-2 overflow-x-auto custom-scrollbar pb-1 whitespace-nowrap px-2">{API_BASE_URL}/ai/depthflow/generate-3d</code>
                     </div>
                   </div>
 
@@ -242,6 +243,12 @@ const ApiKeysPage = () => {
           </div>
         </div>
       </main>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 4px; }
+      `}} />
     </div>
   );
 };
