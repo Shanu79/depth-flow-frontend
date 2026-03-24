@@ -635,7 +635,7 @@ const DepthFlowWorkspace = () => {
                                     <div className="mt-[3%] md:mt-[4%] pt-[3%] md:pt-[4%] border-t border-white/10 w-full">
                                         <div className="flex gap-[3%] md:gap-[2%] overflow-x-auto pb-[2%] custom-scrollbar w-full items-center">
 
-                                            {history.slice(0, 7).map((item) => (
+                                            {history.slice(0, 4).map((item) => (
                                                 <div
                                                     key={item.id}
                                                     onClick={() => { setResultVideoUrl(item.video_url); setActiveTab('result'); }}
