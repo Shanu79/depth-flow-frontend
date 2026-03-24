@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import config from '../config'; // Assuming you have a config for your backend URL
+import { API_BASE_URL } from '../config';
 
 const ApiKeysPage = () => {
   const [apiKey, setApiKey] = useState('Loading...');
@@ -18,7 +18,7 @@ const ApiKeysPage = () => {
   const fetchUserData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${config.API_URL}/auth/me`, {
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -37,7 +37,7 @@ const ApiKeysPage = () => {
     setIsRegenerating(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${config.API_URL}/auth/regenerate-api-key`, {
+      const response = await fetch(`${API_BASE_URL}/auth/regenerate-api-key`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
