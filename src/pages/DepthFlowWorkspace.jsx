@@ -365,21 +365,23 @@ const DepthFlowWorkspace = () => {
             ></div>
 
             {/* Main Content Area */}
-            <main className="relative z-10 w-[95%] max-w-[95%] mx-auto px-[2%] md:px-[3%] pt-[12vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh]">
-
-                <h1 className="text-2xl md:text-3xl font-bold pt-[2vh] md:pt-[1vh] mb-[3vh] md:mb-[2vh] tracking-wide text-center md:text-left flex items-center justify-center md:justify-start gap-3">                    Create 3D Image
-                    <span className="text-sm md:text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 drop-shadow-[0_0_15px_rgba(217,70,239,0.8)] px-1">
-                        (Version 2.0✨)
-                    </span>
-                </h1>
+            <main className="relative z-10 w-[95%] max-w-[95%] mx-auto md:pt-[12vh] pt-[5vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh]">
 
                 {/* Mobile: Stack vertically (viewer on top). Desktop: Row side-by-side */}
                 <div className="flex flex-col-reverse md:flex-row gap-6 md:gap-[3%] flex-1 h-auto md:h-full items-stretch md:items-start w-full">
 
                     {/* ================= LEFT SIDEBAR ================= */}
                     <aside className="w-full md:w-[35%] lg:w-[25%] flex flex-col shrink-0 h-fit">
+
+                        <h1 className="text-2xl md:text-3xl font-bold mt-[3vh] mb-[2vh] md:mb-[3vh] tracking-wide text-center md:text-left flex flex-col items-center md:items-start">
+                            Create 3D Image
+                            <span className="text-sm md:text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 drop-shadow-[0_0_15px_rgba(217,70,239,0.8)] px-1">
+                                (Version 2.0✨)
+                            </span>
+                        </h1>
+
                         {/* Outer container: Exact border glow and dark glass background */}
-                        <div className="bg-[#0b081a]/90 backdrop-blur-xl border-2 border-purple-500/40 rounded-2xl p-3 md:p-5 flex shadow-[0_0_30px_rgba(168,85,247,0.3)] flex-col h-fit">
+                        <div className="bg-[#0b081a]/90 backdrop-blur-xl border-2 border-purple-500/40 rounded-2xl p-3 md:py-4 md:px-5 flex shadow-[0_0_30px_rgba(168,85,247,0.3)] flex-col h-fit">
 
                             {/* Basic / Advanced Toggle */}
                             <div className="flex p-1 bg-[#151029] rounded-full mb-3 border border-white/5 shrink-0 shadow-inner">
@@ -515,7 +517,7 @@ const DepthFlowWorkspace = () => {
                     </aside>
 
                     {/* ================= RIGHT MAIN AREA (VIEWER) ================= */}
-                    <section className="flex-1 flex flex-col min-w-0 md:h-full md:min-h-0 w-full relative">
+                    <section className="flex-1 flex flex-col min-w-0 md:h-full md:min-h-0 w-full relative mt-[5vh]">
 
                         {/* Asymmetrical Outer Background Glow */}
                         <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-bl from-transparent via-purple-600/20 to-purple-500/50 blur-md pointer-events-none hidden md:block"></div>
