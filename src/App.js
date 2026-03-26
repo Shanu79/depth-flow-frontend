@@ -14,6 +14,10 @@ import PageLoader from "./components/PageLoader";
 import AdminLayout from "./components/admin/AdminLayout";
 import DepthflowApi from "./pages/DepthflowApi";
 
+import DashboardPage from "./components/depthflow-api/Dashboard";
+import ApiKeysPage from "./components/depthflow-api/ApiKeys";
+import ApiLogs from "./components/depthflow-api/ApiLogs";
+
 // --- PAGES ---
 const HomePage = lazy(() => import("./pages/HomePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -32,10 +36,6 @@ const UserHistoryPage = lazy(() => import("./pages/UserHistoryPage"));
 
 // --- ADMIN ---
 const Users = lazy(() => import("./components/admin/User"));
-
-const DashboardPage = lazy(() => import("./components/depthflow-api/Dashboard"));
-const ApiKeysPage = lazy(() => import("./components/depthflow-api/ApiKeys"));
-const ApiLogs = lazy(() => import("./components/depthflow-api/ApiLogs"));
 
 function App() {
   const location = useLocation();
