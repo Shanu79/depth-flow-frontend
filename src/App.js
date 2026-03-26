@@ -167,7 +167,14 @@ function App() {
           </Route>
 
           {/* ================= FALLBACK ================= */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="*"
+            element={
+              <div className="pt-32 text-white text-center text-2xl">
+                404 ERROR: React Router cannot find: {window.location.pathname}
+              </div>
+            }
+          />
         </Routes>
       </Suspense>
 
