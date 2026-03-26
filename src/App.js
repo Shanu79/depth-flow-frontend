@@ -11,6 +11,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrolltoTop from "./components/ScrollToTop";
 import PageLoader from "./components/PageLoader";
+import AdminLayout from "./components/admin/AdminLayout";
+import DepthflowApi from "./pages/DepthflowApi";
 
 // --- PAGES ---
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -29,10 +31,8 @@ const BillingPage = lazy(() => import("./pages/BillingPage"));
 const UserHistoryPage = lazy(() => import("./pages/UserHistoryPage"));
 
 // --- ADMIN ---
-const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 const Users = lazy(() => import("./components/admin/User"));
 
-const DepthflowApi = lazy(() => import("./pages/DepthflowApi"));
 const DashboardPage = lazy(() => import("./components/depthflow-api/Dashboard"));
 const ApiKeysPage = lazy(() => import("./components/depthflow-api/ApiKeys"));
 const ApiLogs = lazy(() => import("./components/depthflow-api/ApiLogs"));
