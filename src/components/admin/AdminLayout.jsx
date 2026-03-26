@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import Sidebar from "./Sidebar";
 import { Outlet } from "react-router-dom";
+import PageLoader from "../PageLoader";
 
 export default function AdminLayout() {
   return (
@@ -12,7 +14,9 @@ export default function AdminLayout() {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto h-[calc(100vh-80px)] p-0">
-        <Outlet />
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
       </main>
       
     </div>

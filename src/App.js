@@ -87,12 +87,12 @@ function App() {
           <Route
             path="/depthflow-api"
             element={
-              // <RequireAuth>
+              <RequireAuth>
                 <DepthflowApi />
-              // </RequireAuth>
+              </RequireAuth>
             }
           >
-            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route index element={<Navigate to="/depthflow-api/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="api-keys" element={<ApiKeysPage />} />
             <Route path="logs" element={<ApiLogs />} />
@@ -148,7 +148,7 @@ function App() {
             }
           >
             {/* Default redirect /admin -> /admin/users */}
-            <Route index element={<Navigate to="users" replace />} />
+            <Route index element={<Navigate to="/admin/users" replace />} />
 
             {/* Matches /admin/users */}
             <Route path="users" element={<Users />} />

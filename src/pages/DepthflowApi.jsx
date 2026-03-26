@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import ApiSidebar from '../components/ApiSidebar'; // Adjust path if necessary
+import PageLoader from '../components/PageLoader';
 
 const DepthflowApi = () => {
     return (
@@ -8,10 +9,9 @@ const DepthflowApi = () => {
             <ApiSidebar />
             
             <div className="flex-1 overflow-y-auto">
-                {/* The Outlet automatically renders the matching child route 
-                  (Dashboard, ApiKeys, etc.) that you defined inside App.js! 
-                */}
-                <Outlet /> 
+                <Suspense fallback={<PageLoader />}>
+                    <Outlet /> 
+                </Suspense>
             </div>
         </div>
     );
