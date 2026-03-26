@@ -1,8 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import DashboardPage from '../components/depthflow-api/Dashboard';
+import { Outlet } from 'react-router-dom';
 import ApiSidebar from '../components/ApiSidebar';
-import ApiKeysPage from '../components/depthflow-api/ApiKeys';
-import ApiLogs from '../components/depthflow-api/ApiLogs';
 
 const DepthflowApi = () => {
     return (
@@ -10,16 +7,7 @@ const DepthflowApi = () => {
             <ApiSidebar />
             
             <div className="flex-1 overflow-y-auto">
-                <Routes>
-                    <Route path="/" element={<Navigate to="/depthflow-api/dashboard" replace />} />
-                    <Route path="dashboard" element={<DashboardPage />} />
-                    <Route path="api-keys" element={<ApiKeysPage />} />
-                    <Route path="logs" element={<ApiLogs />} />
-                    <Route path="documentation" element={<div className="p-8 flex-1 text-gray-400">Documentation Component (Coming Soon)</div>} />
-                    <Route path="pricing" element={<div className="p-8 flex-1 text-gray-400">Pricing Plans Component (Coming Soon)</div>} />
-                    <Route path="billing" element={<div className="p-8 flex-1 text-gray-400">Billing Component (Coming Soon)</div>} />
-                    <Route path="*" element={<Navigate to="/depthflow-api/dashboard" replace />} />
-                </Routes>
+                <Outlet />
             </div>
         </div>
     );

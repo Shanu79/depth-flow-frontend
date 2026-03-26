@@ -33,6 +33,9 @@ const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 const Users = lazy(() => import("./components/admin/User"));
 
 const DepthflowApi = lazy(() => import("./pages/DepthflowApi"));
+const DashboardPage = lazy(() => import("./components/depthflow-api/Dashboard"));
+const ApiKeysPage = lazy(() => import("./components/depthflow-api/ApiKeys"));
+const ApiLogs = lazy(() => import("./components/depthflow-api/ApiLogs"));
 
 function App() {
   const location = useLocation();
@@ -79,13 +82,22 @@ function App() {
 
           {/* ================= SETTINGS ROUTES ================= */}
           <Route
-            path="/depthflow-api/*"
+            path="/depthflow-api"
             element={
               <RequireAuth>
                 <DepthflowApi />
               </RequireAuth>
             }
-          />
+          >
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="api-keys" element={<ApiKeysPage />} />
+            <Route path="logs" element={<ApiLogs />} />
+            <Route path="documentation" element={<div className="p-8 flex-1 text-gray-400">Documentation Component (Coming Soon)</div>} />
+            <Route path="pricing" element={<div className="p-8 flex-1 text-gray-400">Pricing Plans Component (Coming Soon)</div>} />
+            <Route path="billing" element={<div className="p-8 flex-1 text-gray-400">Billing Component (Coming Soon)</div>} />
+            <Route path="*" element={<Navigate to="dashboard" replace />} />
+          </Route>
 
           {/* ================= AUTH ROUTES ================= */}
           <Route
