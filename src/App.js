@@ -59,7 +59,9 @@ function App() {
     }
   }, [user, syncSubscription]);
 
-  const redirectPath = location.state?.from?.pathname || "/";
+  const redirectPath = location.state?.from?.pathname === "/login" 
+    ? "/" 
+    : (location.state?.from?.pathname || "/");
 
   return (
     <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
