@@ -14,10 +14,6 @@ import PageLoader from "./components/PageLoader";
 import AdminLayout from "./components/admin/AdminLayout";
 import DepthflowApi from "./pages/DepthflowApi";
 
-import DashboardPage from "./components/depthflow-api/Dashboard";
-import ApiKeysPage from "./components/depthflow-api/ApiKeys";
-import ApiLogs from "./components/depthflow-api/ApiLogs";
-
 // --- PAGES ---
 const HomePage = lazy(() => import("./pages/HomePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -85,21 +81,13 @@ function App() {
 
           {/* ================= SETTINGS ROUTES ================= */}
           <Route
-            path="/depthflow-api"
+            path="/depthflow-api/*"
             element={
               <RequireAuth>
                 <DepthflowApi />
               </RequireAuth>
             }
-          >
-            <Route index element={<Navigate to="/depthflow-api/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="api-keys" element={<ApiKeysPage />} />
-            <Route path="logs" element={<ApiLogs />} />
-            <Route path="documentation" element={<div className="p-8 flex-1 text-gray-400">Documentation Component (Coming Soon)</div>} />
-            <Route path="pricing" element={<div className="p-8 flex-1 text-gray-400">Pricing Plans Component (Coming Soon)</div>} />
-            <Route path="billing" element={<div className="p-8 flex-1 text-gray-400">Billing Component (Coming Soon)</div>} />
-          </Route>
+          />
 
           {/* ================= AUTH ROUTES ================= */}
           <Route
