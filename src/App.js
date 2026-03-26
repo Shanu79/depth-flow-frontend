@@ -29,6 +29,15 @@ const AuthSuccess = lazy(() => import("./pages/AuthSuccess"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const BillingPage = lazy(() => import("./pages/BillingPage"));
 const UserHistoryPage = lazy(() => import("./pages/UserHistoryPage"));
+// --- DEPTHFLOW API COMPONENTS ---
+const ApiDashboard = lazy(() => import("./components/depthflow-api/Dashboard"));
+const ApiKeys = lazy(() => import("./components/depthflow-api/ApiKeys"));
+const ApiBilling = lazy(() => import("./components/depthflow-api/ApiBilling"));
+const ApiLogs = lazy(() => import("./components/depthflow-api/ApiLogs"));
+const ApiPricing = lazy(() => import("./components/depthflow-api/ApiPricing"));
+const ApiDocumentation = lazy(
+  () => import("./components/depthflow-api/Documentation"),
+);
 
 // --- ADMIN ---
 const Users = lazy(() => import("./components/admin/User"));
@@ -56,9 +65,10 @@ function App() {
   }, [user, syncSubscription]);
 
   // --- PREVENT INFINITE LOGIN LOOPS ---
-  const redirectPath = location.state?.from?.pathname === "/login" 
-    ? "/" 
-    : (location.state?.from?.pathname || "/");
+  const redirectPath =
+    location.state?.from?.pathname === "/login"
+      ? "/"
+      : location.state?.from?.pathname || "/";
 
   return (
     <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
@@ -97,24 +107,38 @@ function App() {
             }
           />
 
-          {/* <Route
+          <Route
             path="/pro-workspace"
             element={
               <RequireAuth>
                 <DepthFlowWorkspace />
               </RequireAuth>
             }
-          /> */}
+          />
 
           {/* ================= SETTINGS ROUTES ================= */}
           <Route
-            path="/depthflow-api/*"
+            path="/depthflow-api"
             element={
               // <RequireAuth>
-                <DepthflowApi />
+              <DepthflowApi />
               // </RequireAuth>
             }
-          />
+          >
+            {/* 1. Default redirect when hitting exactly /depthflow-api */}
+            <Route index element={<Navigate to="dashboard" replace />} />
+
+            {/* 2. These nested routes are injected into the <Outlet /> */}
+            <Route path="dashboard" element={<ApiDashboard />} />
+            <Route path="api-keys" element={<ApiKeys />} />
+            <Route path="logs" element={<ApiLogs />} />
+            <Route path="documentation" element={<ApiDocumentation />} />
+            <Route path="pricing" element={<ApiPricing />} />
+            <Route path="billing" element={<ApiBilling />} />
+
+            {/* 3. Catch-all for invalid sub-routes (e.g., /depthflow-api/typo) */}
+            <Route path="*" element={<Navigate to="dashboard" replace />} />
+          </Route>
 
           <Route
             path="/payment"
