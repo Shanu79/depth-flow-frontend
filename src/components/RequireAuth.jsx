@@ -7,7 +7,7 @@ const RequireAuth = ({ children }) => {
   // Ensure you pull 'isLoading' or a similar checking state from your store
   const { user, isLoading } = useAuthStore((state) => ({
     user: state.user,
-    isLoading: state.isLoading // Or whatever your loading state is named
+    isLoading: state.loading // Or whatever your loading state is named
   }));
 
   // 1. If auth is still fetching, show a loader
