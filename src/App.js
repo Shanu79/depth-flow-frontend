@@ -108,7 +108,7 @@ function App() {
 
           {/* ================= SETTINGS ROUTES ================= */}
           <Route
-            path="/depthflow-api/*"
+            path="/depthflow-api"
             element={
               <RequireAuth>
                 <DepthflowApi />
