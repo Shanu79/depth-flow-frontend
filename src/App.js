@@ -79,16 +79,6 @@ function App() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/billing" element={<BillingPage />} />
 
-          {/* ================= SETTINGS ROUTES ================= */}
-          <Route
-            path="/depthflow-api/*"
-            element={
-              <RequireAuth>
-                <DepthFlowWorkspace />
-              </RequireAuth>
-            }
-          />
-
           {/* ================= AUTH ROUTES ================= */}
           <Route
             path="/login"
@@ -112,6 +102,16 @@ function App() {
             element={
               <RequireAuth>
                 <DepthFlowWorkspace />
+              </RequireAuth>
+            }
+          />
+
+          {/* ================= SETTINGS ROUTES ================= */}
+          <Route
+            path="/depthflow-api/*"
+            element={
+              <RequireAuth>
+                <DepthflowApi />
               </RequireAuth>
             }
           />
