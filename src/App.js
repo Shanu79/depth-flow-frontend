@@ -84,7 +84,7 @@ function App() {
             path="/depthflow-api/*"
             element={
               <RequireAuth>
-                <DepthflowApi />
+                <DepthFlowWorkspace />
               </RequireAuth>
             }
           />
