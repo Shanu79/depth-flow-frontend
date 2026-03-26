@@ -87,9 +87,9 @@ function App() {
           <Route
             path="/depthflow-api"
             element={
-              <RequireAuth>
+              // <RequireAuth>
                 <DepthflowApi />
-              </RequireAuth>
+              // </RequireAuth>
             }
           >
             <Route index element={<Navigate to="dashboard" replace />} />
