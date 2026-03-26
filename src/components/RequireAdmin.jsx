@@ -5,9 +5,8 @@ import PageLoader from "./PageLoader";
 const RequireAdmin = ({ children }) => {
   const user = useAuthStore((state) => state.user);
   
-  // 1. You likely have a loading state in your store. If not, add one!
-  // It handles the gap between "App Load" and "Auth Check Finished"
-  const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth); 
+  // Use the correct 'loading' state from authStore
+  const isCheckingAuth = useAuthStore((state) => state.loading); 
 
   const location = useLocation();
 

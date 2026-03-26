@@ -92,14 +92,13 @@ function App() {
               </RequireAuth>
             }
           >
-            <Route index element={<Navigate to="/depthflow-api/dashboard" replace />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="api-keys" element={<ApiKeysPage />} />
             <Route path="logs" element={<ApiLogs />} />
             <Route path="documentation" element={<div className="p-8 flex-1 text-gray-400">Documentation Component (Coming Soon)</div>} />
             <Route path="pricing" element={<div className="p-8 flex-1 text-gray-400">Pricing Plans Component (Coming Soon)</div>} />
             <Route path="billing" element={<div className="p-8 flex-1 text-gray-400">Billing Component (Coming Soon)</div>} />
-            <Route path="*" element={<Navigate to="/depthflow-api/dashboard" replace />} />
           </Route>
 
           {/* ================= AUTH ROUTES ================= */}
