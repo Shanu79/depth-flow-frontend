@@ -7,9 +7,12 @@ const DepthflowApi = () => {
             <ApiSidebar />
             
             <div className="flex-1 overflow-y-auto">
-                <Outlet />
+                {/* Outlet tells React to inject the components (Dashboard, ApiKeys, etc.) 
+                    you defined inside the <Route> wrapper in App.js */}
+                <Outlet /> 
             </div>
         </div>
     );
 };
+
 export default DepthflowApi;

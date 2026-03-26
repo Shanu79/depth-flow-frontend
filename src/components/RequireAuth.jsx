@@ -1,28 +1,26 @@
-import { Navigate, useLocation } from "react-router-dom";
-import useAuthStore from "../stores/authStore";
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import useAuthStore from '../stores/authStore';
+import PageLoader from './PageLoader';
 
 const RequireAuth = ({ children }) => {
-  const user = useAuthStore((state) => state.user);
-  const loading = useAuthStore((state) => state.loading);
-  const location = useLocation();
+  // Ensure you pull 'isLoading' or a similar checking state from your store
+  const { user, isLoading } = useAuthStore((state) => ({
+    user: state.user,
+    isLoading: state.isLoading // Or whatever your loading state is named
+  }));
 
-  // Check if a token exists in local storage to prevent premature redirects
-  // while the app is still initializing the auth state on first load.
-  const hasToken = !!localStorage.getItem("token");
-
-  if (loading || (!user && hasToken)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#050511]">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
+  // 1. If auth is still fetching, show a loader
+  if (isLoading) {
+    return <PageLoader />; 
   }
 
+  // 2. If it finished loading and there is NO user, redirect
   if (!user) {
-    // Redirect to login, but save the current location they were trying to access
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
+  // 3. Otherwise, render the protected page
   return children;
 };
 
