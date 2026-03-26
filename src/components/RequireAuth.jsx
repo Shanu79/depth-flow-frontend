@@ -6,7 +6,11 @@ const RequireAuth = ({ children }) => {
   const loading = useAuthStore((state) => state.loading);
   const location = useLocation();
 
-  if (loading) {
+  // Check if a token exists in local storage to prevent premature redirects
+  // while the app is still initializing the auth state on first load.
+  const hasToken = !!localStorage.getItem("token");
+
+  if (loading || (!user && hasToken)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#050511]">
         <div className="text-white">Loading...</div>
