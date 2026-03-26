@@ -51,7 +51,6 @@ function App() {
 
   // 2. GLOBAL SUBSCRIPTION SYNC
   useEffect(() => {
-
     if (user?.subscription_id) {
       syncSubscription();
     }
@@ -61,82 +60,88 @@ function App() {
 
   return (
     <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
-
       {<Navbar />}
 
       <ScrolltoTop />
 
       <Suspense fallback={<PageLoader />}>
         <Routes>
-        {/* ================= PUBLIC ROUTES ================= */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/auth-success" element={<AuthSuccess />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path='/billing' element={<BillingPage />} />
+          {/* ================= PUBLIC ROUTES ================= */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/auth-success" element={<AuthSuccess />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/billing" element={<BillingPage />} />
 
-        {/* ================= SETTINGS ROUTES ================= */}
-        <Route path="/depthflow-api/*" element={<RequireAuth><DepthflowApi /></RequireAuth>} />
+          {/* ================= SETTINGS ROUTES ================= */}
+          <Route
+            path="/depthflow-api/*"
+            element={
+              <RequireAuth>
+                <DepthflowApi />
+              </RequireAuth>
+            }
+          />
 
-        {/* ================= AUTH ROUTES ================= */}
-        <Route
-          path="/login"
-          element={
-            user ? <Navigate to={redirectPath} replace /> : <LoginPage />
-          }
-        />
+          {/* ================= AUTH ROUTES ================= */}
+          <Route
+            path="/login"
+            element={
+              user ? <Navigate to={redirectPath} replace /> : <LoginPage />
+            }
+          />
 
-        {/* ================= USER PROTECTED ================= */}
-        <Route
-          path="/workspace"
-          element={
-            <RequireAuth>
-              <Workspace />
-            </RequireAuth>
-          }
-        />
+          {/* ================= USER PROTECTED ================= */}
+          <Route
+            path="/workspace"
+            element={
+              <RequireAuth>
+                <Workspace />
+              </RequireAuth>
+            }
+          />
 
-        <Route
-          path="/pro-workspace"
-          element={
-            // <RequireAuth>
-            <DepthFlowWorkspace />
-            // </RequireAuth>
-          }
-        />
+          <Route
+            path="/pro-workspace"
+            element={
+              <RequireAuth>
+                <DepthFlowWorkspace />
+              </RequireAuth>
+            }
+          />
 
-        <Route
-          path="/payment"
-          element={
-            <RequireAuth>
-              <PaymentPage />
-            </RequireAuth>
-          }
-        />
-        <Route path="/history" element={<UserHistoryPage />} />
+          <Route
+            path="/payment"
+            element={
+              <RequireAuth>
+                <PaymentPage />
+              </RequireAuth>
+            }
+          />
+          <Route path="/history" element={<UserHistoryPage />} />
 
-        {/* ================= ADMIN PROTECTED ================= */}
-        <Route
-          path="/admin"
-          element={
-            <RequireAdmin>
-              <AdminLayout />
-            </RequireAdmin>
-          }
-        >
-          {/* Default redirect /admin -> /admin/users */}
-          <Route index element={<Navigate to="users" replace />} />
+          {/* ================= ADMIN PROTECTED ================= */}
+          <Route
+            path="/admin"
+            element={
+              <RequireAdmin>
+                <AdminLayout />
+              </RequireAdmin>
+            }
+          >
+            {/* Default redirect /admin -> /admin/users */}
+            <Route index element={<Navigate to="users" replace />} />
 
-          {/* Matches /admin/users */}
-          <Route path="users" element={<Users />} />
-        </Route>
+            {/* Matches /admin/users */}
+            <Route path="users" element={<Users />} />
+          </Route>
 
-        {/* ================= FALLBACK ================= */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+          {/* ================= FALLBACK ================= */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
 
