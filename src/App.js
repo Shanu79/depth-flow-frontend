@@ -97,22 +97,22 @@ function App() {
             }
           />
 
-          <Route
+          {/* <Route
             path="/pro-workspace"
             element={
               <RequireAuth>
                 <DepthFlowWorkspace />
               </RequireAuth>
             }
-          />
+          /> */}
 
           {/* ================= SETTINGS ROUTES ================= */}
           <Route
-            path="/depthflow-api"
+            path="/depthflow-api/*"
             element={
-              <RequireAuth>
+              // <RequireAuth>
                 <DepthflowApi />
-              </RequireAuth>
+              // </RequireAuth>
             }
           />
 
