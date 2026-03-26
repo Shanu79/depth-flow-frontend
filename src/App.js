@@ -59,6 +59,7 @@ function App() {
     }
   }, [user, syncSubscription]);
 
+  // --- PREVENT INFINITE LOGIN LOOPS ---
   const redirectPath = location.state?.from?.pathname === "/login" 
     ? "/" 
     : (location.state?.from?.pathname || "/");
