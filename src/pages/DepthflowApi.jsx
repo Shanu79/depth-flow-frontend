@@ -11,7 +11,6 @@ const DepthflowApi = () => {
             
             <div className="flex-1 overflow-y-auto">
                 <Routes>
-                    <Route path="/" element={<Navigate to="/depthflow-api/dashboard" replace />} />
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="api-keys" element={<ApiKeysPage />} />
                     <Route path="logs" element={<ApiLogs />} />
