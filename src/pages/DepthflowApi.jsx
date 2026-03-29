@@ -4,18 +4,21 @@ import ApiSidebar from "../components/ApiSidebar";
 
 const DepthflowApi = () => {
   return (
-    // 1. Changed h-screen to min-h-screen
-    // 2. Removed overflow-hidden
-    <div className="flex min-h-screen w-full bg-[#070514] text-white font-sans pt-20">
+    // 1. Added flex-col for mobile, and md:flex-row for tablets/desktops
+    // 2. Adjusted pt-16 for mobile, pt-20 for larger screens
+    <div className="flex flex-col md:flex-row min-h-screen w-full bg-[#070514] text-white font-sans pt-16 md:pt-20">
       
-      {/* BONUS TIP: Because the whole page scrolls now, your sidebar will scroll away out of view!
-        To fix that, add these classes to your Sidebar's outermost div (inside ApiSidebar.jsx):
-        className="sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto" 
+      {/* SIDEBAR RESPONSIVENESS TIP:
+        Because of 'flex-col', this sidebar will now sit at the TOP of the page on mobile, 
+        and move to the LEFT on desktop. 
+        
+        If you prefer to hide it entirely on mobile (to use a hamburger menu instead), 
+        add 'hidden md:flex' to the outermost div inside your ApiSidebar.jsx file!
       */}
       <ApiSidebar />
 
-      {/* 3. Removed overflow-y-auto. It is now just a normal container. */}
-      <div className="flex-1 w-full relative">
+      {/* 3. Added min-w-0 to prevent horizontal overflow bugs on mobile */}
+      <div className="flex-1 w-full relative min-w-0">
         <Outlet />
       </div>
       

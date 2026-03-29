@@ -247,7 +247,7 @@ const ApiDashboard = () => {
                       <span className="absolute top-3 right-3 text-xs text-gray-500 font-mono border border-white/10 rounded px-2 py-0.5 bg-black/20">JSON</span>
                       <pre className="text-sm font-mono leading-relaxed text-gray-300">
                         {'{'}<br />
-                        {'  '}<span className="text-blue-300">"respons"</span>: <span className="text-green-400">"success"</span><br />
+                        {'  '}<span className="text-blue-300">"response"</span>: <span className="text-green-400">"success"</span><br />
                         {'}'}
                       </pre>
                     </div>

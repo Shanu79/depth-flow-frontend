@@ -2,14 +2,15 @@ import React from 'react';
 
 const ApiPricing = () => {
   return (
-    <div className="flex w-full bg-[#070514] text-white font-sans relative">
+    // ADDED: flex-col and h-full so it stretches properly. Removed redundant bg color.
+    <div className="w-full relative text-white font-sans flex flex-col items-center overflow-hidden">
       
       {/* Background Glows to match the application's ambiance */}
       <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-indigo-600/20 rounded-full blur-[150px] pointer-events-none z-0"></div>
       <div className="absolute bottom-[-20%] left-[20%] w-[40vw] h-[40vw] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
-      {/* Main Content - Removed justify-center to fix top cutoff, added padding for correct spacing */}
-      <main className="flex-1 relative z-10 w-full px-4 sm:px-8 py-8 lg:py-12 flex flex-col items-center">
+      {/* Main Content */}
+      <main className="flex-1 relative z-10 w-full px-4 py-8 lg:py-12 flex flex-col items-center">
 
         {/* Header */}
         <div className="text-center mb-12 shrink-0">
@@ -17,7 +18,7 @@ const ApiPricing = () => {
           <p className="text-gray-400 mt-3 text-sm md:text-base">Choose the right plan for your application</p>
         </div>
 
-        {/* Pricing Grid - Added pb-10 to ensure shadows aren't cut off at the bottom of the scroll */}
+        {/* Pricing Grid */}
         <div className="flex flex-wrap justify-center gap-6 max-w-[1200px] mx-auto w-full pb-10">
           
           {/* Starter API Card */}
