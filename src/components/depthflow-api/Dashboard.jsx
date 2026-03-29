@@ -66,7 +66,7 @@ const ApiDashboard = () => {
 
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold text-white tracking-wide">Dashboard</h1>
+            <h1 className="text-4xl font-bold text-white tracking-wide">Dashboard</h1>
             <p className="text-gray-400 mt-2 text-sm md:text-base">Overview of your Depthflow account and API access.</p>
           </div>
 

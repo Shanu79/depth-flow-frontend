@@ -73,11 +73,11 @@ const ApiLogs = () => {
 
       <div className="max-w-6xl mx-auto relative z-10 flex flex-col h-full w-full">
         {/* Header Section */}
-        <div className="mb-8 shrink-0">
+        <div>
           <h1 className="text-4xl font-bold text-white tracking-wide mb-2">
             API Logs
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-400 mt-2 text-sm md:text-base">
             Track all your API requests and responses
           </p>
         </div>

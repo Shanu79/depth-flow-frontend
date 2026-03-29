@@ -13,8 +13,8 @@ const ApiBilling = () => {
         
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-[32px] font-bold text-white mb-1">Billing</h1>
-          <p className="text-[#8a8a98] text-[15px]">Manage your payments and invoices</p>
+          <h1 className="text-4xl font-bold text-white tracking-wide">Billing</h1>
+          <p className="text-gray-400 mt-2 text-sm md:text-base">Manage your payments and invoices</p>
         </div>
 
         <div className="flex flex-col gap-6">

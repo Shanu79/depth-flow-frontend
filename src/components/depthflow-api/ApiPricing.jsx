@@ -11,9 +11,9 @@ const ApiPricing = () => {
         <div className="absolute top-1/2 right-[15%] w-[600px] h-[600px] bg-[#1d4ed8] opacity-[0.12] blur-[140px] rounded-full -translate-y-1/2 -z-10 pointer-events-none"></div>
 
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-[40px] font-bold mb-3 tracking-tight text-white">API Pricing Plans</h1>
-          <p className="text-[#8a8a98] text-lg">Choose the right plan for your application</p>
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-white tracking-wide">API Pricing Plans</h1>
+          <p className="text-gray-400 mt-2 text-sm md:text-bas">Choose the right plan for your application</p>
         </div>
 
         {/* Pricing Grid */}

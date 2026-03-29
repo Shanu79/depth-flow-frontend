@@ -13,8 +13,8 @@ const ApiDocumentation = () => {
         
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-[32px] font-bold text-white mb-2 tracking-tight">API Documentation</h1>
-          <p className="text-[#8a8a98] text-[15px]">Learn how to integrate Depthflow into your applications.</p>
+          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">API Documentation</h1>
+          <p className="text-gray-400 mt-2 text-sm md:text-base">Learn how to integrate Depthflow into your applications.</p>
         </div>
 
         {/* Top Information Grid */}
