@@ -9,7 +9,7 @@ const ApiDocumentation = () => {
       <div className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] bg-[#1d4ed8] opacity-[0.12] blur-[120px] rounded-full pointer-events-none"></div>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-[1000px] mx-auto px-8 py-12 relative z-10">
+      <main className="flex-1 w-full max-w-[1000px] mx-auto p-8 relative z-10">
         
         {/* Header */}
         <div className="mb-10">

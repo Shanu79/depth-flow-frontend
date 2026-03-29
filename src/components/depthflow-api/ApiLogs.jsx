@@ -83,7 +83,7 @@ const ApiLogs = () => {
         </div>
 
         {/* Filters Section */}
-        <div className="flex flex-wrap items-center gap-6 mb-8 shrink-0">
+        <div className="flex flex-wrap items-center gap-6 my-8 shrink-0">
           {/* Status Filter */}
           <div className="flex flex-col gap-2">
             <label className="text-sm text-gray-300">Status</label>

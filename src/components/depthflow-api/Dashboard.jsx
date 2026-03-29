@@ -56,7 +56,7 @@ const ApiDashboard = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 relative min-h-screen pb-12 bg-[#070514] overflow-hidden">
+    <div className="flex-1 flex flex-col min-w-0 relative min-h-screen pb-6 bg-[#070514] overflow-hidden">
       {/* Background Glows (Matching your reference) */}
       <div className="absolute top-[-10%] left-[10%] w-[40vw] h-[40vw] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
