@@ -6,7 +6,7 @@ import {
   Check
 } from 'lucide-react';
 
-const DashboardPage = () => {
+const ApiDashboard = () => {
   const [activeTab, setActiveTab] = useState('cURL');
   
   // State for API Data
@@ -56,7 +56,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 relative min-h-screen pb-12 bg-[#070514]">
+    <div className="flex-1 flex flex-col min-w-0 relative min-h-screen pb-12 bg-[#070514] overflow-hidden">
       {/* Background Glows (Matching your reference) */}
       <div className="absolute top-[-10%] left-[10%] w-[40vw] h-[40vw] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
@@ -265,4 +265,4 @@ const DashboardPage = () => {
   );
 };
 
-export default DashboardPage;
+export default ApiDashboard;
