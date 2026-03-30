@@ -311,6 +311,7 @@ const DepthFlowWorkspace = () => {
                 plan: user?.plan || user?.tier || 'free'
             };
             formData.append("payload", JSON.stringify(engine_payload));
+            formData.append("request_source", "workspace");
             // -------------------------------------------------------------------------
 
             const response = await fetch(`${API_BASE_URL}/ai/depthflow/generate-3d`, {
