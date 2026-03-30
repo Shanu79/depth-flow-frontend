@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useState, useEffect } from 'react';
-import config from "../../config"; // Assuming you have a config for base URL
+import { API_BASE_URL } from "../../config";
 
 const ApiLogs = () => {
   const [logsData, setLogsData] = useState([]);
@@ -13,7 +13,7 @@ const ApiLogs = () => {
     const fetchLogs = async () => {
       try {
         const token = localStorage.getItem("token"); // Retrieve your auth token
-        const apiUrl = config?.apiUrl || "http://localhost:8000"; // Fallback if no config
+        const apiUrl = API_BASE_URL || "http://localhost:8000";
 
         const response = await fetch(`${apiUrl}/ai/depthflow/logs`, {
           headers: {
