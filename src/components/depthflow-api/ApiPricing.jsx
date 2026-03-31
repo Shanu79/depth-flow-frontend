@@ -1,8 +1,59 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../stores/authStore.js';
 
 const ApiPricing = () => {
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const loading = useAuthStore((state) => state.loading);
+
+  // Check if their API plan is scheduled for cancellation
+  const isScheduledForCancel = user?.api_subscription_status && user.api_subscription_status.includes("Scheduled for cancellation");
+
+  // Helper function to generate dynamic button state and checkout logic
+  const getButtonProps = (planName, price, credits) => {
+    // Check if this is the user's current API plan
+    const isCurrentPlan = user?.api_plan === planName;
+    
+    let text = "Subscribe";
+    let disabled = false;
+
+    if (loading) {
+      text = "Processing...";
+      disabled = true;
+    } else if (isCurrentPlan) {
+      if (isScheduledForCancel) {
+        text = "Resume Subscription";
+        disabled = false; // Allow them to click to resubscribe/resume
+      } else {
+        text = "Current Plan";
+        disabled = true;
+      }
+    }
+
+    return {
+      text,
+      disabled,
+      onClick: () => {
+        if (disabled) return;
+        navigate("/payment", {
+          state: {
+            planName: planName,
+            price: price,
+            billingCycle: "monthly", // Defaulting to monthly based on your UI
+            credits: credits,
+          },
+        });
+      }
+    };
+  };
+
+  // Generate props for each specific plan
+  const starterProps = getButtonProps("Starter API", "99", "10000");
+  const growthProps = getButtonProps("Growth API", "249", "27000");
+  const proProps = getButtonProps("Pro API", "499", "60000");
+
   return (
-    // ADDED: flex-col and h-full so it stretches properly. Removed redundant bg color.
     <div className="w-full relative text-white font-sans flex flex-col items-center overflow-hidden">
       
       {/* Background Glows to match the application's ambiance */}
@@ -42,8 +93,14 @@ const ApiPricing = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-[#5a5a68] mr-3"></span> Basic support
               </li>
             </ul>
-            <button className="w-full py-3.5 rounded-2xl bg-[#9d5cff] hover:bg-[#8d4bef] text-white text-[15px] font-medium transition-colors shadow-[0_0_20px_rgba(157,92,255,0.25)] mt-auto">
-              Subscribe
+            <button 
+              onClick={starterProps.onClick}
+              disabled={starterProps.disabled}
+              className={`w-full py-3.5 rounded-2xl text-white text-[15px] font-medium transition-colors shadow-[0_0_20px_rgba(157,92,255,0.25)] mt-auto 
+                ${starterProps.disabled ? "bg-[#9d5cff]/50 cursor-not-allowed" : "bg-[#9d5cff] hover:bg-[#8d4bef]"}
+              `}
+            >
+              {starterProps.text}
             </button>
           </div>
 
@@ -68,8 +125,14 @@ const ApiPricing = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-[#5a5a68] mr-3"></span> Priority support
               </li>
             </ul>
-            <button className="w-full py-3.5 rounded-2xl bg-[#5294ff] hover:bg-[#4183ef] text-white text-[15px] font-medium transition-colors shadow-[0_0_20px_rgba(82,148,255,0.25)] mt-auto">
-              Subscribe
+            <button 
+              onClick={growthProps.onClick}
+              disabled={growthProps.disabled}
+              className={`w-full py-3.5 rounded-2xl text-white text-[15px] font-medium transition-colors shadow-[0_0_20px_rgba(82,148,255,0.25)] mt-auto
+                ${growthProps.disabled ? "bg-[#5294ff]/50 cursor-not-allowed" : "bg-[#5294ff] hover:bg-[#4183ef]"}
+              `}
+            >
+              {growthProps.text}
             </button>
           </div>
 
@@ -97,8 +160,14 @@ const ApiPricing = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-[#a45cff] mr-3 shadow-[0_0_5px_#a45cff]"></span> Commercial usage
               </li>
             </ul>
-            <button className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#8b5cf6] to-[#6366f1] hover:from-[#7c3aed] hover:to-[#4f46e5] text-white text-[15px] font-medium transition-all shadow-[0_0_25px_rgba(139,92,246,0.4)] relative z-10 mt-auto">
-              Subscribe
+            <button 
+              onClick={proProps.onClick}
+              disabled={proProps.disabled}
+              className={`w-full py-3.5 rounded-2xl text-white text-[15px] font-medium transition-all shadow-[0_0_25px_rgba(139,92,246,0.4)] relative z-10 mt-auto
+                ${proProps.disabled ? "bg-gradient-to-r from-[#8b5cf6]/50 to-[#6366f1]/50 cursor-not-allowed" : "bg-gradient-to-r from-[#8b5cf6] to-[#6366f1] hover:from-[#7c3aed] hover:to-[#4f46e5]"}  
+              `}
+            >
+              {proProps.text}
             </button>
           </div>
 
@@ -107,7 +176,6 @@ const ApiPricing = () => {
             <div className="border border-gray-600/40 rounded-[20px] py-2.5 mb-8 text-center bg-gray-600/[0.03] shadow-[inset_0_0_15px_rgba(255,255,255,0.02)]">
               <h3 className="text-[15px] font-semibold text-gray-100 tracking-wide">Enterprise</h3>
             </div>
-            {/* Fixed height to align with $ price layout */}
             <div className="mb-6 flex items-center h-[50px]">
               <span className="text-[28px] font-bold text-white tracking-tight leading-none">Custom pricing</span>
             </div>
@@ -120,9 +188,12 @@ const ApiPricing = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-[#5a5a68] mr-3"></span> Dedicated support
               </li>
             </ul>
-            <button className="w-full py-3.5 rounded-2xl border border-gray-500/50 text-[#ceceda] text-[15px] font-medium hover:bg-white/5 hover:text-white transition-colors shadow-[inset_0_0_15px_rgba(255,255,255,0.02)] mt-auto">
+            <a 
+              href="mailto:contact@depthflow.ai" // Replace with your actual contact link/email
+              className="w-full py-3.5 rounded-2xl border border-gray-500/50 text-[#ceceda] text-[15px] font-medium hover:bg-white/5 hover:text-white transition-colors shadow-[inset_0_0_15px_rgba(255,255,255,0.02)] mt-auto text-center block"
+            >
               Contact Us
-            </button>
+            </a>
           </div>
 
         </div>
