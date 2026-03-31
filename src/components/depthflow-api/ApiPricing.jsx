@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuthStore from '../stores/authStore.js';
+import useAuthStore from '../../stores/authStore.js';
 
 const ApiPricing = () => {
   const navigate = useNavigate();
