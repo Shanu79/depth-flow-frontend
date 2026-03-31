@@ -1,6 +1,54 @@
-import { Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Download, Loader2 } from 'lucide-react';
+import { API_BASE_URL } from "../../config"; // Make sure the path to config is correct
 
 const ApiBilling = () => {
+  const [billingData, setBillingData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch billing data from the backend
+  useEffect(() => {
+    const fetchBillingDetails = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const apiUrl = API_BASE_URL || "http://localhost:8000";
+
+        const response = await fetch(`${apiUrl}/ai/depthflow/billing`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setBillingData(data);
+        } else {
+          console.error("Failed to fetch billing data");
+        }
+      } catch (err) {
+        console.error("Billing fetch error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBillingDetails();
+  }, []);
+
+  // Show a loading spinner while fetching data
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-[#070514] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-[#8b5cf6] animate-spin" />
+      </div>
+    );
+  }
+
+  // Extract dynamic values with safe fallbacks
+  const planName = billingData?.api?.plan || "Free Plan";
+  const renewDate = billingData?.api?.next_billing_date || "N/A";
+  const price = billingData?.api?.price || "$0.00";
+
   return (
     <div className="min-h-screen w-full bg-[#070514] text-white font-sans flex relative overflow-hidden">
       
@@ -19,19 +67,19 @@ const ApiBilling = () => {
 
         <div className="flex flex-col gap-6">
           
-          {/* Current Plan Card */}
+          {/* Current Plan Card (DYNAMIC) */}
           <div className="bg-[#18181d]/80 backdrop-blur-xl border border-[#2e2e38] rounded-2xl p-6 flex justify-between items-center shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
             <div>
               <p className="text-[#e2e2e8] font-semibold text-[15px] mb-3">Current Plan</p>
-              <h2 className="text-[32px] font-bold text-white leading-tight tracking-tight mb-1">Pro Plan</h2>
-              <p className="text-[#8a8a98] text-[15px]">Renew date: Oct 20</p>
+              <h2 className="text-[32px] font-bold text-white leading-tight tracking-tight mb-1">{planName}</h2>
+              <p className="text-[#8a8a98] text-[15px]">Renew date: {renewDate}</p>
             </div>
             <div>
-              <span className="text-[56px] font-bold text-white tracking-tight leading-none">$49.99</span>
+              <span className="text-[56px] font-bold text-white tracking-tight leading-none">{price}</span>
             </div>
           </div>
 
-          {/* Payment Method Card */}
+          {/* Payment Method Card (STATIC PLACEHOLDER) */}
           <div className="bg-[#18181d]/80 backdrop-blur-xl border border-[#2e2e38] rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
             <h3 className="text-white font-semibold text-[16px] mb-6">Payment Method</h3>
             <div className="flex justify-between items-center">
@@ -51,7 +99,7 @@ const ApiBilling = () => {
             </div>
           </div>
 
-          {/* Invoices Card */}
+          {/* Invoices Card (STATIC PLACEHOLDER) */}
           <div className="bg-[#18181d]/80 backdrop-blur-xl border border-[#2e2e38] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.2)] overflow-hidden">
             <div className="p-6 border-b border-[#2e2e38]">
               <h3 className="text-white font-semibold text-[16px]">Invoices</h3>
@@ -103,7 +151,7 @@ const ApiBilling = () => {
                   </div>
                 </div>
 
-                 {/* Row 3 (Partially visible in design, added for completeness) */}
+                 {/* Row 3 */}
                  <div className="grid grid-cols-5 gap-4 px-6 py-4 items-center text-[#d1d1d6] text-[14px]">
                   <div>INV-12347</div>
                   <div>$49.99</div>
