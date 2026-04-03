@@ -30,6 +30,7 @@ const AuthSuccess = lazy(() => import("./pages/AuthSuccess"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const BillingPage = lazy(() => import("./pages/BillingPage"));
 const UserHistoryPage = lazy(() => import("./pages/UserHistoryPage"));
+
 // --- DEPTHFLOW API COMPONENTS ---
 const ApiDashboard = lazy(() => import("./components/depthflow-api/Dashboard"));
 const ApiKeys = lazy(() => import("./components/depthflow-api/ApiKeys"));
@@ -39,6 +40,7 @@ const ApiPricing = lazy(() => import("./components/depthflow-api/ApiPricing"));
 const ApiDocumentation = lazy(
   () => import("./components/depthflow-api/Documentation"),
 );
+const ApiSupport = lazy(() => import("./components/depthflow-api/ApiSupportContact"));
 
 // --- ADMIN ---
 const Users = lazy(() => import("./components/admin/User"));
@@ -144,9 +146,9 @@ function App() {
           <Route
             path="/depthflow-api"
             element={
-              <RequireAuth>
+              // <RequireAuth>
                 <DepthflowApi />
-              </RequireAuth>
+              // </RequireAuth>
             }
           >
             {/* 1. Default redirect when hitting exactly /depthflow-api */}
@@ -159,6 +161,7 @@ function App() {
             <Route path="documentation" element={<ApiDocumentation />} />
             <Route path="pricing" element={<ApiPricing />} />
             <Route path="billing" element={<ApiBilling />} />
+            <Route path="support-contact" element={<ApiSupport />} />
 
             {/* 3. Catch-all for invalid sub-routes (e.g., /depthflow-api/typo) */}
             <Route path="*" element={<Navigate to="dashboard" replace />} />

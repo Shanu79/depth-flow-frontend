@@ -39,7 +39,7 @@ const Hero = () => {
         </p>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-5 mt-6">
+        <div className="flex flex-wrap items-center justify-center md:justify-normal gap-5 mt-6">
           {/* Primary Glow Button */}
           <button
             onClick={() => navigate("/workspace")}

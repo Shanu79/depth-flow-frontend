@@ -214,7 +214,7 @@ const PricingPage = () => {
     },
     {
       name: "Basic",
-      price: { monthly: "9.99", yearly: "99" },
+      price: { monthly: "10", yearly: "108" },
       originalPrice: { monthly: null, yearly: "120" },
       period: { monthly: "/ month", yearly: "/ year" },
       description: "Most Popular",
@@ -230,7 +230,7 @@ const PricingPage = () => {
     },
     {
       name: "Pro",
-      price: { monthly: "19.99", yearly: "199" },
+      price: { monthly: "20", yearly: "216" },
       originalPrice: { monthly: null, yearly: "240" },
       period: { monthly: "/ month", yearly: "/ year" },
       description: "For professionals",
@@ -247,7 +247,7 @@ const PricingPage = () => {
     },
     {
       name: "Premium",
-      price: { monthly: "39.99", yearly: "399" },
+      price: { monthly: "40", yearly: "432" },
       originalPrice: { monthly: null, yearly: "480" },
       period: { monthly: "/ One Time", yearly: "/ One Time" },
       description: "For enterprises",
@@ -314,7 +314,7 @@ const PricingPage = () => {
             <span className={`text-sm font-medium flex items-center gap-2 ${billingCycle === 'yearly' ? 'text-white' : 'text-slate-500'}`}>
               Yearly
               <span className="bg-green-500/10 text-green-400 text-xs font-semibold px-2 py-0.5 rounded-full border border-green-500/20">
-                20% off
+                10% off
               </span>
             </span>
           </div>

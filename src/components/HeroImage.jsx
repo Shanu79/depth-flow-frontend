@@ -30,7 +30,7 @@ const HeroImage = () => {
                                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                                 />
                                 {/* Scanline overlay effect */}
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent bg-[length:100%_4px] pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-700/15 to-transparent bg-[length:100%_4px] pointer-events-none" />
                             </div>
 
                             {/* Bottom Connection Point (Visual anchor for the line) */}
