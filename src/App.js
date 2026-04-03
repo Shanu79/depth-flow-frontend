@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, lazy } from "react";
+import { useEffect, useState, Suspense, lazy } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 // --- AUTH & SECURITY ---
@@ -13,6 +13,7 @@ import ScrolltoTop from "./components/ScrollToTop";
 import PageLoader from "./components/PageLoader";
 import AdminLayout from "./components/admin/AdminLayout";
 import DepthflowApi from "./pages/DepthflowApi";
+import WhatsNewModal from "./components/WhatsNewModal";
 
 // --- PAGES ---
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -52,6 +53,21 @@ function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const syncSubscription = useAuthStore((state) => state.syncSubscription);
 
+  // 2. MODAL STATE
+  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+
+  // 3. FIRST-TIME VISITOR CHECK
+  useEffect(() => {
+    // Check if the user has seen the 2.0 update before
+    const hasSeenUpdate = localStorage.getItem("hasSeenWhatsNew_v2");
+
+    if (!hasSeenUpdate) {
+      // If not, open the modal and save a flag in their browser
+      setIsWhatsNewOpen(true);
+      localStorage.setItem("hasSeenWhatsNew_v2", "true");
+    }
+  }, []);
+
   // 1. INITIAL AUTH CHECK
   useEffect(() => {
     checkAuth();
@@ -71,8 +87,16 @@ function App() {
       : location.state?.from?.pathname || "/";
 
   return (
-    <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
-      {<Navbar />}
+    // 1. ADDED: 'relative' and 'overflow-x-hidden' to the main wrapper
+    <div className="relative bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30 overflow-x-hidden">
+      {/* 4. RENDER MODAL AT THE TOP LEVEL */}
+      <WhatsNewModal
+        isOpen={isWhatsNewOpen}
+        onClose={() => setIsWhatsNewOpen(false)}
+      />
+
+      {/* 5. PASS OPEN FUNCTION TO NAVBAR */}
+      <Navbar onOpenWhatsNew={() => setIsWhatsNewOpen(true)} />
 
       <ScrolltoTop />
 
@@ -120,9 +144,9 @@ function App() {
           <Route
             path="/depthflow-api"
             element={
-              // <RequireAuth>
-              <DepthflowApi />
-              // </RequireAuth>
+              <RequireAuth>
+                <DepthflowApi />
+              </RequireAuth>
             }
           >
             {/* 1. Default redirect when hitting exactly /depthflow-api */}

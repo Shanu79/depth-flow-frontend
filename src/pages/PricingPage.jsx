@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Check, Plus, Minus, Calendar, Infinity, AlertCircle } from 'lucide-react'; // Added AlertCircle
+import { Check, Plus, Minus, Calendar, Infinity, AlertCircle } from 'lucide-react'; 
 import useAuthStore from '../stores/authStore.js';
 import { useNavigate } from 'react-router-dom';
 
@@ -200,13 +200,13 @@ const PricingPage = () => {
 
   const plans = [
     {
-      name: "Trial",
-      price: { monthly: "3.99", yearly: "3.99" },
+      name: "Free",
+      price: { monthly: "0", yearly: "0" },
       period: { monthly: "/ One Time", yearly: "/ One Time" },
       description: "For testing waters",
       features: [
-        { text: "120 credits only", included: true },
-        { text: "No watermark", included: true },
+        { text: "20 credits only", included: true },
+        { text: "Watermarked result", included: true },
         { text: "Slow processing queue", included: true },
         { text: "No commercial usage", included: true },
       ],
@@ -219,14 +219,14 @@ const PricingPage = () => {
       period: { monthly: "/ month", yearly: "/ year" },
       description: "Most Popular",
       features: [
-        { text: "550 credits per month", included: true, yearlyText: "6,600 credits per year" },
+        { text: "600 credits per month", included: true, yearlyText: "7,200 credits per year" },
         { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "MP4 HD (720p) quality", included: true },
         { text: "Standard processing", included: true },
         { text: "Commercial use allowed", included: true },
       ],
-      highlight: true,
+      highlight: false,
     },
     {
       name: "Pro",
@@ -235,7 +235,7 @@ const PricingPage = () => {
       period: { monthly: "/ month", yearly: "/ year" },
       description: "For professionals",
       features: [
-        { text: "1,200 credits per month", included: true, yearlyText: "14,400 credits per year" },
+        { text: "2,000 credits per month", included: true, yearlyText: "24,000 credits per year" },
         { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "MP4 upto (1080p) quality", included: true },
@@ -243,12 +243,29 @@ const PricingPage = () => {
         { text: "Fully Commercial use", included: true },
         { text: "Premium Support", included: true },
       ],
+      highlight: true,
+    },
+    {
+      name: "Premium",
+      price: { monthly: "39.99", yearly: "399" },
+      originalPrice: { monthly: null, yearly: "480" },
+      period: { monthly: "/ One Time", yearly: "/ One Time" },
+      description: "For enterprises",
+      features: [
+        { text: "5,000 credits per month", included: true, yearlyText: "60,000 credits per year" },
+        { text: "2D to 3D Depth Motion", included: true },
+        { text: "No watermark", included: true },
+        { text: "MP4 upto 4k quality", included: true },
+        { text: "Fast processing queue", included: true },
+        { text: "Fully Commercial use", included: true },
+        { text: "Dedicated Support", included: true },
+      ],
       highlight: false,
-    }
+    },
   ];
 
   return (
-    <section className="min-h-screen bg-[#050511] px-4 md:px-20 py-20 relative overflow-hidden font-sans">
+    <section className="min-h-screen bg-[#050511] px-4 md:px-8 lg:px-20 py-20 relative overflow-hidden font-sans">
       {/* Background Ambience */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none" />
 
@@ -279,7 +296,7 @@ const PricingPage = () => {
       )}
 
         {/* CONTROLS CONTAINER: Switch + Scroll Button */}
-        <div className="relative flex flex-col md:flex-row justify-center items-center mt-8 w-full max-w-6xl mx-auto">
+        <div className="relative flex flex-col md:flex-row justify-center items-center mt-8 w-full max-w-7xl mx-auto">
 
           {/* 1. Centered Toggle Group */}
           <div className="flex justify-center items-center gap-4 z-10">
@@ -314,8 +331,8 @@ const PricingPage = () => {
         </div>
       </div>
 
-      {/* Pricing Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      {/* Pricing Cards Grid - UPDATED FOR 4 COLUMNS ON DESKTOP */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {plans.map((plan, idx) => {
           const isCurrentPlan = user?.plan?.toLowerCase() === plan.name.toLowerCase();
           const isHighlighted = plan.highlight;
@@ -361,7 +378,7 @@ const PricingPage = () => {
               )}
 
               <div
-                className={`relative h-full rounded-3xl p-8 flex flex-col transition-all duration-300 backdrop-blur-lg overflow-hidden
+                className={`relative h-full rounded-3xl p-6 lg:p-8 flex flex-col transition-all duration-300 backdrop-blur-lg overflow-hidden
             ${isHighlighted
                     ? 'bg-[#080810] border border-white/10 shadow-xl'
                     : 'bg-[#080810] border-2 border-white/5 hover:border-white/10'
@@ -376,7 +393,7 @@ const PricingPage = () => {
 
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#1a103c] from-0% via-purple-500/40 via-25% to-transparent to-50% pointer-events-none" />
 
-                    {/* 3. CUSTOM STAR CLUSTER */}
+                    {/* 2. CUSTOM STAR CLUSTER */}
                     <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none z-0">
                       <Sparkle className="absolute top-12 right-6 w-5 h-5 text-purple-100 opacity-90" />
                       <Sparkle className="absolute top-5 right-14 w-3 h-3 text-purple-200 opacity-70" />
@@ -384,32 +401,41 @@ const PricingPage = () => {
                       <div className="absolute top-8 right-24 w-0.5 h-0.5 bg-white rounded-full opacity-50" />
                       <div className="absolute top-10 right-10 w-0.5 h-0.5 bg-white rounded-full opacity-40" />
                     </div>
+
+                    {/* 3. DIAGONAL CORNER RIBBON */}
+                    <div className="absolute top-8 -right-11 w-[170px] text-center rotate-45 bg-gradient-to-r from-purple-500 to-rose-600 text-white text-[10px] font-bold py-2 tracking-widest uppercase shadow-lg shadow-rose-900/50 border-y border-white/20 z-20 pointer-events-none">
+                      Most Popular
+                    </div>
                   </>
                 )}
 
                 {/* Card Header */}
                 <div className="mb-6 relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-3 mb-4 flex-wrap">
                     <h3 className={`text-lg font-medium ${isHighlighted ? 'text-white' : 'text-slate-300'}`}>
                       {plan.name}
                     </h3>
-                    {plan.description && (
+                    {isHighlighted ? (
+                      <div className="bg-purple-600/30 text-purple-100 text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider font-semibold border border-purple-500/50 shadow-sm backdrop-blur-md">
+                        MOST POPULAR
+                      </div>
+                    ) : plan.description && (
                       <div className="bg-slate-700/50 text-slate-200 text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider font-semibold border border-slate-600/50 shadow-sm backdrop-blur-md">
                         {plan.description}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-baseline gap-1">
+                  <div className="flex items-baseline gap-1 flex-wrap">
                     {displayOriginalPrice && (
                       <span className="text-lg text-slate-500 line-through font-medium mr-1">
                         ${displayOriginalPrice}
                       </span>
                     )}
-                    <span className="text-5xl font-bold text-white tracking-tight">
+                    <span className="text-4xl lg:text-5xl font-bold text-white tracking-tight">
                       ${displayPrice}
                     </span>
-                    <span className="text-slate-500 text-sm font-medium">
+                    <span className="text-slate-500 text-sm font-medium whitespace-nowrap">
                       {displayPeriod}
                     </span>
                   </div>
