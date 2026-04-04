@@ -959,7 +959,7 @@ const DepthFlowWorkspace = () => {
 
             {/* Horizontal Scroll Container */}
             <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 custom-scrollbar w-full items-center snap-x">
-              {history.slice(0, 4).map((item) => (
+              {history.slice(0, 6).map((item) => (
                 <div
                   key={item.id}
                   onClick={() => {
@@ -988,7 +988,7 @@ const DepthFlowWorkspace = () => {
               ))}
 
               {/* View All Button */}
-              {history.length > 5 && (
+              {history.length > 6 && (
                 <button
                   onClick={() => navigate("/history")}
                   className="w-28 lg:w-40 aspect-video rounded-xl shrink-0 relative group border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-[#151029] hover:from-purple-800/40 hover:to-[#291456] backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)] snap-start"
