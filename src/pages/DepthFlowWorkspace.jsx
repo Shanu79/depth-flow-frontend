@@ -943,7 +943,7 @@ const DepthFlowWorkspace = () => {
         </div>
         {/* History Section */}
         {history.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[90%] mx-auto flex flex-col gap-4">
+          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[80%] mx-auto flex flex-col gap-4">
             {/* Section Header */}
             <div className="flex items-center justify-between px-1">
               <h3 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 tracking-wide">
@@ -992,7 +992,7 @@ const DepthFlowWorkspace = () => {
               {history.length > 5 && (
                 <button
                   onClick={() => navigate("/history")}
-                  className="w-28 lg:w-40 aspect-video rounded-xl shrink-0 relative group border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-[#151029] hover:from-purple-800/40 hover:to-[#291456] backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)] snap-start"
+                  className="w-28 lg:w-48 aspect-video rounded-xl shrink-0 relative group border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-[#151029] hover:from-purple-800/40 hover:to-[#291456] backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)] snap-start"
                 >
                   {/* Shine Effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-400/10 to-pink-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
