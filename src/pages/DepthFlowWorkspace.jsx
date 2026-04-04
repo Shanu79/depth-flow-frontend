@@ -943,7 +943,7 @@ const DepthFlowWorkspace = () => {
         </div>
         {/* History Section */}
         {history.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full max-w-5xl mx-auto flex flex-col gap-4">
+          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[90%] mx-auto flex flex-col gap-4">
             {/* Section Header */}
             <div className="flex items-center justify-between px-1">
               <h3 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 tracking-wide">
@@ -967,7 +967,7 @@ const DepthFlowWorkspace = () => {
                     setResultVideoUrl(item.video_url);
                     setActiveTab("result");
                   }}
-                  className="w-28 lg:w-40 aspect-video bg-[#0b081a] rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-purple-400 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] shrink-0 relative group transition-all duration-300 snap-start"
+                  className="w-28 lg:w-48 aspect-video bg-[#0b081a] rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-purple-400 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] shrink-0 relative group transition-all duration-300 snap-start"
                 >
                   {/* Video Thumbnail */}
                   <video
