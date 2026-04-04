@@ -943,7 +943,7 @@ const DepthFlowWorkspace = () => {
         </div>
         {/* History Section */}
         {history.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[80%] mx-auto flex flex-col gap-4">
+          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[87%] mx-auto flex flex-col gap-4">
             {/* Section Header */}
             <div className="flex items-center justify-between px-1">
               <h3 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 tracking-wide">
