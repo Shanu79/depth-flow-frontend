@@ -317,15 +317,9 @@ const DepthFlowWorkspace = () => {
       if (width < 768) {
         // Phones & very small devices
         setHistoryLimit(3); 
-      } else if (width < 1024) {
-        // Tablets (e.g., iPads)
-        setHistoryLimit(4); 
-      } else if (width < 1280) {
-        // Small/Mid-size Laptops (13" to 14" screens)
-        setHistoryLimit(5); 
-      } else if (width < 1536) {
+      } else if (width < 2000) {
         // Standard/Large Laptops (15" to 16" screens, 1080p monitors)
-        setHistoryLimit(6); 
+        setHistoryLimit(5); 
       } else {
         // Large Desktops & Ultrawide Monitors (4K, iMacs, etc.)
         setHistoryLimit(7); 
