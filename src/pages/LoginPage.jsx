@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, MailCheck } from 'lucide-react';
 import HeroImage from '../components/HeroImage';
 import useAuthStore from '../stores/authStore.js';
 import { API_BASE_URL } from '../config.js';
@@ -11,14 +11,14 @@ const LoginPage = () => {
 
   // View States
   const [isLoginView, setIsLoginView] = useState(true);
-  const [isOtpView, setIsOtpView] = useState(false); // NEW: Tracks if we are in the OTP step
+  const [isOtpView, setIsOtpView] = useState(false); // Controls the OTP Verification screen
   const [searchParams] = useSearchParams();
 
   // Form States
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState(''); // NEW: Stores the 6-digit code
+  const [otp, setOtp] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -36,21 +36,31 @@ const LoginPage = () => {
 
   // --- HELPER: Fetch Profile & Complete Login ---
   const fetchProfileAndLogin = async (token, authData) => {
-    const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
-    
-    if (userResponse.ok) {
-        const userData = await userResponse.json();
-        await login({ ...authData, user: userData }); 
+    if (!token) {
+        setError("System error: No token received.");
+        return;
+    }
 
-        if (userData.is_admin) {
-            navigate("/admin", { replace: true });
+    try {
+        const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        
+        if (userResponse.ok) {
+            const userData = await userResponse.json();
+            // Combine token data and user data into the Zustand store
+            await login({ ...authData, user: userData }); 
+
+            if (userData.is_admin) {
+                navigate("/admin", { replace: true });
+            } else {
+                navigate(from, { replace: true });
+            }
         } else {
-            navigate(from, { replace: true });
+            setError("Error: Could not load user profile. Please try logging in again.");
         }
-    } else {
-        setError("Authentication succeeded, but failed to fetch user profile.");
+    } catch (err) {
+        setError("Network error while fetching profile.");
     }
   };
 
@@ -78,19 +88,14 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        
-        // --- THIS IS THE FIX ---
         if (isLoginView) {
-            // If they are logging in, we get a token! Proceed to fetch profile.
+            // STANDARD LOGIN: Backend gave us a token, fetch the profile!
             await fetchProfileAndLogin(data.access_token, data);
         } else {
-            // If they are registering, we DO NOT get a token yet. 
-            // Show success message and switch to the OTP input screen.
+            // REGISTRATION: Backend did NOT give a token. Just an OTP success message.
             setSuccessMsg(data.message || "OTP sent to your email!");
-            setIsOtpView(true); 
+            setIsOtpView(true); // Switch to OTP UI
         }
-        // -----------------------
-
       } else {
         setError(data.detail || data.error || "An error occurred.");
       }
@@ -118,8 +123,12 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // OTP Verified successfully, complete the login process
-        await fetchProfileAndLogin(data.access_token, data);
+        // OTP Verified! Backend gives us the access_token now.
+        if (data.access_token) {
+            await fetchProfileAndLogin(data.access_token, data);
+        } else {
+            setError("OTP verified, but server failed to issue a token.");
+        }
       } else {
         setError(data.detail || data.error || "Invalid OTP.");
       }
@@ -134,7 +143,7 @@ const LoginPage = () => {
   // --- TOGGLE VIEWS ---
   const toggleView = () => {
     setIsLoginView(!isLoginView);
-    setIsOtpView(false); // Reset OTP view if switching
+    setIsOtpView(false); 
     setError('');
     setSuccessMsg('');
     setEmail('');
@@ -152,26 +161,27 @@ const LoginPage = () => {
 
           {/* Dynamic Header */}
           <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-            {isOtpView ? 'Verify Email' : isLoginView ? 'Log In' : 'Create Your Account'}
+            {isOtpView ? 'Verify your email' : isLoginView ? 'Log In' : 'Create Your Account'}
           </h1>
           <p className="text-slate-400 mb-8 text-sm">
             {isOtpView 
-              ? `We've sent a 6-digit code to ${email}.`
+              ? `We've sent a 6-digit verification code to ${email}.`
               : isLoginView
               ? 'Welcome back! Log in to continue creating.'
               : 'Start transforming images into stunning 3D videos today.'}
           </p>
 
           {/* ========================================== */}
-          {/* OTP VIEW*/}
+          {/* OTP VERIFICATION VIEW */}
           {/* ========================================== */}
           {isOtpView ? (
             <form onSubmit={handleOtpSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
               
               {/* Success Message Banner */}
               {successMsg && (
-                <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-xl text-sm font-medium">
-                  {successMsg}
+                <div className="flex items-start gap-3 bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-xl text-sm font-medium">
+                  <MailCheck className="w-5 h-5 flex-shrink-0" />
+                  <p>{successMsg}</p>
                 </div>
               )}
 
@@ -181,8 +191,8 @@ const LoginPage = () => {
                   maxLength="6"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} // Only allow numbers
-                  placeholder="Enter 6-digit OTP"
-                  className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-5 py-4 text-white placeholder-slate-500 outline-none focus:border-purple-400 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all text-center text-2xl tracking-[0.5em] font-bold"
+                  placeholder="------"
+                  className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-5 py-4 text-white placeholder-slate-600 outline-none focus:border-purple-400 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all text-center text-3xl tracking-[1em] font-bold"
                 />
               </div>
 
@@ -207,10 +217,11 @@ const LoginPage = () => {
 
           ) : (
           /* ========================================== */
-          /* STANDARD LOGIN/SIGNUP           */
+          /* STANDARD LOGIN / SIGNUP VIEW */
           /* ========================================== */
             <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in slide-in-from-left-4 duration-300">
 
+              {/* Full Name Input (Only for Signup) */}
               {!isLoginView && (
                 <div className="space-y-1">
                   <input
@@ -224,6 +235,7 @@ const LoginPage = () => {
                 </div>
               )}
 
+              {/* Email Input */}
               <div className="space-y-1">
                 <input
                   type="email"
@@ -235,6 +247,7 @@ const LoginPage = () => {
                 />
               </div>
 
+              {/* Password Input */}
               <div className="space-y-1 relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -253,6 +266,7 @@ const LoginPage = () => {
                 </button>
               </div>
 
+              {/* Error Message & Forgot Password */}
               <div className="flex justify-between items-center text-xs min-h-[20px]">
                 {error && <span className="text-red-400 font-medium">{error}</span>}
                 {isLoginView && (
@@ -260,6 +274,7 @@ const LoginPage = () => {
                 )}
               </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -268,7 +283,7 @@ const LoginPage = () => {
                 {isLoading ? 'Processing...' : isLoginView ? 'Log In' : 'Sign Up with Email'}
               </button>
 
-              {/* GOOGLE BUTTON */}
+              {/* Google OAuth Button */}
               <button
                 type="button"
                 onClick={handleGoogleLogin}
@@ -285,7 +300,7 @@ const LoginPage = () => {
             </form>
           )}
 
-          {/* Toggle Link (Hidden when in OTP view) */}
+          {/* Bottom Link (Toggle Login/Signup) */}
           {!isOtpView && (
             <div className="mt-8 text-center text-sm text-slate-500">
               {isLoginView ? "Don't have an account? " : "Already have an account? "}
@@ -305,7 +320,7 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* RIGHT SIDE - IMAGE/SHOWCASE */}
+      {/* RIGHT SIDE - HERO SHOWCASE */}
       <div className="hidden w-full lg:w-1/2 md:flex flex-col items-center lg:pr-4 lg:pl-0 px-16 justify-center">
         <div className="relative w-full h-fit rounded-2xl m-4 p-2 bg-gradient-to-r from-cyan-400 to-purple-600 shadow-lg shadow-purple-500/20 overflow-hidden">
           <div className="w-full h-full bg-slate-900 rounded-xl overflow-hidden relative">
