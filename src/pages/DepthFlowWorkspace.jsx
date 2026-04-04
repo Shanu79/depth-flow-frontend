@@ -315,9 +315,9 @@ const DepthFlowWorkspace = () => {
       if (window.innerWidth < 768) {
         setHistoryLimit(3); // Mobile: Show 3 items + View All
       } else if (window.innerWidth < 1024) {
-        setHistoryLimit(4); // Tablet: Show 4 items + View All
+        setHistoryLimit(5); // Tablet: Show 4 items + View All
       } else {
-        setHistoryLimit(5); // Desktop: Show 5 items + View All
+        setHistoryLimit(7); // Desktop: Show 5 items + View All
       }
     };
 
