@@ -943,7 +943,7 @@ const DepthFlowWorkspace = () => {
         </div>
         {/* History Section */}
         {history.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[75%] mx-auto flex flex-col gap-4">
+          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full max-w-5xl mx-auto flex flex-col gap-4">
             {/* Section Header */}
             <div className="flex items-center justify-between px-1">
               <h3 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 tracking-wide">
@@ -957,8 +957,9 @@ const DepthFlowWorkspace = () => {
               </span>
             </div>
 
-            {/* Horizontal Scroll Container */}
+            {/* Horizontal Scroll Container (Scrolls on mobile, static on desktop) */}
             <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 custom-scrollbar w-full items-center snap-x">
+              {/* Show exactly 5 videos */}
               {history.slice(0, 5).map((item) => (
                 <div
                   key={item.id}
@@ -987,7 +988,7 @@ const DepthFlowWorkspace = () => {
                 </div>
               ))}
 
-              {/* View All Button */}
+              {/* View All Button - Only shows if there are MORE than 5 total videos */}
               {history.length > 5 && (
                 <button
                   onClick={() => navigate("/history")}
