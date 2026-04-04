@@ -9,6 +9,7 @@ import {
   MoveHorizontal,
   MoveVertical,
   Circle,
+  Clock,
   ChevronDown,
   Loader2,
   AlertCircle,
@@ -942,11 +943,14 @@ const DepthFlowWorkspace = () => {
         </div>
         {/* History Section */}
         {history.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full flex flex-col gap-4">
+          <div className="mt-8 pt-6 border-t border-purple-500/20 w-[80%] flex flex-col gap-4">
             {/* Section Header */}
             <div className="flex items-center justify-between px-1">
               <h3 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 tracking-wide">
-                <span className="text-purple-400">🕒</span> Recent Generations
+                <div className="p-1.5 bg-purple-500/10 rounded-lg text-purple-400">
+                  <Clock className="w-4 h-4" />
+                </div>{" "}
+                Recent Generations
               </h3>
               <span className="text-[10px] lg:text-xs font-medium text-purple-200 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20 shadow-inner">
                 {history.length} Total
@@ -955,7 +959,7 @@ const DepthFlowWorkspace = () => {
 
             {/* Horizontal Scroll Container */}
             <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 custom-scrollbar w-full items-center snap-x">
-              {history.slice(0, 4).map((item) => (
+              {history.slice(0, 7).map((item) => (
                 <div
                   key={item.id}
                   onClick={() => {
@@ -984,7 +988,7 @@ const DepthFlowWorkspace = () => {
               ))}
 
               {/* View All Button */}
-              {history.length > 4 && (
+              {history.length > 8 && (
                 <button
                   onClick={() => navigate("/history")}
                   className="w-28 lg:w-40 aspect-video rounded-xl shrink-0 relative group border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-[#151029] hover:from-purple-800/40 hover:to-[#291456] backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)] snap-start"
