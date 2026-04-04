@@ -939,70 +939,70 @@ const DepthFlowWorkspace = () => {
               </div>
             </div>
           </section>
-          {/* History Section */}
-          {history.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-purple-500/20 w-full flex flex-col gap-4">
-              {/* Section Header */}
-              <div className="flex items-center justify-between px-1">
-                <h3 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 tracking-wide">
-                  <span className="text-purple-400">🕒</span> Recent Generations
-                </h3>
-                <span className="text-[10px] lg:text-xs font-medium text-purple-200 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20 shadow-inner">
-                  {history.length} Total
-                </span>
-              </div>
-
-              {/* Horizontal Scroll Container */}
-              <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 custom-scrollbar w-full items-center snap-x">
-                {history.slice(0, 4).map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => {
-                      setResultVideoUrl(item.video_url);
-                      setActiveTab("result");
-                    }}
-                    className="w-28 lg:w-40 aspect-video bg-[#0b081a] rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-purple-400 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] shrink-0 relative group transition-all duration-300 snap-start"
-                  >
-                    {/* Video Thumbnail */}
-                    <video
-                      src={item.video_url}
-                      className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
-                      muted
-                      loop
-                      onMouseOver={(e) => e.target.play()}
-                      onMouseOut={(e) => e.target.pause()}
-                    />
-
-                    {/* Premium Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#070514]/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-2 pointer-events-none">
-                      <span className="text-[10px] font-semibold text-purple-100 tracking-wider bg-purple-600/40 px-2 py-0.5 rounded backdrop-blur-md border border-purple-400/50 shadow-sm">
-                        Preview
-                      </span>
-                    </div>
-                  </div>
-                ))}
-
-                {/* View All Button */}
-                {history.length > 4 && (
-                  <button
-                    onClick={() => navigate("/history")}
-                    className="w-28 lg:w-40 aspect-video rounded-xl shrink-0 relative group border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-[#151029] hover:from-purple-800/40 hover:to-[#291456] backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)] snap-start"
-                  >
-                    {/* Shine Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-400/10 to-pink-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
-
-                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-black/40 border border-purple-500/40 flex items-center justify-center mb-1.5 lg:mb-2 group-hover:bg-purple-500/30 transition-all duration-300 relative z-10 shadow-[0_0_15px_rgba(168,85,247,0.4)] group-hover:scale-110">
-                      <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 text-purple-300 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                    <span className="text-[10px] lg:text-xs font-bold text-purple-200 tracking-wider uppercase relative z-10 group-hover:text-white transition-colors">
-                      View All
-                    </span>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
         </div>
+        {/* History Section */}
+        {history.length > 0 && (
+          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full flex flex-col gap-4">
+            {/* Section Header */}
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 tracking-wide">
+                <span className="text-purple-400">🕒</span> Recent Generations
+              </h3>
+              <span className="text-[10px] lg:text-xs font-medium text-purple-200 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20 shadow-inner">
+                {history.length} Total
+              </span>
+            </div>
+
+            {/* Horizontal Scroll Container */}
+            <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 custom-scrollbar w-full items-center snap-x">
+              {history.slice(0, 4).map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    setResultVideoUrl(item.video_url);
+                    setActiveTab("result");
+                  }}
+                  className="w-28 lg:w-40 aspect-video bg-[#0b081a] rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-purple-400 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] shrink-0 relative group transition-all duration-300 snap-start"
+                >
+                  {/* Video Thumbnail */}
+                  <video
+                    src={item.video_url}
+                    className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+                    muted
+                    loop
+                    onMouseOver={(e) => e.target.play()}
+                    onMouseOut={(e) => e.target.pause()}
+                  />
+
+                  {/* Premium Hover Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#070514]/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-2 pointer-events-none">
+                    <span className="text-[10px] font-semibold text-purple-100 tracking-wider bg-purple-600/40 px-2 py-0.5 rounded backdrop-blur-md border border-purple-400/50 shadow-sm">
+                      Preview
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {/* View All Button */}
+              {history.length > 4 && (
+                <button
+                  onClick={() => navigate("/history")}
+                  className="w-28 lg:w-40 aspect-video rounded-xl shrink-0 relative group border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-[#151029] hover:from-purple-800/40 hover:to-[#291456] backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)] snap-start"
+                >
+                  {/* Shine Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-400/10 to-pink-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
+
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-black/40 border border-purple-500/40 flex items-center justify-center mb-1.5 lg:mb-2 group-hover:bg-purple-500/30 transition-all duration-300 relative z-10 shadow-[0_0_15px_rgba(168,85,247,0.4)] group-hover:scale-110">
+                    <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 text-purple-300 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <span className="text-[10px] lg:text-xs font-bold text-purple-200 tracking-wider uppercase relative z-10 group-hover:text-white transition-colors">
+                    View All
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       <style
