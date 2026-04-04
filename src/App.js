@@ -120,9 +120,9 @@ function App() {
           <Route
             path="/depthflow-api"
             element={
-              // <RequireAuth>
-              <DepthflowApi />
-              // </RequireAuth>
+              <RequireAuth>
+                <DepthflowApi />
+              </RequireAuth>
             }
           >
             {/* 1. Default redirect when hitting exactly /depthflow-api */}
