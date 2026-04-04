@@ -9,6 +9,7 @@ import {
   MoveHorizontal,
   MoveVertical,
   Circle,
+  Clock,
   ChevronDown,
   Loader2,
   AlertCircle,
@@ -304,6 +305,33 @@ const DepthFlowWorkspace = () => {
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
+
+  
+  // Dynamic History Limit based on screen size
+  const [historyLimit, setHistoryLimit] = useState(5);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      
+      if (width < 768) {
+        // Phones & very small devices
+        setHistoryLimit(3); 
+      } else if (width < 2000) {
+        // Standard/Large Laptops (15" to 16" screens, 1080p monitors)
+        setHistoryLimit(5); 
+      } else {
+        // Large Desktops & Ultrawide Monitors (4K, iMacs, etc.)
+        setHistoryLimit(7); 
+      }
+    };
+
+    handleResize(); // Set initial value on load
+    window.addEventListener("resize", handleResize);
+    
+    // Cleanup listener on unmount
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     let interval;
@@ -940,40 +968,67 @@ const DepthFlowWorkspace = () => {
             </div>
           </section>
         </div>
-        {/* History Row */}
+        {/* History Section */}
         {history.length > 0 && (
-          <div className="mt-5 pt-5 border-t border-white/10 w-full">
-            <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-2 custom-scrollbar w-full items-center">
-              {history.slice(0, 4).map((item) => (
+          <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[87%] mx-auto flex flex-col gap-4">
+            {/* Section Header */}
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 tracking-wide">
+                <div className="p-1.5 bg-purple-500/10 rounded-lg text-purple-400">
+                  <Clock className="w-4 h-4" />
+                </div>{" "}
+                Recent Generations
+              </h3>
+              <span className="text-[10px] lg:text-xs font-medium text-purple-200 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20 shadow-inner">
+                {history.length} Total
+              </span>
+            </div>
+
+            {/* Horizontal Scroll Container */}
+            <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 custom-scrollbar w-full items-center snap-x">
+              
+              {/* Show dynamic number of videos based on screen size */}
+              {history.slice(0, historyLimit).map((item) => (
                 <div
                   key={item.id}
                   onClick={() => {
                     setResultVideoUrl(item.video_url);
                     setActiveTab("result");
                   }}
-                  className="w-24 lg:w-32 aspect-video bg-black rounded-lg overflow-hidden cursor-pointer border border-white/10 hover:border-purple-500 shrink-0 relative group"
+                  className="w-28 lg:w-48 aspect-video bg-[#0b081a] rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-purple-400 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] shrink-0 relative group transition-all duration-300 snap-start"
                 >
+                  {/* Video Thumbnail */}
                   <video
                     src={item.video_url}
-                    className="w-full h-full object-cover opacity-60 group-hover:opacity-100"
+                    className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
                     muted
                     loop
                     onMouseOver={(e) => e.target.play()}
                     onMouseOut={(e) => e.target.pause()}
                   />
+
+                  {/* Premium Hover Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#070514]/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-2 pointer-events-none">
+                    <span className="text-[10px] font-semibold text-purple-100 tracking-wider bg-purple-600/40 px-2 py-0.5 rounded backdrop-blur-md border border-purple-400/50 shadow-sm">
+                      Preview
+                    </span>
+                  </div>
                 </div>
               ))}
 
-              {history.length > 4 && (
+              {/* View All Button - Only shows if there are MORE videos than the current limit */}
+              {history.length > historyLimit && (
                 <button
                   onClick={() => navigate("/history")}
-                  className="w-24 lg:w-32 aspect-video rounded-lg shrink-0 relative group border border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/20 backdrop-blur-sm transition-all flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)]"
+                  className="w-28 lg:w-48 aspect-video rounded-xl shrink-0 relative group border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-[#151029] hover:from-purple-800/40 hover:to-[#291456] backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)] snap-start"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-500/10 to-pink-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
-                  <div className="w-8 h-8 rounded-full bg-[#151029] border border-purple-500/40 flex items-center justify-center mb-1 group-hover:bg-[#291456] transition-colors relative z-10 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-                    <ArrowRight className="w-4 h-4 text-purple-300 group-hover:translate-x-1 transition-transform" />
+                  {/* Shine Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-400/10 to-pink-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
+
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-black/40 border border-purple-500/40 flex items-center justify-center mb-1.5 lg:mb-2 group-hover:bg-purple-500/30 transition-all duration-300 relative z-10 shadow-[0_0_15px_rgba(168,85,247,0.4)] group-hover:scale-110">
+                    <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 text-purple-300 group-hover:translate-x-1 transition-transform" />
                   </div>
-                  <span className="text-[10px] font-bold text-purple-200 tracking-wider uppercase relative z-10">
+                  <span className="text-[10px] lg:text-xs font-bold text-purple-200 tracking-wider uppercase relative z-10 group-hover:text-white transition-colors">
                     View All
                   </span>
                 </button>
