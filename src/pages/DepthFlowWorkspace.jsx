@@ -312,12 +312,23 @@ const DepthFlowWorkspace = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setHistoryLimit(3); // Mobile: Show 3 items + View All
-      } else if (window.innerWidth < 1024) {
-        setHistoryLimit(5); // Tablet: Show 4 items + View All
+      const width = window.innerWidth;
+      
+      if (width < 768) {
+        // Phones & very small devices
+        setHistoryLimit(3); 
+      } else if (width < 1024) {
+        // Tablets (e.g., iPads)
+        setHistoryLimit(4); 
+      } else if (width < 1280) {
+        // Small/Mid-size Laptops (13" to 14" screens)
+        setHistoryLimit(5); 
+      } else if (width < 1536) {
+        // Standard/Large Laptops (15" to 16" screens, 1080p monitors)
+        setHistoryLimit(6); 
       } else {
-        setHistoryLimit(7); // Desktop: Show 5 items + View All
+        // Large Desktops & Ultrawide Monitors (4K, iMacs, etc.)
+        setHistoryLimit(7); 
       }
     };
 
