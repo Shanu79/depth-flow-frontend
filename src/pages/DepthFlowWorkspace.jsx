@@ -306,6 +306,28 @@ const DepthFlowWorkspace = () => {
     fetchHistory();
   }, [fetchHistory]);
 
+  
+  // Dynamic History Limit based on screen size
+  const [historyLimit, setHistoryLimit] = useState(5);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setHistoryLimit(3); // Mobile: Show 3 items + View All
+      } else if (window.innerWidth < 1024) {
+        setHistoryLimit(4); // Tablet: Show 4 items + View All
+      } else {
+        setHistoryLimit(5); // Desktop: Show 5 items + View All
+      }
+    };
+
+    handleResize(); // Set initial value on load
+    window.addEventListener("resize", handleResize);
+    
+    // Cleanup listener on unmount
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     let interval;
     if (isLoading) {
@@ -957,10 +979,11 @@ const DepthFlowWorkspace = () => {
               </span>
             </div>
 
-            {/* Horizontal Scroll Container (Scrolls on mobile, static on desktop) */}
+            {/* Horizontal Scroll Container */}
             <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 custom-scrollbar w-full items-center snap-x">
-              {/* Show exactly 5 videos */}
-              {history.slice(0, 5).map((item) => (
+              
+              {/* Show dynamic number of videos based on screen size */}
+              {history.slice(0, historyLimit).map((item) => (
                 <div
                   key={item.id}
                   onClick={() => {
@@ -988,8 +1011,8 @@ const DepthFlowWorkspace = () => {
                 </div>
               ))}
 
-              {/* View All Button - Only shows if there are MORE than 5 total videos */}
-              {history.length > 5 && (
+              {/* View All Button - Only shows if there are MORE videos than the current limit */}
+              {history.length > historyLimit && (
                 <button
                   onClick={() => navigate("/history")}
                   className="w-28 lg:w-48 aspect-video rounded-xl shrink-0 relative group border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-[#151029] hover:from-purple-800/40 hover:to-[#291456] backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)] snap-start"
