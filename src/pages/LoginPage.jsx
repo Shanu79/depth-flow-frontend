@@ -78,14 +78,19 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
+        
+        // --- THIS IS THE FIX ---
         if (isLoginView) {
-            // Standard Login Success
+            // If they are logging in, we get a token! Proceed to fetch profile.
             await fetchProfileAndLogin(data.access_token, data);
         } else {
-            // Registration Success - Switch to OTP View
+            // If they are registering, we DO NOT get a token yet. 
+            // Show success message and switch to the OTP input screen.
             setSuccessMsg(data.message || "OTP sent to your email!");
             setIsOtpView(true); 
         }
+        // -----------------------
+
       } else {
         setError(data.detail || data.error || "An error occurred.");
       }
