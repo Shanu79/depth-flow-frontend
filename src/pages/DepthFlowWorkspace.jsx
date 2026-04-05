@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   Upload,
   Download,
@@ -306,29 +306,28 @@ const DepthFlowWorkspace = () => {
     fetchHistory();
   }, [fetchHistory]);
 
-  
   // Dynamic History Limit based on screen size
   const [historyLimit, setHistoryLimit] = useState(5);
 
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      
+
       if (width < 768) {
         // Phones & very small devices
-        setHistoryLimit(3); 
+        setHistoryLimit(3);
       } else if (width < 2000) {
         // Standard/Large Laptops (15" to 16" screens, 1080p monitors)
-        setHistoryLimit(5); 
+        setHistoryLimit(5);
       } else {
         // Large Desktops & Ultrawide Monitors (4K, iMacs, etc.)
-        setHistoryLimit(7); 
+        setHistoryLimit(7);
       }
     };
 
     handleResize(); // Set initial value on load
     window.addEventListener("resize", handleResize);
-    
+
     // Cleanup listener on unmount
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -496,11 +495,11 @@ const DepthFlowWorkspace = () => {
 
       {/* Main Content Area */}
       <main className="relative z-10 w-[95%] max-w-[95%] mx-auto md:pt-[12vh] pt-[5vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh]">
-        <h1 className="text-2xl md:text-3xl font-bold mt-[10vh] mb-[2vh] md:my-[1vh] tracking-wide text-center md:text-left flex flex-col items-center md:items-start">
+        <h1 className="text-2xl md:text-3xl font-bold mt-[10vh] mb-[2vh] md:my-[2vh] tracking-wide text-center md:text-left flex flex-col items-center md:items-start">
           Create 3D Image
-          <span className="text-sm md:text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 drop-shadow-[0_0_15px_rgba(217,70,239,0.8)] px-1">
+          {/* <span className="text-sm md:text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 drop-shadow-[0_0_15px_rgba(217,70,239,0.8)] px-1">
             Version 2.0✨
-          </span>
+          </span> */}
         </h1>
 
         {/* ======================================================= */}
@@ -821,10 +820,10 @@ const DepthFlowWorkspace = () => {
           {/* ================= RIGHT MAIN AREA (VIEWER) ================= */}
           <section className="flex-1 flex flex-col min-w-0 md:h-full md:min-h-0 w-full relative">
             {/* Asymmetrical Outer Background Glow */}
-            <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-bl from-transparent via-purple-600/20 to-purple-500/50 blur-md pointer-events-none hidden md:block"></div>
+            <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-tr from-transparent via-purple-600/20 to-purple-500/50 blur-md pointer-events-none hidden md:block"></div>
 
-            <div className="relative flex flex-col w-full h-full bg-gradient-to-bl from-white/5 via-purple-500/40 to-purple-400 p-[1px] rounded-2xl shadow-[-15px_15px_40px_-10px_rgba(168,85,247,0.4)]">
-              <div className="bg-[#0b081a]/95 backdrop-blur-xl rounded-2xl p-4 md:p-6 flex flex-col h-full w-full relative z-10">
+            <div className="relative flex flex-col w-full h-full bg-gradient-to-tr from-white/5 via-purple-500/40 to-purple-400 p-[1px] rounded-2xl shadow-[-15px_15px_40px_-10px_rgba(168,85,247,0.4)]">
+              <div className="bg-[#0b081a]/95 backdrop-blur-xl rounded-2xl p-2 md:p-4 flex flex-col h-full w-full relative z-10">
                 {/* Input / Result Tabs */}
                 <div className="flex p-1 bg-[#130c27] rounded-lg mb-5 border border-purple-500/20 w-fit shrink-0 shadow-inner mx-auto lg:mx-0">
                   <button
@@ -986,7 +985,6 @@ const DepthFlowWorkspace = () => {
 
             {/* Horizontal Scroll Container */}
             <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 custom-scrollbar w-full items-center snap-x">
-              
               {/* Show dynamic number of videos based on screen size */}
               {history.slice(0, historyLimit).map((item) => (
                 <div
