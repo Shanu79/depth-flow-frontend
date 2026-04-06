@@ -50,7 +50,7 @@ const Users = lazy(() => import("./components/admin/User"));
 // MAINTENANCE MODE TOGGLE
 // Set to true to enable maintenance mode. 
 // (Tip: You can change this to use import.meta.env.VITE_MAINTENANCE_MODE === "true" for easier deployment toggling)
-const MAINTENANCE_MODE = false; 
+const MAINTENANCE_MODE = true; 
 // ==========================================
 
 function App() {
@@ -80,21 +80,23 @@ function App() {
       : location.state?.from?.pathname || "/";
 
   // --- MAINTENANCE LOGIC ---
-  // Adjust `user?.role === "admin"` to whatever property identifies an admin in your user object (e.g., user?.isAdmin)
+  const isLoggedIn = !!user; // Checks if a user exists / is logged in
   const isAdmin = user?.role === "admin"; 
-  const showMaintenancePage = MAINTENANCE_MODE && !isAdmin;
 
-  // If maintenance is ON and user is NOT an admin, lock down the site.
+  // If maintenance mode is ON, and the user is NOT logged in, lock down the site.
+  // (This allows regular users and admins to use the site once they log in via /login)
+  const showMaintenancePage = MAINTENANCE_MODE && !isLoggedIn && !isAdmin;
+
   if (showMaintenancePage) {
     return (
       <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* Allow access to login/auth routes so admins can log in to bypass maintenance */}
+            {/* Must leave these routes open so users/admins can actually log in */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/auth-success" element={<AuthSuccess />} />
             
-            {/* Catch all other routes and show the maintenance page */}
+            {/* Everyone else not on /login sees the Maintenance page */}
             <Route path="*" element={<MaintenancePage />} />
           </Routes>
         </Suspense>
