@@ -75,7 +75,7 @@ const AddOnCreditPack = ({ navigate }) => {
               </div>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight whitespace-nowrap">
-              1100 Credits
+              900 Credits
             </h2>
           </div>
 
@@ -88,7 +88,7 @@ const AddOnCreditPack = ({ navigate }) => {
                     planName: "Credit Pack",
                     price: "15",
                     billingCycle: "onetime",
-                    credits: "750",
+                    credits: "900",
                   },
                 })
               }
@@ -237,9 +237,9 @@ const PricingPage = () => {
       description: "Most Popular",
       features: [
         {
-          text: "850 credits per month",
+          text: "600 credits per month",
           included: true,
-          yearlyText: "10,200 credits per year",
+          yearlyText: "7,200 credits per year",
         },
         { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
@@ -258,9 +258,9 @@ const PricingPage = () => {
       description: "For professionals",
       features: [
         {
-          text: "2,000 credits per month",
+          text: "1,500 credits per month",
           included: true,
-          yearlyText: "24,000 credits per year",
+          yearlyText: "18,000 credits per year",
         },
         { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
@@ -280,9 +280,9 @@ const PricingPage = () => {
       description: "For enterprises",
       features: [
         {
-          text: "5,000 credits per month",
+          text: "4,000 credits per month",
           included: true,
-          yearlyText: "60,000 credits per year",
+          yearlyText: "48,000 credits per year",
         },
         { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
