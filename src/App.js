@@ -47,7 +47,7 @@ const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 // ==========================================
 // MAINTENANCE MODE TOGGLE
 // ==========================================
-const MAINTENANCE_MODE = true; 
+const MAINTENANCE_MODE = false; 
 
 function App() {
   const location = useLocation();
@@ -163,9 +163,9 @@ function App() {
           <Route
             path="/depthflow-api"
             element={
-              <RequireAuth>
+              // <RequireAuth>
                 <DepthflowApi />
-              </RequireAuth>
+              // </RequireAuth>
             }
           >
             <Route index element={<Navigate to="dashboard" replace />} />

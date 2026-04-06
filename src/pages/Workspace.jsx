@@ -452,35 +452,35 @@ const Workspace = () => {
           <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
         </div>
 
-        {/* --- NEW: Workspace v2.0 Upgrade Banner for Free Users --- */}
-        {isFreeUser && (
-          <div className="bg-gradient-to-r from-purple-900/40 to-pink-900/40 border border-purple-500/30 rounded-xl p-4 flex items-center justify-between group overflow-hidden relative shadow-lg">
+        {/* --- NEW: Workspace v2.0 Banner for PRO/PREMIUM Users --- */}
+        {!isFreeUser && (
+          <div className="bg-gradient-to-r from-indigo-900/40 to-cyan-900/40 border border-cyan-500/30 rounded-xl p-4 flex items-center justify-between group overflow-hidden relative shadow-lg">
             {/* Animated shimmer effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out" />
 
             <div className="flex items-center gap-3 relative z-10">
-              <div className="p-2 bg-purple-500/20 rounded-lg flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-purple-400" />
+              <div className="p-2 bg-cyan-500/20 rounded-lg flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-cyan-400" />
               </div>
               <div className="pr-2">
                 <h3 className="text-white font-bold text-sm leading-tight">
-                  Workspace v2.0 is here!
+                  Try the all-new Workspace v2.0!
                 </h3>
                 <p className="text-slate-400 text-[11px] mt-0.5 leading-tight">
-                  Unlock faster generation & advanced camera controls.
+                  Faster generations and advanced controls are now available in your plan.
                 </p>
               </div>
             </div>
 
             <button
-              onClick={() => navigate("/pricing")}
-              className="relative z-10 px-3 py-1.5 bg-white text-purple-900 text-xs font-bold rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:scale-105 transition-all whitespace-nowrap"
+              onClick={() => navigate("/workspace-2_0")}
+              className="relative z-10 px-4 py-1.5 bg-cyan-400 text-slate-900 text-xs font-bold rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.4)] hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] hover:bg-cyan-300 hover:scale-105 transition-all whitespace-nowrap"
             >
-              Upgrade
+              Try Now
             </button>
           </div>
         )}
-        {/* --- END NEW --- */}
+        {/* --- END PRO/PREMIUM BANNER --- */}
 
         {/* Upload Box */}
         <div

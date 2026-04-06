@@ -30,7 +30,7 @@ const PaymentPage = () => {
             setTimeout(async () => {
               await refreshUser();
               alert("Payment Successful! Thank you for your purchase.");
-              navigate("/workspace");
+              navigate("/workspace-2_0");
             }, 2000);
             break;
           case "checkout.error":
