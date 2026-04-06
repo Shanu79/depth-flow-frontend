@@ -156,8 +156,7 @@ const Workspace = () => {
   const { user, updateCredits } = useAuthStore();
   const credits = user?.credits || 0;
 
-  // IMPORTANT: Adjust this condition based on your actual user schema
-  const isFreeUser = user.plan?.toLowerCase() !== "free";
+  const isFreeUser = !user?.plan || user.plan.toLowerCase() === "free";
 
   const fileInputRef = useRef(null);
   const previewRef = useRef(null);

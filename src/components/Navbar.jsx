@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Menu,
   X,
-  ChevronDown,
   LogOut,
   LayoutGrid,
   ShoppingCartIcon,
@@ -48,7 +47,6 @@ const Navbar = ({ onOpenWhatsNew }) => {
       {/* Center Navigation (Desktop) */}
       <div className="hidden md:flex items-center gap-8 bg-[#050511]/80 backdrop-blur-md shadow-[0_0_15px_rgba(168,85,247,0.4)] rounded-full px-8 py-3 border-2 border-purple-400/50">
         {NAV_LINKS.map((link, index) => {
-          // 3. RENDER A BUTTON IF IT'S AN ACTION (What's New)
           if (link.isAction) {
             return (
               <button
@@ -60,7 +58,6 @@ const Navbar = ({ onOpenWhatsNew }) => {
               </button>
             );
           }
-          // Otherwise render normal links
           return link.isAnchor ? (
             <a
               key={index}
@@ -81,82 +78,78 @@ const Navbar = ({ onOpenWhatsNew }) => {
         })}
       </div>
 
-      {/* Right Side Actions */}
-      <div className="flex items-center gap-4 shadow-[0_0_17px_rgba(168,85,247,0.5)] rounded-full">
+      {/* Right Side Actions - Removed the unified background/shadow to separate elements */}
+      <div className="flex items-center gap-4">
         {/* --- DESKTOP VIEW --- */}
         {user ? (
-          <div className="hidden md:flex gap-2">
-            {/* Desktop Credits */}
-            <div className="flex items-center gap-2.5 bg-slate-900/80 border border-white/10 px-4 py-2 rounded-full shadow-sm">
-              {/* The fill opacity gives it that solid purple look while keeping the icon lines */}
-              <Database className="w-5 h-5 text-indigo-500 fill-indigo-500/30" />
-
+          <div className="hidden md:flex items-center gap-4">
+            {/* 1. Desktop Credits (Standalone Pill) */}
+            <div className="flex items-center gap-2 bg-[#1A1B26] border border-white/10 px-4 py-2 rounded-full shadow-sm">
+              <Database className="w-[18px] h-[18px] text-indigo-500 fill-indigo-500/30" />
               <span className="text-gray-200 text-sm md:text-[15px] tracking-wide">
-                {/* toLocaleString() adds the comma separator (e.g., 14,500) */}
                 {user.credits?.toLocaleString() || 0} Credits
               </span>
             </div>
 
-            {/* Desktop Profile Dropdown */}
-            <div className="flex items-center gap-3 border-l border-slate-700 pl-4">
-              <div className="flex items-center gap-2 cursor-pointer hover:bg-slate-800 p-1.5 rounded-lg transition-colors group relative">
+            {/* 2. Desktop Profile Dropdown (Standalone Circle) */}
+            <div className="relative group">
+              <div className="flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
                 {user.profile_pic ? (
                   <img
                     src={user.profile_pic}
                     alt={user.full_name}
-                    className="w-8 h-8 rounded-full border border-slate-600 object-cover"
+                    className="w-10 h-10 rounded-full object-cover border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center border border-slate-500 text-white font-bold text-xs">
-                    {user.full_name ? user.full_name.charAt(0) : "U"}
+                  <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center border border-cyan-500/40 text-white font-bold text-sm shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                    {user.full_name ? user.full_name.charAt(0).toUpperCase() : "U"}
                   </div>
                 )}
-                <ChevronDown className="w-4 h-4 text-slate-400" />
+              </div>
 
-                {/* Desktop Dropdown Menu */}
-                <div className="absolute top-full right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+              {/* Desktop Dropdown Menu */}
+              <div className="absolute top-full right-0 mt-3 w-48 bg-slate-900 border border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                <button
+                  onClick={() => navigate("/workspace")}
+                  className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" /> Workspace
+                </button>
+                {user.is_admin && (
                   <button
-                    onClick={() => navigate("/workspace")}
+                    onClick={() => navigate("/admin")}
                     className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800"
                   >
-                    <LayoutGrid className="w-3.5 h-3.5" /> Workspace
+                    <Shield className="w-3.5 h-3.5" /> Admin Panel
                   </button>
-                  {user.is_admin && (
-                    <button
-                      onClick={() => navigate("/admin")}
-                      className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800"
-                    >
-                      <Shield className="w-3.5 h-3.5" /> Admin Panel
-                    </button>
-                  )}
-                  {user.plan?.toLowerCase() !== "free" && (
-                    <button
-                      onClick={() => navigate("/billing")}
-                      className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800"
-                    >
-                      <Receipt className="w-3.5 h-3.5" /> Billing
-                    </button>
-                  )}
+                )}
+                {user.plan?.toLowerCase() !== "free" && (
                   <button
-                    onClick={() => navigate("/pricing")}
+                    onClick={() => navigate("/billing")}
                     className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800"
                   >
-                    <ShoppingCartIcon className="w-3.5 h-3.5" /> Buy a Plan
+                    <Receipt className="w-3.5 h-3.5" /> Billing
                   </button>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-slate-800 flex items-center gap-2"
-                  >
-                    <LogOut className="w-3.5 h-3.5" /> Logout
-                  </button>
-                </div>
+                )}
+                <button
+                  onClick={() => navigate("/pricing")}
+                  className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800"
+                >
+                  <ShoppingCartIcon className="w-3.5 h-3.5" /> Buy a Plan
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-slate-800 flex items-center gap-2"
+                >
+                  <LogOut className="w-3.5 h-3.5" /> Logout
+                </button>
               </div>
             </div>
           </div>
         ) : (
           <div className="hidden md:block">
             <Link to="/login" state={{ from: location }}>
-              <button className="bg-transparent border-2 border-cyan-700 hover:border-cyan-600 text-white px-6 py-2 rounded-full transition-all">
+              <button className="bg-transparent border-2 border-cyan-700 hover:border-cyan-600 text-white px-6 py-2 rounded-full transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                 Login
               </button>
             </Link>
@@ -165,7 +158,7 @@ const Navbar = ({ onOpenWhatsNew }) => {
 
         {/* --- MOBILE VIEW --- */}
         {user && (
-          <div className="md:hidden flex items-center gap-1.5 bg-slate-900/80 border border-white/10 px-3 py-1.5 rounded-full ml-2 shadow-sm">
+          <div className="md:hidden flex items-center gap-1.5 bg-[#1A1B26] border border-white/10 px-3 py-1.5 rounded-full ml-2 shadow-sm">
             <Database className="w-4 h-4 text-indigo-500 fill-indigo-500/30" />
             <span className="text-gray-200 text-xs tracking-wide">
               {user.credits?.toLocaleString() || 0}
@@ -186,7 +179,6 @@ const Navbar = ({ onOpenWhatsNew }) => {
         <div className="absolute top-20 left-0 w-full bg-slate-900 border-b border-slate-800 p-4 flex flex-col gap-4 md:hidden animate-in slide-in-from-top-5 z-50">
           {/* Mapped Mobile Nav Links */}
           {NAV_LINKS.map((link, index) => {
-            // 4. RENDER MOBILE BUTTON IF IT'S AN ACTION
             if (link.isAction) {
               return (
                 <button
@@ -228,7 +220,7 @@ const Navbar = ({ onOpenWhatsNew }) => {
                 {user.profile_pic && (
                   <img
                     src={user.profile_pic}
-                    className="w-8 h-8 rounded-full"
+                    className="w-8 h-8 rounded-full border border-cyan-500/40"
                     alt="Profile"
                   />
                 )}
@@ -241,8 +233,6 @@ const Navbar = ({ onOpenWhatsNew }) => {
               </div>
               <button
                 onClick={() => {
-                  // If the user exists and their plan is NOT 'free', send them to the pro workspace.
-                  // Otherwise (free users or guests), send them to the standard workspace.
                   if (user && user.plan?.toLowerCase() !== "free") {
                     navigate("/workspace-2_0");
                   } else {
