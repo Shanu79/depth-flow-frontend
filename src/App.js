@@ -32,13 +32,13 @@ const BillingPage = lazy(() => import("./pages/BillingPage"));
 const UserHistoryPage = lazy(() => import("./pages/UserHistoryPage"));
 
 // --- DEPTHFLOW API COMPONENTS ---
-const ApiDashboard = lazy(() => import("./components/depthflow-api/Dashboard"));
-const ApiKeys = lazy(() => import("./components/depthflow-api/ApiKeys"));
-const ApiBilling = lazy(() => import("./components/depthflow-api/ApiBilling"));
-const ApiLogs = lazy(() => import("./components/depthflow-api/ApiLogs"));
-const ApiPricing = lazy(() => import("./components/depthflow-api/ApiPricing"));
-const ApiDocumentation = lazy(() => import("./components/depthflow-api/Documentation"));
-const ApiSupport = lazy(() => import("./components/depthflow-api/ApiSupportContact"));
+const ApiDashboard = lazy(() => import("./components/api/Dashboard"));
+const ApiKeys = lazy(() => import("./components/api/ApiKeys"));
+const ApiBilling = lazy(() => import("./components/api/ApiBilling"));
+const ApiLogs = lazy(() => import("./components/api/ApiLogs"));
+const ApiPricing = lazy(() => import("./components/api/ApiPricing"));
+const ApiDocumentation = lazy(() => import("./components/api/Documentation"));
+const ApiSupport = lazy(() => import("./components/api/ApiSupportContact"));
 
 // --- ADMIN & MAINTENANCE ---
 const Users = lazy(() => import("./components/admin/User"));
@@ -161,7 +161,7 @@ function App() {
 
           {/* ================= SETTINGS ROUTES ================= */}
           <Route
-            path="/depthflow-api"
+            path="/api"
             element={
               <RequireAuth>
                 <DepthflowApi />

@@ -18,7 +18,7 @@ const NAV_LINKS = [
   { label: "Features", path: "/#features", isAnchor: true },
   { label: "Gallery", path: "/#gallery", isAnchor: true },
   { label: "Pricing", path: "/pricing", isAnchor: false },
-  { label: "API", path: "/depthflow-api", isAnchor: false },
+  { label: "API", path: "/api", isAnchor: false },
   { label: "What's New ✨", isAction: true },
 ];
 

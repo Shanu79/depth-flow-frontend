@@ -77,7 +77,7 @@ const ApiSidebar = () => {
             return (
               <NavLink
                 key={item.id}
-                to={`/depthflow-api/${item.id}`}
+                to={`/api/${item.id}`}
                 className={({ isActive }) => `w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                   isActive
                     ? 'bg-gradient-to-r from-purple-500/20 to-transparent border border-purple-500/20 text-white shadow-[0_0_15px_rgba(168,85,247,0.1)]'
