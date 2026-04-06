@@ -81,7 +81,7 @@ function App() {
 
 // --- MAINTENANCE LOGIC ---
   // If the user isn't logged in, user is null, so isAdmin becomes false automatically.
-  const isAdmin = user?.role === "admin"; 
+  const isAdmin = user?.is_admin; 
 
   // Show maintenance page if maintenance mode is ON and the user is NOT an admin.
   const showMaintenancePage = MAINTENANCE_MODE && !isAdmin;
