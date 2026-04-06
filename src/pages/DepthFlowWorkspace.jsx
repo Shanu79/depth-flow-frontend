@@ -286,8 +286,20 @@ const DepthFlowWorkspace = () => {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // --- ADDED: Check if the user is on a free plan ---
-  const isFreeUser = user?.plan === "free" || user?.tier === "free" || !user?.plan;
+  // --- ROBUST FREE USER CHECK ---
+  const isFreeUser = !user?.plan || user.plan.toLowerCase() === "free";
+
+  // --- PREVENT SCROLLING IF LOCKED ---
+  useEffect(() => {
+    if (isFreeUser) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isFreeUser]);
 
   const currentCost =
     GENERATION_COST +
@@ -316,23 +328,17 @@ const DepthFlowWorkspace = () => {
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-
       if (width < 768) {
-        // Phones & very small devices
         setHistoryLimit(3);
       } else if (width < 2000) {
-        // Standard/Large Laptops (15" to 16" screens, 1080p monitors)
         setHistoryLimit(5);
       } else {
-        // Large Desktops & Ultrawide Monitors (4K, iMacs, etc.)
         setHistoryLimit(7);
       }
     };
 
-    handleResize(); // Set initial value on load
+    handleResize(); 
     window.addEventListener("resize", handleResize);
-
-    // Cleanup listener on unmount
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -476,9 +482,9 @@ const DepthFlowWorkspace = () => {
   return (
     <div className="flex-1 w-full bg-[#070514] text-white font-sans relative flex flex-col min-h-screen overflow-x-hidden">
       
-      {/* --- ADDED: Premium Lock Overlay --- */}
+      {/* --- PREMIUM LOCK OVERLAY (FIXED & NON-CLOSABLE) --- */}
       {isFreeUser && (
-        <div className="absolute inset-0 z-50 bg-[#070514]/70 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
+        <div className="fixed inset-0 z-[999] bg-[#070514]/80 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
           <div className="bg-[#110c24] border border-purple-500/40 rounded-3xl p-8 max-w-md w-full flex flex-col items-center text-center shadow-[0_0_50px_rgba(168,85,247,0.25)] relative overflow-hidden">
             {/* Ambient inner glow */}
             <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-purple-600/20 to-transparent pointer-events-none"></div>
@@ -503,7 +509,7 @@ const DepthFlowWorkspace = () => {
             </button>
             
             <button
-              onClick={() => navigate(-1)} // Navigates back to the previous page
+              onClick={() => navigate(-1)} 
               className="mt-4 text-sm font-medium text-gray-500 hover:text-gray-300 transition-colors relative z-10"
             >
               Go Back
@@ -541,16 +547,12 @@ const DepthFlowWorkspace = () => {
           Create 3D Image
         </h1>
 
-        {/* ======================================================= */}
         {/* ================= LAYOUT SPLIT WRAPPER ================= */}
-        {/* CHANGED: Added relative positioning so the left sidebar can be pinned to its exact boundaries */}
         <div className="relative flex flex-col-reverse lg:flex-row gap-6 lg:gap-8 flex-1 h-full items-stretch w-full">
           {/* ================= INVISIBLE SPACER ================= */}
-          {/* CHANGED: This invisible spacer keeps the layout intact on desktop, while letting the right workspace dictate the exact height of the row. */}
           <div className="hidden lg:block lg:w-[320px] xl:w-[380px] shrink-0 pointer-events-none"></div>
 
           {/* ================= LEFT SIDEBAR (CONTROLS) ================= */}
-          {/* CHANGED: Added `lg:absolute lg:top-0 lg:bottom-0 lg:left-0 z-10` to pin the sidebar strictly to the flex container's height */}
           <aside className="w-full lg:w-[320px] xl:w-[380px] flex flex-col shrink-0 lg:absolute lg:top-0 lg:bottom-0 lg:left-0 z-10">
             <div className="bg-[#0b081a]/90 backdrop-blur-xl border-2 border-purple-500/40 rounded-2xl p-4 flex shadow-[0_0_30px_rgba(168,85,247,0.3)] flex-col h-full">
               {/* Basic / Advanced Toggle */}
@@ -569,15 +571,12 @@ const DepthFlowWorkspace = () => {
                 </button>
               </div>
 
-              {/* Scrollable Container (Scrolls independently based on strict parent height) */}
+              {/* Scrollable Container */}
               <div className="flex-1 min-h-0 overflow-x-hidden overflow-y-visible lg:overflow-y-auto custom-scrollbar lg:pr-2 pb-2">
                 {activeMode === "basic" ? (
                   <div className="flex flex-col gap-4 animate-in fade-in">
-                    {/* Render Compartment */}
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-5 text-white">
-                        Render
-                      </h3>
+                      <h3 className="text-sm font-semibold mb-5 text-white">Render</h3>
                       <div className="space-y-6">
                         <SliderControl
                           label="Motion Amplitude"
@@ -585,9 +584,7 @@ const DepthFlowWorkspace = () => {
                           min={0.1}
                           max={3.0}
                           step={0.1}
-                          onChange={(v) =>
-                            setMotion({ ...motion, amplitude: v })
-                          }
+                          onChange={(v) => setMotion({ ...motion, amplitude: v })}
                         />
                         <SliderControl
                           label="Motion Speed"
@@ -604,78 +601,58 @@ const DepthFlowWorkspace = () => {
                           min={1}
                           max={15}
                           step={1}
-                          onChange={(v) =>
-                            setRender({ ...render, duration: v })
-                          }
+                          onChange={(v) => setRender({ ...render, duration: v })}
                           unit="s"
                         />
                       </div>
                     </div>
 
-                    {/* Camera Motion Compartment */}
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-4 text-white">
-                        Camera Motion
-                      </h3>
+                      <h3 className="text-sm font-semibold mb-4 text-white">Camera Motion</h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         <MotionButton
                           icon={<ArrowRight size={14} />}
                           label="Dolly"
                           active={motion.style === "dolly"}
-                          onClick={() =>
-                            setMotion({ ...motion, style: "dolly" })
-                          }
+                          onClick={() => setMotion({ ...motion, style: "dolly" })}
                         />
                         <MotionButton
                           icon={<Orbit size={14} />}
                           label="Orbit"
                           active={motion.style === "orbit"}
-                          onClick={() =>
-                            setMotion({ ...motion, style: "orbit" })
-                          }
+                          onClick={() => setMotion({ ...motion, style: "orbit" })}
                         />
                         <MotionButton
                           icon={<ZoomIn size={14} />}
                           label="Zoom"
                           active={motion.style === "zoom"}
-                          onClick={() =>
-                            setMotion({ ...motion, style: "zoom" })
-                          }
+                          onClick={() => setMotion({ ...motion, style: "zoom" })}
                         />
                         <MotionButton
                           icon={<MoveHorizontal size={14} />}
                           label="Horizontal"
                           active={motion.style === "horizontal"}
-                          onClick={() =>
-                            setMotion({ ...motion, style: "horizontal" })
-                          }
+                          onClick={() => setMotion({ ...motion, style: "horizontal" })}
                         />
                         <MotionButton
                           icon={<MoveVertical size={14} />}
                           label="Vertical"
                           active={motion.style === "vertical"}
-                          onClick={() =>
-                            setMotion({ ...motion, style: "vertical" })
-                          }
+                          onClick={() => setMotion({ ...motion, style: "vertical" })}
                         />
                         <MotionButton
                           icon={<Circle size={14} />}
                           label="Circle"
                           active={motion.style === "circle"}
-                          onClick={() =>
-                            setMotion({ ...motion, style: "circle" })
-                          }
+                          onClick={() => setMotion({ ...motion, style: "circle" })}
                         />
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4 animate-in fade-in">
-                    {/* Render Compartment */}
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-4 text-white">
-                        Render
-                      </h3>
+                      <h3 className="text-sm font-semibold mb-4 text-white">Render</h3>
                       <div className="space-y-5">
                         <SliderControl
                           label="Duration"
@@ -683,9 +660,7 @@ const DepthFlowWorkspace = () => {
                           min={1}
                           max={30}
                           step={1}
-                          onChange={(v) =>
-                            setRender({ ...render, duration: v })
-                          }
+                          onChange={(v) => setRender({ ...render, duration: v })}
                           unit="s"
                         />
                         <SelectControl
@@ -696,9 +671,7 @@ const DepthFlowWorkspace = () => {
                             { label: "1.5x", value: 1.5 },
                             { label: "2.0x", value: 2.0 },
                           ]}
-                          onChange={(v) =>
-                            setRender({ ...render, ssaa: parseFloat(v) })
-                          }
+                          onChange={(v) => setRender({ ...render, ssaa: parseFloat(v) })}
                         />
                         <SelectControl
                           label="FPS"
@@ -708,18 +681,13 @@ const DepthFlowWorkspace = () => {
                             { label: "30p", value: 30 },
                             { label: "60p", value: 60 },
                           ]}
-                          onChange={(v) =>
-                            setRender({ ...render, fps: parseInt(v) })
-                          }
+                          onChange={(v) => setRender({ ...render, fps: parseInt(v) })}
                         />
                       </div>
                     </div>
 
-                    {/* Camera & Motions Compartment */}
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-4 text-white">
-                        Camera & Motions
-                      </h3>
+                      <h3 className="text-sm font-semibold mb-4 text-white">Camera & Motions</h3>
                       <div className="space-y-5">
                         <SelectControl
                           label="Style"
@@ -738,25 +706,19 @@ const DepthFlowWorkspace = () => {
 
                         <div className="flex gap-2 w-full">
                           <button
-                            onClick={() =>
-                              setMotion({ ...motion, reverse: !motion.reverse })
-                            }
+                            onClick={() => setMotion({ ...motion, reverse: !motion.reverse })}
                             className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors truncate ${motion.reverse ? "bg-purple-600/80 border border-purple-500 text-white" : "bg-white/5 border border-white/10 text-gray-300"}`}
                           >
                             Reverse
                           </button>
                           <button
-                            onClick={() =>
-                              setMotion({ ...motion, smooth: !motion.smooth })
-                            }
+                            onClick={() => setMotion({ ...motion, smooth: !motion.smooth })}
                             className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors truncate ${motion.smooth ? "bg-purple-600/80 border border-purple-500 text-white" : "bg-white/5 border border-white/10 text-gray-300"}`}
                           >
                             Smooth
                           </button>
                           <button
-                            onClick={() =>
-                              setMotion({ ...motion, loop: !motion.loop })
-                            }
+                            onClick={() => setMotion({ ...motion, loop: !motion.loop })}
                             className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors truncate ${motion.loop ? "bg-purple-600/80 border border-purple-500 text-white" : "bg-white/5 border border-white/10 text-gray-300"}`}
                           >
                             Loop
@@ -769,9 +731,7 @@ const DepthFlowWorkspace = () => {
                           min={0.5}
                           max={3}
                           step={0.1}
-                          onChange={(v) =>
-                            setMotion({ ...motion, speed: parseFloat(v) })
-                          }
+                          onChange={(v) => setMotion({ ...motion, speed: parseFloat(v) })}
                         />
 
                         <SliderControl
@@ -785,11 +745,8 @@ const DepthFlowWorkspace = () => {
                       </div>
                     </div>
 
-                    {/* Cinematic Effects Compartment */}
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-4 text-white">
-                        Cinematic Effects
-                      </h3>
+                      <h3 className="text-sm font-semibold mb-4 text-white">Cinematic Effects</h3>
                       <div className="space-y-5">
                         <SliderControl
                           label="Intensity"
@@ -797,12 +754,7 @@ const DepthFlowWorkspace = () => {
                           min={0}
                           max={2}
                           step={0.1}
-                          onChange={(v) =>
-                            setEffects({
-                              ...effects,
-                              dof: { ...effects.dof, intensity: v },
-                            })
-                          }
+                          onChange={(v) => setEffects({ ...effects, dof: { ...effects.dof, intensity: v } })}
                         />
                         <SelectControl
                           label="Bokeh Quality"
@@ -812,9 +764,7 @@ const DepthFlowWorkspace = () => {
                             { label: "Medium (80)", value: 80 },
                             { label: "Low (50)", value: 50 },
                           ]}
-                          onChange={(v) =>
-                            setRender({ ...render, quality: parseInt(v) })
-                          }
+                          onChange={(v) => setRender({ ...render, quality: parseInt(v) })}
                         />
                       </div>
                     </div>
@@ -858,12 +808,10 @@ const DepthFlowWorkspace = () => {
 
           {/* ================= RIGHT MAIN AREA (VIEWER) ================= */}
           <section className="flex-1 flex flex-col min-w-0 md:h-full md:min-h-0 w-full relative">
-            {/* Asymmetrical Outer Background Glow */}
             <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-tr from-transparent via-purple-600/20 to-purple-500/50 blur-md pointer-events-none hidden md:block"></div>
 
             <div className="relative flex flex-col w-full h-full bg-gradient-to-tr from-white/5 via-purple-500/40 to-purple-400 p-[1px] rounded-2xl shadow-[-15px_15px_40px_-10px_rgba(168,85,247,0.4)]">
               <div className="bg-[#0b081a]/95 backdrop-blur-xl rounded-2xl p-2 md:p-4 flex flex-col h-full w-full relative z-10">
-                {/* Input / Result Tabs */}
                 <div className="flex p-1 bg-[#130c27] rounded-lg mb-5 border border-purple-500/20 w-fit shrink-0 shadow-inner mx-auto lg:mx-0">
                   <button
                     onClick={() => setActiveTab("input")}
@@ -880,7 +828,6 @@ const DepthFlowWorkspace = () => {
                   </button>
                 </div>
 
-                {/* Upload Area / Viewer */}
                 <div className="w-full min-h-[350px] lg:min-h-[500px] flex-1 bg-[#05030e] border border-purple-500/30 rounded-2xl flex flex-col relative shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] overflow-hidden">
                   <div className="absolute inset-3 lg:inset-4 border border-dashed border-purple-500/40 rounded-xl pointer-events-none z-0"></div>
 
@@ -1010,7 +957,6 @@ const DepthFlowWorkspace = () => {
         {/* History Section */}
         {history.length > 0 && (
           <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[87%] mx-auto flex flex-col gap-4">
-            {/* Section Header */}
             <div className="flex items-center justify-between px-1">
               <h3 className="text-base lg:text-lg font-bold text-white flex items-center gap-2 tracking-wide">
                 <div className="p-1.5 bg-purple-500/10 rounded-lg text-purple-400">
@@ -1023,9 +969,7 @@ const DepthFlowWorkspace = () => {
               </span>
             </div>
 
-            {/* Horizontal Scroll Container */}
             <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 custom-scrollbar w-full items-center snap-x">
-              {/* Show dynamic number of videos based on screen size */}
               {history.slice(0, historyLimit).map((item) => (
                 <div
                   key={item.id}
@@ -1035,7 +979,6 @@ const DepthFlowWorkspace = () => {
                   }}
                   className="w-28 lg:w-48 aspect-video bg-[#0b081a] rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-purple-400 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] shrink-0 relative group transition-all duration-300 snap-start"
                 >
-                  {/* Video Thumbnail */}
                   <video
                     src={item.video_url}
                     className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
@@ -1045,7 +988,6 @@ const DepthFlowWorkspace = () => {
                     onMouseOut={(e) => e.target.pause()}
                   />
 
-                  {/* Premium Hover Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#070514]/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-2 pointer-events-none">
                     <span className="text-[10px] font-semibold text-purple-100 tracking-wider bg-purple-600/40 px-2 py-0.5 rounded backdrop-blur-md border border-purple-400/50 shadow-sm">
                       Preview
@@ -1054,13 +996,11 @@ const DepthFlowWorkspace = () => {
                 </div>
               ))}
 
-              {/* View All Button - Only shows if there are MORE videos than the current limit */}
               {history.length > historyLimit && (
                 <button
                   onClick={() => navigate("/history")}
                   className="w-28 lg:w-48 aspect-video rounded-xl shrink-0 relative group border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-[#151029] hover:from-purple-800/40 hover:to-[#291456] backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.15)] snap-start"
                 >
-                  {/* Shine Effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-400/10 to-pink-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
 
                   <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-black/40 border border-purple-500/40 flex items-center justify-center mb-1.5 lg:mb-2 group-hover:bg-purple-500/30 transition-all duration-300 relative z-10 shadow-[0_0_15px_rgba(168,85,247,0.4)] group-hover:scale-110">
