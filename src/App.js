@@ -79,24 +79,23 @@ function App() {
       ? "/"
       : location.state?.from?.pathname || "/";
 
-  // --- MAINTENANCE LOGIC ---
-  const isLoggedIn = !!user; // Checks if a user exists / is logged in
+// --- MAINTENANCE LOGIC ---
+  // If the user isn't logged in, user is null, so isAdmin becomes false automatically.
   const isAdmin = user?.role === "admin"; 
 
-  // If maintenance mode is ON, and the user is NOT logged in, lock down the site.
-  // (This allows regular users and admins to use the site once they log in via /login)
-  const showMaintenancePage = MAINTENANCE_MODE && !isLoggedIn && !isAdmin;
+  // Show maintenance page if maintenance mode is ON and the user is NOT an admin.
+  const showMaintenancePage = MAINTENANCE_MODE && !isAdmin;
 
   if (showMaintenancePage) {
     return (
       <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* Must leave these routes open so users/admins can actually log in */}
+            {/* Must leave these routes open so admins can actually log in! */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/auth-success" element={<AuthSuccess />} />
             
-            {/* Everyone else not on /login sees the Maintenance page */}
+            {/* Everyone else (guests and regular users) sees the Maintenance page */}
             <Route path="*" element={<MaintenancePage />} />
           </Routes>
         </Suspense>
