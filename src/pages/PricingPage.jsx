@@ -106,11 +106,6 @@ const AddOnCreditPack = ({ navigate }) => {
 // --- FAQ DATA ---
 const faqs = [
   {
-    question: "What is included in the $3.99 Trial plan?",
-    answer:
-      "The Trial plan is a one-time preview option that lets you experience Depthflow’s workflow and output quality. It includes limited credits, 720p output, slow processing, and is meant for testing before upgrading.",
-  },
-  {
     question: "Do unused credits expire?",
     answer:
       "Monthly plan credits reset at the end of each billing cycle. Credits cannot be carried forward to the next month. Trial credits are limited and meant for preview use only.",
