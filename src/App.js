@@ -29,6 +29,10 @@ const AuthSuccess = lazy(() => import("./pages/AuthSuccess"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const BillingPage = lazy(() => import("./pages/BillingPage"));
 const UserHistoryPage = lazy(() => import("./pages/UserHistoryPage"));
+
+// NEW: Maintenance Page
+const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
+
 // --- DEPTHFLOW API COMPONENTS ---
 const ApiDashboard = lazy(() => import("./components/depthflow-api/Dashboard"));
 const ApiKeys = lazy(() => import("./components/depthflow-api/ApiKeys"));
@@ -42,12 +46,17 @@ const ApiDocumentation = lazy(
 // --- ADMIN ---
 const Users = lazy(() => import("./components/admin/User"));
 
+// ==========================================
+// MAINTENANCE MODE TOGGLE
+// Set to true to enable maintenance mode. 
+// (Tip: You can change this to use import.meta.env.VITE_MAINTENANCE_MODE === "true" for easier deployment toggling)
+const MAINTENANCE_MODE = false; 
+// ==========================================
+
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
-  // --- FIX: USE SELECTORS FOR REACTIVITY ---
-  // This ensures App re-renders when 'user' updates
   const user = useAuthStore((state) => state.user);
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const syncSubscription = useAuthStore((state) => state.syncSubscription);
@@ -70,9 +79,33 @@ function App() {
       ? "/"
       : location.state?.from?.pathname || "/";
 
+  // --- MAINTENANCE LOGIC ---
+  // Adjust `user?.role === "admin"` to whatever property identifies an admin in your user object (e.g., user?.isAdmin)
+  const isAdmin = user?.role === "admin"; 
+  const showMaintenancePage = MAINTENANCE_MODE && !isAdmin;
+
+  // If maintenance is ON and user is NOT an admin, lock down the site.
+  if (showMaintenancePage) {
+    return (
+      <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Allow access to login/auth routes so admins can log in to bypass maintenance */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/auth-success" element={<AuthSuccess />} />
+            
+            {/* Catch all other routes and show the maintenance page */}
+            <Route path="*" element={<MaintenancePage />} />
+          </Routes>
+        </Suspense>
+      </div>
+    );
+  }
+
+  // --- STANDARD APP RENDER (Maintenance is OFF or user IS an admin) ---
   return (
     <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
-      {<Navbar />}
+      <Navbar />
 
       <ScrolltoTop />
 
@@ -125,18 +158,13 @@ function App() {
               </RequireAuth>
             }
           >
-            {/* 1. Default redirect when hitting exactly /depthflow-api */}
             <Route index element={<Navigate to="dashboard" replace />} />
-
-            {/* 2. These nested routes are injected into the <Outlet /> */}
             <Route path="dashboard" element={<ApiDashboard />} />
             <Route path="api-keys" element={<ApiKeys />} />
             <Route path="logs" element={<ApiLogs />} />
             <Route path="documentation" element={<ApiDocumentation />} />
             <Route path="pricing" element={<ApiPricing />} />
             <Route path="billing" element={<ApiBilling />} />
-
-            {/* 3. Catch-all for invalid sub-routes (e.g., /depthflow-api/typo) */}
             <Route path="*" element={<Navigate to="dashboard" replace />} />
           </Route>
 
@@ -159,10 +187,7 @@ function App() {
               </RequireAdmin>
             }
           >
-            {/* Default redirect /admin -> /admin/users */}
             <Route index element={<Navigate to="/admin/users" replace />} />
-
-            {/* Matches /admin/users */}
             <Route path="users" element={<Users />} />
           </Route>
 

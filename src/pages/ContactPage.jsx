@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import { Mail, MessageSquare, User, Send, CheckCircle, HelpCircle } from 'lucide-react';
 
 const ContactPage = () => {
