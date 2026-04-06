@@ -27,7 +27,7 @@ const Hero = () => {
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
             Depth
           </span>{" "}
-          Instantly
+          Instantly.
         </h1>
 
         {/* Subheading */}
@@ -43,7 +43,7 @@ const Hero = () => {
             onClick={() => {
               // If the user exists and their plan is NOT 'free', send them to the pro workspace.
               // Otherwise (free users or guests), send them to the standard workspace.
-              if (user && user.plan !== "free") {
+              if (user && user.plan?.toLowerCase() !== "free") {
                 navigate("/workspace-2_0");
               } else {
                 navigate("/workspace");

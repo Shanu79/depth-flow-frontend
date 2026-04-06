@@ -205,7 +205,7 @@ const ApiPricing = () => {
             <div className="h-px w-full bg-[#2a2a35] mb-7"></div>
             <ul className="flex-1 space-y-4 mb-9">
               <li className="flex items-center text-[#9a9aa8] text-[15px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#5a5a68] mr-3"></span> Upto 27K credits
+                <span className="w-1.5 h-1.5 rounded-full bg-[#5a5a68] mr-3"></span> Upto 30K credits
               </li>
               <li className="flex items-center text-[#9a9aa8] text-[15px]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#5a5a68] mr-3"></span> Faster processing
@@ -240,7 +240,7 @@ const ApiPricing = () => {
             <div className="h-px w-full bg-[#2a2a35] mb-7 relative z-10"></div>
             <ul className="flex-1 space-y-4 mb-9 relative z-10">
               <li className="flex items-center text-[#e2e2e8] text-[15px] font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#a45cff] mr-3 shadow-[0_0_5px_#a45cff]"></span> Upto 60K credits
+                <span className="w-1.5 h-1.5 rounded-full bg-[#a45cff] mr-3 shadow-[0_0_5px_#a45cff]"></span> Upto 65K credits
               </li>
               <li className="flex items-center text-[#e2e2e8] text-[15px] font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#a45cff] mr-3 shadow-[0_0_5px_#a45cff]"></span> Fastest processing

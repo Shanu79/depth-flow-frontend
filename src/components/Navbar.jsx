@@ -3,13 +3,13 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Menu,
   X,
-  CreditCard,
   ChevronDown,
   LogOut,
   LayoutGrid,
   ShoppingCartIcon,
   Shield,
   Receipt,
+  Database,
 } from "lucide-react";
 import FullLogo from "./FullLogo";
 import useAuthStore from "../stores/authStore.js";
@@ -87,10 +87,13 @@ const Navbar = ({ onOpenWhatsNew }) => {
         {user ? (
           <div className="hidden md:flex gap-2">
             {/* Desktop Credits */}
-            <div className="flex items-center gap-2 bg-slate-900 border border-amber-500/30 px-3 py-1.5 rounded-full">
-              <CreditCard className="w-4 h-4 text-amber-400" />
-              <span className="text-amber-400 text-xs font-bold">
-                {user.credits} Credits
+            <div className="flex items-center gap-2.5 bg-slate-900/80 border border-white/10 px-4 py-2 rounded-full shadow-sm">
+              {/* The fill opacity gives it that solid purple look while keeping the icon lines */}
+              <Database className="w-5 h-5 text-indigo-500 fill-indigo-500/30" />
+
+              <span className="text-gray-200 text-sm md:text-[15px] tracking-wide">
+                {/* toLocaleString() adds the comma separator (e.g., 14,500) */}
+                {user.credits?.toLocaleString() || 0} Credits
               </span>
             </div>
 
@@ -108,9 +111,6 @@ const Navbar = ({ onOpenWhatsNew }) => {
                     {user.full_name ? user.full_name.charAt(0) : "U"}
                   </div>
                 )}
-                <span className="hidden lg:block text-sm text-slate-200 font-medium max-w-[100px] truncate">
-                  {user.full_name}
-                </span>
                 <ChevronDown className="w-4 h-4 text-slate-400" />
 
                 {/* Desktop Dropdown Menu */}
@@ -165,10 +165,10 @@ const Navbar = ({ onOpenWhatsNew }) => {
 
         {/* --- MOBILE VIEW --- */}
         {user && (
-          <div className="md:hidden flex items-center gap-1.5 bg-slate-900/80 border border-amber-500/30 px-3 py-1.5 rounded-full ml-2">
-            <CreditCard className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-amber-400 text-xs font-bold">
-              {user.credits}
+          <div className="md:hidden flex items-center gap-1.5 bg-slate-900/80 border border-white/10 px-3 py-1.5 rounded-full ml-2 shadow-sm">
+            <Database className="w-4 h-4 text-indigo-500 fill-indigo-500/30" />
+            <span className="text-gray-200 text-xs tracking-wide">
+              {user.credits?.toLocaleString() || 0}
             </span>
           </div>
         )}
@@ -243,7 +243,7 @@ const Navbar = ({ onOpenWhatsNew }) => {
                 onClick={() => {
                   // If the user exists and their plan is NOT 'free', send them to the pro workspace.
                   // Otherwise (free users or guests), send them to the standard workspace.
-                  if (user && user.plan !== "free") {
+                  if (user && user.plan?.toLowerCase() !== "free") {
                     navigate("/workspace-2_0");
                   } else {
                     navigate("/workspace");
