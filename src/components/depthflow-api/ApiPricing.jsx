@@ -139,8 +139,8 @@ const ApiPricing = () => {
 
   // Generate props for each specific plan
   const starterProps = getButtonProps("Starter API", "99", "10000");
-  const growthProps = getButtonProps("Growth API", "249", "27000");
-  const proProps = getButtonProps("Pro API", "499", "60000");
+  const growthProps = getButtonProps("Growth API", "249", "30000");
+  const proProps = getButtonProps("Pro API", "499", "65000");
 
   return (
     <div className="w-full relative text-white font-sans flex flex-col items-center overflow-hidden pb-20">

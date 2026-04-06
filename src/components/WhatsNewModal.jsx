@@ -146,7 +146,7 @@ const WhatsNewModal = ({ isOpen = true, onClose }) => {
             {/* Primary Glowing Button */}
             <button
               onClick={() => {
-                navigate("/pro-workspace");
+                navigate("/workspace-2_0");
                 onClose();
               }}
               className="w-full sm:w-auto px-8 py-3 rounded-full text-slate-900 font-bold text-sm

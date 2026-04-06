@@ -134,7 +134,7 @@ function App() {
           />
 
           <Route
-            path="/pro-workspace"
+            path="/workspace-2_0"
             element={
               <RequireAuth>
                 <DepthFlowWorkspace />

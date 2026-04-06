@@ -219,7 +219,7 @@ const PricingPage = () => {
       period: { monthly: "/ month", yearly: "/ year" },
       description: "Most Popular",
       features: [
-        { text: "600 credits per month", included: true, yearlyText: "7,200 credits per year" },
+        { text: "850 credits per month", included: true, yearlyText: "10,200 credits per year" },
         { text: "2D to 3D Depth Motion", included: true },
         { text: "No watermark", included: true },
         { text: "MP4 HD (720p) quality", included: true },

@@ -8,13 +8,11 @@ const Hero = () => {
 
   return (
     <section className="relative pt-32 pb-16 md:px-8 lg:px-16 flex flex-col lg:flex-row items-center justify-between min-h-screen">
-
       {/* FIXED: Changed -z-10 to z-0 so it doesn't hide behind the App background */}
       <div className="absolute top-[-2vw] left-[-2vw] w-[50vw] md:w-[20vw] h-[25vw] md:h-[11.5vw] bg-gradient-to-br from-purple-700/40 via-blue-700/4 to-cyan-700/40  rounded-full blur-[60px] pointer-events-none z-0"></div>
-      
+
       {/* FIXED: Added 'relative z-10' to ensure the text stays layered above the glow */}
       <div className="relative z-10 w-full min-w-[40%] flex flex-col justify-center space-y-6 text-center lg:text-left p-8">
-        
         {/* Main Heading */}
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.15]">
           Transform Your <br />
@@ -42,7 +40,15 @@ const Hero = () => {
         <div className="flex flex-wrap items-center justify-center md:justify-normal gap-5 mt-6">
           {/* Primary Glow Button */}
           <button
-            onClick={() => navigate("/workspace")}
+            onClick={() => {
+              // If the user exists and their plan is NOT 'free', send them to the pro workspace.
+              // Otherwise (free users or guests), send them to the standard workspace.
+              if (user && user.plan !== "free") {
+                navigate("/workspace-2_0");
+              } else {
+                navigate("/workspace");
+              }
+            }}
             className="px-8 py-3.5 rounded-full text-white font-semibold text-sm md:text-base 
                              bg-gradient-to-r from-cyan-600/40 via-blue-700/40 to-purple-700/40 
                              border border-purple-400/30 
