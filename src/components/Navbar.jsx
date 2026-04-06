@@ -110,7 +110,13 @@ const Navbar = ({ onOpenWhatsNew }) => {
               {/* Desktop Dropdown Menu */}
               <div className="absolute top-full right-0 mt-3 w-48 bg-slate-900 border border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
                 <button
-                  onClick={() => navigate("/workspace")}
+                  onClick={() => {
+                  if (user && user.plan?.toLowerCase() !== "free") {
+                    navigate("/workspace-2_0");
+                  } else {
+                    navigate("/workspace");
+                  }
+                }}
                   className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800"
                 >
                   <LayoutGrid className="w-3.5 h-3.5" /> Workspace
