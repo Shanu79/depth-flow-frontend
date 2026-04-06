@@ -585,9 +585,7 @@ const PricingPage = () => {
                         <span
                           className={`${feature.included ? "text-slate-300" : "text-slate-600"}`}
                         >
-                          {billingCycle === "yearly" && feature.yearlyText
-                            ? feature.yearlyText
-                            : feature.text}
+                          {feature.text}
                         </span>
                       </li>
                     ))}

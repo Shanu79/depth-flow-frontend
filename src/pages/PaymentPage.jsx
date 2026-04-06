@@ -101,7 +101,7 @@ const PaymentPage = () => {
         await refreshUser(); // Update local store with new plan info
         setIsProcessing(false);
         alert(data.message); // "Plan upgraded to Pro..."
-        navigate("/workspace");
+        navigate("/workspace-2_0");
       }
 
       // CASE B: New Subscription

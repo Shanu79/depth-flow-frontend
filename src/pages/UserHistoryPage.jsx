@@ -68,7 +68,7 @@ const UserHistoryPage = () => {
                         <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-wide">My Generations</h1>
                         <p className="text-purple-300/70 font-medium">Your complete collection of AI-generated 3D scenes</p>
                     </div>
-                    <Link to="/workspace">
+                    <Link to="/workspace-2_0">
                         <button className="px-6 py-2.5 rounded-full bg-[#151029] border border-purple-500/30 text-purple-200 hover:bg-[#291456] hover:text-white hover:border-purple-400 transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(168,85,247,0.15)] font-semibold">
                             ← Back to Workspace
                         </button>
@@ -89,7 +89,7 @@ const UserHistoryPage = () => {
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">No generations yet</h3>
                         <p className="text-gray-400 mb-6">Head back to the workspace to create your first 3D image!</p>
-                        <Link to="/workspace">
+                        <Link to="/workspace-2_0">
                             <button className="px-8 py-3 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-[0_5px_20px_rgba(219,39,119,0.4)] hover:scale-105 transition-transform">
                                 Create Now
                             </button>
