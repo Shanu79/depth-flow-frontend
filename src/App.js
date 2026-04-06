@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, lazy } from "react";
+import { useEffect, useState, Suspense, lazy } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 // --- AUTH & SECURITY ---
@@ -13,6 +13,7 @@ import ScrolltoTop from "./components/ScrollToTop";
 import PageLoader from "./components/PageLoader";
 import AdminLayout from "./components/admin/AdminLayout";
 import DepthflowApi from "./pages/DepthflowApi";
+import WhatsNewModal from "./components/WhatsNewModal";
 
 // --- PAGES ---
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -30,28 +31,23 @@ const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const BillingPage = lazy(() => import("./pages/BillingPage"));
 const UserHistoryPage = lazy(() => import("./pages/UserHistoryPage"));
 
-// NEW: Maintenance Page
-const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
-
 // --- DEPTHFLOW API COMPONENTS ---
 const ApiDashboard = lazy(() => import("./components/depthflow-api/Dashboard"));
 const ApiKeys = lazy(() => import("./components/depthflow-api/ApiKeys"));
 const ApiBilling = lazy(() => import("./components/depthflow-api/ApiBilling"));
 const ApiLogs = lazy(() => import("./components/depthflow-api/ApiLogs"));
 const ApiPricing = lazy(() => import("./components/depthflow-api/ApiPricing"));
-const ApiDocumentation = lazy(
-  () => import("./components/depthflow-api/Documentation"),
-);
+const ApiDocumentation = lazy(() => import("./components/depthflow-api/Documentation"));
+const ApiSupport = lazy(() => import("./components/depthflow-api/ApiSupportContact"));
 
-// --- ADMIN ---
+// --- ADMIN & MAINTENANCE ---
 const Users = lazy(() => import("./components/admin/User"));
+const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 
 // ==========================================
 // MAINTENANCE MODE TOGGLE
-// Set to true to enable maintenance mode. 
-// (Tip: You can change this to use import.meta.env.VITE_MAINTENANCE_MODE === "true" for easier deployment toggling)
-const MAINTENANCE_MODE = true; 
 // ==========================================
+const MAINTENANCE_MODE = false; 
 
 function App() {
   const location = useLocation();
@@ -61,12 +57,24 @@ function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const syncSubscription = useAuthStore((state) => state.syncSubscription);
 
-  // 1. INITIAL AUTH CHECK
+  // --- MODAL STATE ---
+  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+
+  // 1. FIRST-TIME VISITOR CHECK
+  useEffect(() => {
+    const hasSeenUpdate = localStorage.getItem("hasSeenWhatsNew_v2");
+    if (!hasSeenUpdate) {
+      setIsWhatsNewOpen(true);
+      localStorage.setItem("hasSeenWhatsNew_v2", "true");
+    }
+  }, []);
+
+  // 2. INITIAL AUTH CHECK
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  // 2. GLOBAL SUBSCRIPTION SYNC
+  // 3. GLOBAL SUBSCRIPTION SYNC
   useEffect(() => {
     if (user?.subscription_id) {
       syncSubscription();
@@ -79,11 +87,9 @@ function App() {
       ? "/"
       : location.state?.from?.pathname || "/";
 
-// --- MAINTENANCE LOGIC ---
-  // If the user isn't logged in, user is null, so isAdmin becomes false automatically.
-  const isAdmin = user?.is_admin; 
-
-  // Show maintenance page if maintenance mode is ON and the user is NOT an admin.
+  // --- MAINTENANCE LOGIC ---
+  // Checks both `role` and `is_admin` to cover all database structures securely.
+  const isAdmin = user?.role === "admin" || user?.is_admin === true; 
   const showMaintenancePage = MAINTENANCE_MODE && !isAdmin;
 
   if (showMaintenancePage) {
@@ -91,11 +97,8 @@ function App() {
       <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* Must leave these routes open so admins can actually log in! */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/auth-success" element={<AuthSuccess />} />
-            
-            {/* Everyone else (guests and regular users) sees the Maintenance page */}
             <Route path="*" element={<MaintenancePage />} />
           </Routes>
         </Suspense>
@@ -103,10 +106,16 @@ function App() {
     );
   }
 
-  // --- STANDARD APP RENDER (Maintenance is OFF or user IS an admin) ---
+  // --- STANDARD APP RENDER ---
   return (
-    <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
-      <Navbar />
+    <div className="relative bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30 overflow-x-hidden">
+      
+      <WhatsNewModal
+        isOpen={isWhatsNewOpen}
+        onClose={() => setIsWhatsNewOpen(false)}
+      />
+
+      <Navbar onOpenWhatsNew={() => setIsWhatsNewOpen(true)} />
 
       <ScrolltoTop />
 
@@ -142,7 +151,7 @@ function App() {
           />
 
           <Route
-            path="/pro-workspace"
+            path="/workspace-2_0"
             element={
               <RequireAuth>
                 <DepthFlowWorkspace />
@@ -166,6 +175,7 @@ function App() {
             <Route path="documentation" element={<ApiDocumentation />} />
             <Route path="pricing" element={<ApiPricing />} />
             <Route path="billing" element={<ApiBilling />} />
+            <Route path="support-contact" element={<ApiSupport />} />
             <Route path="*" element={<Navigate to="dashboard" replace />} />
           </Route>
 
@@ -204,7 +214,6 @@ function App() {
         </Routes>
       </Suspense>
 
-      {/* --- HIDE FOOTER ON ADMIN ROUTES --- */}
       {!isAdminRoute && <Footer />}
     </div>
   );

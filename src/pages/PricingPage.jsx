@@ -202,6 +202,7 @@ const PricingPage = () => {
     {
       name: "Free",
       price: { monthly: "0", yearly: "0" },
+      checkoutPrice: { monthly: "0", yearly: "0" },
       period: { monthly: "/ One Time", yearly: "/ One Time" },
       description: "For testing waters",
       features: [
@@ -214,9 +215,10 @@ const PricingPage = () => {
     },
     {
       name: "Basic",
-      price: { monthly: "10", yearly: "108" },
-      originalPrice: { monthly: null, yearly: "120" },
-      period: { monthly: "/ month", yearly: "/ year" },
+      price: { monthly: "10", yearly: "9" }, // Displayed as $9/month
+      checkoutPrice: { monthly: "10", yearly: "108" }, // Billed as $108
+      originalPrice: { monthly: null, yearly: "10" }, // Crossed out $10
+      period: { monthly: "/ month", yearly: "/ month" },
       description: "Most Popular",
       features: [
         { text: "850 credits per month", included: true, yearlyText: "10,200 credits per year" },
@@ -230,9 +232,10 @@ const PricingPage = () => {
     },
     {
       name: "Pro",
-      price: { monthly: "20", yearly: "216" },
-      originalPrice: { monthly: null, yearly: "240" },
-      period: { monthly: "/ month", yearly: "/ year" },
+      price: { monthly: "20", yearly: "18" }, 
+      checkoutPrice: { monthly: "20", yearly: "216" }, 
+      originalPrice: { monthly: null, yearly: "20" }, 
+      period: { monthly: "/ month", yearly: "/ month" },
       description: "For professionals",
       features: [
         { text: "2,000 credits per month", included: true, yearlyText: "24,000 credits per year" },
@@ -247,9 +250,10 @@ const PricingPage = () => {
     },
     {
       name: "Premium",
-      price: { monthly: "40", yearly: "432" },
-      originalPrice: { monthly: null, yearly: "480" },
-      period: { monthly: "/ One Time", yearly: "/ One Time" },
+      price: { monthly: "40", yearly: "36" }, 
+      checkoutPrice: { monthly: "40", yearly: "432" }, 
+      originalPrice: { monthly: null, yearly: "40" }, 
+      period: { monthly: "/ month", yearly: "/ month" },
       description: "For enterprises",
       features: [
         { text: "5,000 credits per month", included: true, yearlyText: "60,000 credits per year" },
@@ -331,7 +335,7 @@ const PricingPage = () => {
         </div>
       </div>
 
-      {/* Pricing Cards Grid - UPDATED FOR 4 COLUMNS ON DESKTOP */}
+      {/* Pricing Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {plans.map((plan, idx) => {
           const isCurrentPlan = user?.plan?.toLowerCase() === plan.name.toLowerCase();
@@ -340,6 +344,9 @@ const PricingPage = () => {
           const displayPrice = typeof plan.price === 'string' ? plan.price : plan.price[billingCycle];
           const displayPeriod = typeof plan.period === 'string' ? plan.period : plan.period[billingCycle];
           const displayOriginalPrice = plan.originalPrice ? plan.originalPrice[billingCycle] : null;
+          
+          // ACTUAL checkout price to pass to the payment page
+          const checkoutPrice = plan.checkoutPrice ? plan.checkoutPrice[billingCycle] : displayPrice;
 
           // --- LOGIC: DETERMINE BUTTON STATE ---
           let buttonText = "Get started";
@@ -388,12 +395,9 @@ const PricingPage = () => {
                 {/* --- SHINY CARD EFFECTS (Only for Highlighted) --- */}
                 {isHighlighted && (
                   <>
-                    {/* 1. Top Highlight Line */}
                     <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-50" />
-
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#1a103c] from-0% via-purple-500/40 via-25% to-transparent to-50% pointer-events-none" />
 
-                    {/* 2. CUSTOM STAR CLUSTER */}
                     <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none z-0">
                       <Sparkle className="absolute top-12 right-6 w-5 h-5 text-purple-100 opacity-90" />
                       <Sparkle className="absolute top-5 right-14 w-3 h-3 text-purple-200 opacity-70" />
@@ -402,7 +406,6 @@ const PricingPage = () => {
                       <div className="absolute top-10 right-10 w-0.5 h-0.5 bg-white rounded-full opacity-40" />
                     </div>
 
-                    {/* 3. DIAGONAL CORNER RIBBON */}
                     <div className="absolute top-8 -right-11 w-[170px] text-center rotate-45 bg-gradient-to-r from-purple-500 to-rose-600 text-white text-[10px] font-bold py-2 tracking-widest uppercase shadow-lg shadow-rose-900/50 border-y border-white/20 z-20 pointer-events-none">
                       Most Popular
                     </div>
@@ -426,18 +429,27 @@ const PricingPage = () => {
                     )}
                   </div>
 
-                  <div className="flex items-baseline gap-1 flex-wrap">
-                    {displayOriginalPrice && (
-                      <span className="text-lg text-slate-500 line-through font-medium mr-1">
-                        ${displayOriginalPrice}
+                  <div className="flex flex-col">
+                    <div className="flex items-baseline gap-1 flex-wrap">
+                      {displayOriginalPrice && (
+                        <span className="text-lg text-slate-500 line-through font-medium mr-1">
+                          ${displayOriginalPrice}
+                        </span>
+                      )}
+                      <span className="text-4xl lg:text-5xl font-bold text-white tracking-tight">
+                        ${displayPrice}
                       </span>
+                      <span className="text-slate-500 text-sm font-medium whitespace-nowrap">
+                        {displayPeriod}
+                      </span>
+                    </div>
+                    
+                    {/* NEW: Explicitly show the yearly billed amount to avoid confusion */}
+                    {billingCycle === 'yearly' && plan.checkoutPrice && plan.checkoutPrice.yearly !== "0" && (
+                      <div className="text-xs text-purple-300/70 mt-2 font-medium">
+                        Billed annually at ${plan.checkoutPrice.yearly}
+                      </div>
                     )}
-                    <span className="text-4xl lg:text-5xl font-bold text-white tracking-tight">
-                      ${displayPrice}
-                    </span>
-                    <span className="text-slate-500 text-sm font-medium whitespace-nowrap">
-                      {displayPeriod}
-                    </span>
                   </div>
                 </div>
 
@@ -449,7 +461,7 @@ const PricingPage = () => {
                     navigate("/payment", {
                       state: {
                         planName: plan.name,
-                        price: displayPrice,
+                        price: checkoutPrice, // Passes the real checkout price (e.g. 108)
                         billingCycle: billingCycle,
                         credits: creditAmount,
                       },

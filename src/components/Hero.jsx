@@ -15,7 +15,7 @@ const Hero = () => {
       <div className="relative z-10 w-full min-w-[40%] flex flex-col justify-center space-y-6 text-center lg:text-left p-8">
         {/* Main Heading */}
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.15]">
-          Transform Your <br />
+          Transform <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300">
             Images
           </span>{" "}
