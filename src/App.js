@@ -47,7 +47,7 @@ const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 // ==========================================
 // MAINTENANCE MODE TOGGLE
 // ==========================================
-const MAINTENANCE_MODE = false; 
+const MAINTENANCE_MODE = true; 
 
 function App() {
   const location = useLocation();
