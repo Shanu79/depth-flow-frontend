@@ -95,6 +95,8 @@ const ExpiryTimer = ({ seconds, onExpire }) => {
 };
 
 const Workspace = () => {
+  const navigate = useNavigate();
+
   // --- MAINTENANCE TOGGLE ---
   // Set to false when the technical issue is resolved
   const IS_MAINTENANCE = false;
@@ -117,7 +119,6 @@ const Workspace = () => {
 
   // History State
   const [history, setHistory] = useState([]);
-  // NEW: Track IDs that technically exist in DB but return 404 (deleted files)
   const [failedLoadIds, setFailedLoadIds] = useState(new Set());
 
   const [isLoading, setIsLoading] = useState(false);
@@ -128,6 +129,9 @@ const Workspace = () => {
   const [showCreditModal, setShowCreditModal] = useState(false);
   const { user, updateCredits } = useAuthStore();
   const credits = user?.credits || 0;
+
+  // IMPORTANT: Adjust this condition based on your actual user schema
+  const isFreeUser = user?.plan === 'free' || !user?.isPremium;
 
   const fileInputRef = useRef(null);
   const previewRef = useRef(null);
@@ -348,7 +352,6 @@ const Workspace = () => {
     return () => { window.removeEventListener("mousemove", resize); window.removeEventListener("mouseup", stopResizing); window.removeEventListener("mousemove", resizeVertical); window.removeEventListener("mouseup", stopVerticalResizing); };
   }, [isResizing, resize, stopResizing, isVerticalResizing, resizeVertical, stopVerticalResizing]);
 
-
   return (
     <div className="min-h-screen bg-[#050511] flex flex-col md:flex-row overflow-hidden relative">
 
@@ -366,6 +369,34 @@ const Workspace = () => {
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white">Create 3D Image</h1>
         </div>
+
+        {/* --- NEW: Workspace v2.0 Upgrade Banner for Free Users --- */}
+        {isFreeUser && (
+          <div className="bg-gradient-to-r from-purple-900/40 to-pink-900/40 border border-purple-500/30 rounded-xl p-4 flex items-center justify-between group overflow-hidden relative shadow-lg">
+            {/* Animated shimmer effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out" />
+            
+            <div className="flex items-center gap-3 relative z-10">
+              <div className="p-2 bg-purple-500/20 rounded-lg flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-purple-400" />
+              </div>
+              <div className="pr-2">
+                <h3 className="text-white font-bold text-sm leading-tight">Workspace v2.0 is here!</h3>
+                <p className="text-slate-400 text-[11px] mt-0.5 leading-tight">
+                  Unlock faster generation & advanced camera controls.
+                </p>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => navigate('/pricing')}
+              className="relative z-10 px-3 py-1.5 bg-white text-purple-900 text-xs font-bold rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:scale-105 transition-all whitespace-nowrap"
+            >
+              Upgrade
+            </button>
+          </div>
+        )}
+        {/* --- END NEW --- */}
 
         {/* Upload Box */}
         <div

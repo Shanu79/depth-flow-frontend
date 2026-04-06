@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, lazy } from "react";
+import { useEffect, useState, Suspense, lazy } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 // --- AUTH & SECURITY ---
@@ -13,6 +13,7 @@ import ScrolltoTop from "./components/ScrollToTop";
 import PageLoader from "./components/PageLoader";
 import AdminLayout from "./components/admin/AdminLayout";
 import DepthflowApi from "./pages/DepthflowApi";
+import WhatsNewModal from "./components/WhatsNewModal";
 
 // --- PAGES ---
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -29,6 +30,7 @@ const AuthSuccess = lazy(() => import("./pages/AuthSuccess"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const BillingPage = lazy(() => import("./pages/BillingPage"));
 const UserHistoryPage = lazy(() => import("./pages/UserHistoryPage"));
+
 // --- DEPTHFLOW API COMPONENTS ---
 const ApiDashboard = lazy(() => import("./components/depthflow-api/Dashboard"));
 const ApiKeys = lazy(() => import("./components/depthflow-api/ApiKeys"));
@@ -38,6 +40,7 @@ const ApiPricing = lazy(() => import("./components/depthflow-api/ApiPricing"));
 const ApiDocumentation = lazy(
   () => import("./components/depthflow-api/Documentation"),
 );
+const ApiSupport = lazy(() => import("./components/depthflow-api/ApiSupportContact"));
 
 // --- ADMIN ---
 const Users = lazy(() => import("./components/admin/User"));
@@ -51,6 +54,21 @@ function App() {
   const user = useAuthStore((state) => state.user);
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const syncSubscription = useAuthStore((state) => state.syncSubscription);
+
+  // 2. MODAL STATE
+  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+
+  // 3. FIRST-TIME VISITOR CHECK
+  useEffect(() => {
+    // Check if the user has seen the 2.0 update before
+    const hasSeenUpdate = localStorage.getItem("hasSeenWhatsNew_v2");
+
+    if (!hasSeenUpdate) {
+      // If not, open the modal and save a flag in their browser
+      setIsWhatsNewOpen(true);
+      localStorage.setItem("hasSeenWhatsNew_v2", "true");
+    }
+  }, []);
 
   // 1. INITIAL AUTH CHECK
   useEffect(() => {
@@ -71,8 +89,16 @@ function App() {
       : location.state?.from?.pathname || "/";
 
   return (
-    <div className="bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30">
-      {<Navbar />}
+    // 1. ADDED: 'relative' and 'overflow-x-hidden' to the main wrapper
+    <div className="relative bg-[#050511] min-h-screen font-sans selection:bg-purple-500/30 overflow-x-hidden">
+      {/* 4. RENDER MODAL AT THE TOP LEVEL */}
+      <WhatsNewModal
+        isOpen={isWhatsNewOpen}
+        onClose={() => setIsWhatsNewOpen(false)}
+      />
+
+      {/* 5. PASS OPEN FUNCTION TO NAVBAR */}
+      <Navbar onOpenWhatsNew={() => setIsWhatsNewOpen(true)} />
 
       <ScrolltoTop />
 
@@ -108,7 +134,7 @@ function App() {
           />
 
           <Route
-            path="/pro-workspace"
+            path="/workspace-2_0"
             element={
               <RequireAuth>
                 <DepthFlowWorkspace />
@@ -135,6 +161,7 @@ function App() {
             <Route path="documentation" element={<ApiDocumentation />} />
             <Route path="pricing" element={<ApiPricing />} />
             <Route path="billing" element={<ApiBilling />} />
+            <Route path="support-contact" element={<ApiSupport />} />
 
             {/* 3. Catch-all for invalid sub-routes (e.g., /depthflow-api/typo) */}
             <Route path="*" element={<Navigate to="dashboard" replace />} />
