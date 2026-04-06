@@ -5,10 +5,11 @@ import {
   Key, 
   FileText, 
   Book, 
-  Percent, 
+  CircleQuestionMark, 
   CreditCard,
   Menu,
-  X
+  X,
+  DollarSign
 } from 'lucide-react';
 
 const ApiSidebar = () => {
@@ -25,8 +26,9 @@ const ApiSidebar = () => {
     { id: 'api-keys', label: 'API Keys', icon: Key },
     { id: 'logs', label: 'Logs', icon: FileText },
     { id: 'documentation', label: 'Documentation', icon: Book },
-    { id: 'pricing', label: 'Pricing Plans', icon: Percent },
+    { id: 'pricing', label: 'Pricing Plans', icon: DollarSign },
     { id: 'billing', label: 'Billing', icon: CreditCard },
+    { id: 'support-contact', label: 'Support & Contact', icon: CircleQuestionMark }
   ];
 
   return (

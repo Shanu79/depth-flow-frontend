@@ -1,7 +1,96 @@
-import React from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus, Minus } from 'lucide-react';
 import useAuthStore from '../../stores/authStore.js';
 
+// --- API FAQ DATA ---
+const apiFaqs = [
+  {
+    question: "How does API work?",
+    answer: "Depthflow API uses a simple credit-based system. Each API request consumes credits depending on the render type, duration, and quality. This allows you to scale usage based on your needs without fixed limitations."
+  },
+  {
+    question: "How many credits are used per request?",
+    answer: "A standard 3D render typically consumes 20 credits. Longer durations or higher-quality outputs may require additional credits."
+  },
+  {
+    question: "Can I upgrade or downgrade my API plan anytime?",
+    answer: "Yes, you can upgrade or downgrade your API plan at any time based on your usage. Changes take effect instantly or from the next billing cycle."
+  },
+  {
+    question: "What happens if I run out of credits?",
+    answer: "If your credits are exhausted, API requests will stop processing. You can either upgrade your plan or purchase additional credits to continue using the service."
+  },
+  {
+    question: "Do unused credits roll over to the next month?",
+    answer: "No, unused credits do not roll over. We recommend choosing a plan that matches your expected usage for maximum value."
+  },
+  {
+    question: "Is the API suitable for commercial use?",
+    answer: "Yes, all paid API plans allow commercial usage. You can integrate Depthflow into your apps, tools, or platforms and use the outputs for business purposes."
+  },
+  {
+    question: "Is payment secure and available worldwide?",
+    answer: "Yes, all payments are securely processed, and we support global payments in multiple currencies, making it easy to subscribe from anywhere in the world."
+  }
+];
+
+// --- FAQ COMPONENT ---
+const FAQSection = () => {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  return (
+    <div className="mt-8 max-w-3xl mx-auto w-full px-4 relative z-10">
+      <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-4 tracking-wide">
+        API Pricing FAQs
+      </h2>
+      <p className="text-gray-400 text-center mb-12 text-sm md:text-sm">
+        Everything you need to know about our API pricing and billing.
+      </p>
+
+      <div className="space-y-4">
+        {apiFaqs.map((faq, index) => (
+          <div
+            key={index}
+            className={`border rounded-xl transition-all duration-300 ${
+              openIndex === index
+                ? 'bg-[#151124] border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.1)]'
+                : 'bg-[#151124]/50 border-white/5 hover:border-white/10'
+            }`}
+          >
+            <button
+              onClick={() => setOpenIndex(openIndex === index ? null : index)}
+              className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
+            >
+              <span className="font-medium text-gray-200 text-base md:text-lg pr-4">
+                {faq.question}
+              </span>
+              {openIndex === index ? (
+                <Minus className="w-5 h-5 text-purple-400 flex-shrink-0" />
+              ) : (
+                <Plus className="w-5 h-5 text-gray-500 flex-shrink-0" />
+              )}
+            </button>
+
+            <div
+              className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+                openIndex === index ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="px-6 pb-6 text-gray-400 text-sm md:text-base leading-relaxed border-t border-white/5 pt-4 mt-2">
+                  {faq.answer}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN API PRICING COMPONENT ---
 const ApiPricing = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
@@ -50,11 +139,11 @@ const ApiPricing = () => {
 
   // Generate props for each specific plan
   const starterProps = getButtonProps("Starter API", "99", "10000");
-  const growthProps = getButtonProps("Growth API", "249", "27000");
-  const proProps = getButtonProps("Pro API", "499", "60000");
+  const growthProps = getButtonProps("Growth API", "249", "30000");
+  const proProps = getButtonProps("Pro API", "499", "65000");
 
   return (
-    <div className="w-full relative text-white font-sans flex flex-col items-center overflow-hidden">
+    <div className="w-full relative text-white font-sans flex flex-col items-center overflow-hidden pb-20">
       
       {/* Background Glows to match the application's ambiance */}
       <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-indigo-600/20 rounded-full blur-[150px] pointer-events-none z-0"></div>
@@ -189,7 +278,7 @@ const ApiPricing = () => {
               </li>
             </ul>
             <a 
-              href="mailto:contact@depthflow.ai" // Replace with your actual contact link/email
+              href="mailto:contact@depthflow.ai" 
               className="w-full py-3.5 rounded-2xl border border-gray-500/50 text-[#ceceda] text-[15px] font-medium hover:bg-white/5 hover:text-white transition-colors shadow-[inset_0_0_15px_rgba(255,255,255,0.02)] mt-auto text-center block"
             >
               Contact Us
@@ -197,6 +286,10 @@ const ApiPricing = () => {
           </div>
 
         </div>
+
+        {/* --- FAQ SECTION INJECTED HERE --- */}
+        <FAQSection />
+
       </main>
     </div>
   );
