@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import { Scale, CheckCircle, AlertTriangle, CreditCard, Copyright, Server, ShieldAlert, FileText, Mail, UserCheck } from 'lucide-react';
 
 const Terms = () => {

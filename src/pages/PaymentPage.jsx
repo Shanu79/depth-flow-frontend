@@ -9,7 +9,10 @@ const PaymentPage = () => {
   const { state } = useLocation();
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
+  
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isTermsAccepted, setIsTermsAccepted] = useState(false); 
+  
   const refreshUser = useAuthStore((state) => state.refreshUser);
 
   // 1. Initialize SDK (Handles Checkout Events for New Subs)
@@ -106,11 +109,7 @@ const PaymentPage = () => {
 
       // CASE B: New Subscription
       else if (data.action === "checkout" && data.checkout_url) {
-        // Option 1 (Debug): Log the URL to be sure it's valid
         console.log("Redirecting to:", data.checkout_url);
-
-        // Option 2 (Fix): Force a top-level redirect instead of SDK
-        // This bypasses iframe/CORS issues.
         window.location.href = data.checkout_url;
       }
 
@@ -126,7 +125,6 @@ const PaymentPage = () => {
     }
   };
 
-  // Check if this is a subscription upgrade (Active sub AND not buying an add-on)
   const isOneTime = planName === "Credit Pack" || planName === "Trial" || billingCycle === "onetime" || billingCycle === "one_time";
   
   const isUpgrade = user?.subscription_id && (
@@ -184,15 +182,32 @@ const PaymentPage = () => {
             <p className="text-slate-500 text-sm mt-2">Secured by Dodo Payments</p>
           </div>
 
+          {/* Terms and Conditions Checkbox */}
+          <div className="flex items-start gap-3 mb-6">
+            <input
+              type="checkbox"
+              id="terms"
+              checked={isTermsAccepted}
+              onChange={(e) => setIsTermsAccepted(e.target.checked)}
+              className="mt-1 w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer"
+            />
+            <label htmlFor="terms" className="text-sm text-slate-400 cursor-pointer select-none">
+              I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">Terms of Service</a> and <a href="#" className="text-cyan-400 hover:underline">Privacy Policy</a>.
+            </label>
+          </div>
+
           <button
             onClick={handlePayment}
-            disabled={isProcessing}
-            className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] flex items-center justify-center gap-2"
+            disabled={isProcessing || !isTermsAccepted}
+            className={`w-full py-4 font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+              isProcessing || !isTermsAccepted 
+                ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
+                : 'bg-cyan-500 hover:bg-cyan-400 text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]'
+            }`}
           >
             {isProcessing ? (
               <Loader2 className="animate-spin" />
             ) : (
-              // FIX: Only show "Confirm Plan Change" if it is an actual upgrade/downgrade, NOT an add-on
               isUpgrade ? `Confirm Plan Change ($${price})` : `Pay $${price}`
             )}
           </button>
