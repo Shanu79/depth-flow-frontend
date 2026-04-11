@@ -161,7 +161,7 @@ function App() {
 
           {/* ================= SETTINGS ROUTES ================= */}
           <Route
-            path="/api"
+            path="/apis"
             element={
               
                 <DepthflowApi />
