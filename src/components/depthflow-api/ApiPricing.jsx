@@ -143,7 +143,7 @@ const ApiPricing = () => {
     const messageTemplate = `Hi Depthflow Team,\n\nI am interested in the Enterprise API plan to scale my application. Here are some details to help you understand my needs:\n\n- Expected API volume (requests per month):\n- Brief description of my use case:\n- Company name:\n\nLooking forward to discussing a custom solution.\n\nBest regards,`;
 
     // Make sure "/contact" matches the actual route where ApiSupportContact is rendered!
-    navigate("/api/support-contact", { 
+    navigate("/apis/support-contact", { 
       state: { 
         prefilledSubject: subjectTemplate, 
         prefilledMessage: messageTemplate 
