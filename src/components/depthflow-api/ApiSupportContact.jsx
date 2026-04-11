@@ -17,6 +17,8 @@ const ApiSupportContact = () => {
 
   const [status, setStatus] = useState('idle');
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
   const faqs = [
     { question: "How can I contact support?", answer: "You can reach us using the contact form on this page or by directly emailing our support team at api@depthflow.io." },
     { question: "Do you provide technical support for API integration?", answer: "Yes, our technical team provides dedicated support to help you successfully integrate our API into your applications." },
@@ -38,7 +40,7 @@ const ApiSupportContact = () => {
 
     try {
       // NOTE: Replace with your actual backend URL or use relative path if proxied
-      const response = await fetch('http://localhost:8000/contact', {
+      const response = await fetch(`${API_BASE_URL}/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
