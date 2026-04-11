@@ -18,7 +18,6 @@ import WhatsNewModal from "./components/WhatsNewModal";
 // --- PAGES ---
 const HomePage = lazy(() => import("./pages/HomePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
-const Workspace = lazy(() => import("./pages/Workspace"));
 const DepthFlowWorkspace = lazy(() => import("./pages/DepthFlowWorkspace"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
@@ -137,16 +136,6 @@ function App() {
             path="/login"
             element={
               user ? <Navigate to={redirectPath} replace /> : <LoginPage />
-            }
-          />
-
-          {/* ================= USER PROTECTED ================= */}
-          <Route
-            path="/workspace"
-            element={
-              <RequireAuth>
-                <Workspace />
-              </RequireAuth>
             }
           />
 

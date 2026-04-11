@@ -229,9 +229,10 @@ const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
 const DepthFlowWorkspace = () => {
   // UI State
   const [activeMode, setActiveMode] = useState("basic");
-  const [activeTab, setActiveTab] = useState(() =>
-    localStorage.getItem("df_resultVideoUrl") ? "result" : "input",
-  );
+  
+  // FIX: Force the active tab to be "input" by default on page load.
+  const [activeTab, setActiveTab] = useState("input");
+  
   const [showCreditModal, setShowCreditModal] = useState(false);
 
   // Core Engine States
@@ -273,9 +274,10 @@ const DepthFlowWorkspace = () => {
   const [previewUrl, setPreviewUrl] = useState(
     () => localStorage.getItem("df_previewUrl") || null,
   );
-  const [resultVideoUrl, setResultVideoUrl] = useState(
-    () => localStorage.getItem("df_resultVideoUrl") || null,
-  );
+  
+  // FIX: Set resultVideoUrl to null initially so the result tab is disabled until a new video is made
+  const [resultVideoUrl, setResultVideoUrl] = useState(null);
+  
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -349,8 +351,11 @@ const DepthFlowWorkspace = () => {
     if (file) {
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      
+      // FIX: Clearing results explicitly when a new file is uploaded
       setResultVideoUrl(null);
       localStorage.removeItem("df_resultVideoUrl");
+      
       setActiveTab("input");
       const reader = new FileReader();
       reader.onload = () => {
@@ -487,7 +492,7 @@ const DepthFlowWorkspace = () => {
         }}
       ></div>
 
-      {/* Main Content Area - We apply a slight blur and disable pointer events if the user is free to prevent any background interactions */}
+      {/* Main Content Area */}
       <main className={`relative z-10 w-[95%] max-w-[95%] mx-auto md:pt-[12vh] pt-[5vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh] transition-all duration-300`}>
         <h1 className="text-2xl md:text-3xl font-bold mt-[10vh] mb-[2vh] md:my-[2vh] tracking-wide text-center md:text-left flex flex-col items-center md:items-start">
           Create 3D Image
@@ -768,6 +773,7 @@ const DepthFlowWorkspace = () => {
                   <button
                     onClick={() => resultVideoUrl && setActiveTab("result")}
                     disabled={!resultVideoUrl}
+                    title={!resultVideoUrl ? "Generate an image to view results" : ""}
                     className={`px-8 py-2 rounded-md text-sm font-semibold transition-all ${activeTab === "result" ? "bg-[#3b1d75] text-purple-100 shadow-[0_2px_10px_rgba(88,33,167,0.4)]" : "text-gray-400 hover:text-white"} ${!resultVideoUrl ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Result
