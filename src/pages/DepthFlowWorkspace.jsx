@@ -238,7 +238,7 @@ const DepthFlowWorkspace = () => {
   // Core Engine States
   const [motion, setMotion] = useState({
     style: "dolly",
-    amplitude: 0.2,
+    amplitude: 0.5,
     speed: 1.0,
     focus: 0.0,
     phase: 0.0,
