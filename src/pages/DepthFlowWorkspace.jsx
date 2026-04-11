@@ -14,7 +14,6 @@ import {
   Loader2,
   AlertCircle,
   X,
-  Lock, // <-- ADDED LOCK ICON
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -286,21 +285,6 @@ const DepthFlowWorkspace = () => {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // --- ROBUST FREE USER CHECK ---
-  const isFreeUser = !user?.plan || user.plan.toLowerCase() === "free";
-
-  // --- PREVENT SCROLLING IF LOCKED ---
-  useEffect(() => {
-    if (isFreeUser) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isFreeUser]);
-
   const currentCost =
     GENERATION_COST +
     (render.duration > 20 ? 10 : render.duration > 10 ? 5 : 0);
@@ -481,44 +465,6 @@ const DepthFlowWorkspace = () => {
 
   return (
     <div className="flex-1 w-full bg-[#070514] text-white font-sans relative flex flex-col min-h-screen overflow-x-hidden">
-      
-      {/* --- PREMIUM LOCK OVERLAY (FIXED & NON-CLOSABLE) --- */}
-      {isFreeUser && (
-        <div className="fixed inset-0 z-[999] bg-[#070514]/80 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
-          <div className="bg-[#110c24] border border-purple-500/40 rounded-3xl p-8 max-w-md w-full flex flex-col items-center text-center shadow-[0_0_50px_rgba(168,85,247,0.25)] relative overflow-hidden">
-            {/* Ambient inner glow */}
-            <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-purple-600/20 to-transparent pointer-events-none"></div>
-            
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(168,85,247,0.3)] relative z-10">
-              <Lock className="w-8 h-8 text-purple-400" />
-            </div>
-            
-            <h2 className="text-2xl font-bold text-white mb-3 relative z-10">
-              Workspace 2.0 is Premium
-            </h2>
-            
-            <p className="text-gray-300 mb-8 text-sm leading-relaxed relative z-10">
-              Upgrade your plan to unlock our advanced 3D DepthFlow engine. Get access to cinematic camera controls, high-quality rendering, and complex visual effects.
-            </p>
-            
-            <button
-              onClick={() => navigate("/pricing")}
-              className="w-full py-4 rounded-xl font-bold tracking-wide bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white shadow-[0_0_20px_rgba(217,70,239,0.4)] transition-all transform hover:scale-[1.02] relative z-10"
-            >
-              Upgrade Plan to Access
-            </button>
-            
-            <button
-              onClick={() => navigate(-1)} 
-              className="mt-4 text-sm font-medium text-gray-500 hover:text-gray-300 transition-colors relative z-10"
-            >
-              Go Back
-            </button>
-          </div>
-        </div>
-      )}
-      {/* --------------------------------- */}
-
       <CreditAlertModal
         isOpen={showCreditModal}
         onClose={() => setShowCreditModal(false)}
@@ -542,7 +488,7 @@ const DepthFlowWorkspace = () => {
       ></div>
 
       {/* Main Content Area - We apply a slight blur and disable pointer events if the user is free to prevent any background interactions */}
-      <main className={`relative z-10 w-[95%] max-w-[95%] mx-auto md:pt-[12vh] pt-[5vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh] transition-all duration-300 ${isFreeUser ? 'blur-sm pointer-events-none select-none' : ''}`}>
+      <main className={`relative z-10 w-[95%] max-w-[95%] mx-auto md:pt-[12vh] pt-[5vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh] transition-all duration-300`}>
         <h1 className="text-2xl md:text-3xl font-bold mt-[10vh] mb-[2vh] md:my-[2vh] tracking-wide text-center md:text-left flex flex-col items-center md:items-start">
           Create 3D Image
         </h1>

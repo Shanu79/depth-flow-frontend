@@ -43,11 +43,7 @@ const Hero = () => {
             onClick={() => {
               // If the user exists and their plan is NOT 'free', send them to the pro workspace.
               // Otherwise (free users or guests), send them to the standard workspace.
-              if (user && user.plan?.toLowerCase() !== "free") {
-                navigate("/workspace-2_0");
-              } else {
-                navigate("/workspace");
-              }
+              navigate("/workspace-2_0");
             }}
             className="px-8 py-3.5 rounded-full text-white font-semibold text-sm md:text-base 
                              bg-gradient-to-r from-cyan-600/40 via-blue-700/40 to-purple-700/40 

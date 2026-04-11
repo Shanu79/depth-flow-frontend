@@ -163,9 +163,9 @@ function App() {
           <Route
             path="/api"
             element={
-              <RequireAuth>
+              
                 <DepthflowApi />
-              </RequireAuth>
+              
             }
           >
             <Route index element={<Navigate to="dashboard" replace />} />
