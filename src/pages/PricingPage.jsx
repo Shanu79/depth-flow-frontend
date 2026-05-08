@@ -234,7 +234,7 @@ const PricingPage = () => {
       checkoutPrice: { monthly: "10", yearly: "108" }, // Billed as $108
       originalPrice: { monthly: null, yearly: "10" }, // Crossed out $10
       period: { monthly: "/ month", yearly: "/ month" },
-      description: "Most Popular",
+      description: "For individuals",
       features: [
         {
           text: "600 credits per month",

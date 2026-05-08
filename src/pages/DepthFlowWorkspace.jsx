@@ -229,10 +229,10 @@ const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
 const DepthFlowWorkspace = () => {
   // UI State
   const [activeMode, setActiveMode] = useState("basic");
-  
+
   // FIX: Force the active tab to be "input" by default on page load.
   const [activeTab, setActiveTab] = useState("input");
-  
+
   const [showCreditModal, setShowCreditModal] = useState(false);
 
   // Core Engine States
@@ -274,10 +274,10 @@ const DepthFlowWorkspace = () => {
   const [previewUrl, setPreviewUrl] = useState(
     () => localStorage.getItem("df_previewUrl") || null,
   );
-  
+
   // FIX: Set resultVideoUrl to null initially so the result tab is disabled until a new video is made
   const [resultVideoUrl, setResultVideoUrl] = useState(null);
-  
+
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -323,7 +323,7 @@ const DepthFlowWorkspace = () => {
       }
     };
 
-    handleResize(); 
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -349,13 +349,25 @@ const DepthFlowWorkspace = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // --- NEW LOGIC: Check file size limit (10MB) ---
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+      if (file.size > MAX_FILE_SIZE) {
+        alert("File size exceeds the 10MB limit. Please choose a smaller image.");
+        // Reset the file input so the user can try again
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return; // Stop execution here
+      }
+      // ----------------------------------------------
+
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
-      
+
       // FIX: Clearing results explicitly when a new file is uploaded
       setResultVideoUrl(null);
       localStorage.removeItem("df_resultVideoUrl");
-      
+
       setActiveTab("input");
       const reader = new FileReader();
       reader.onload = () => {
@@ -493,7 +505,9 @@ const DepthFlowWorkspace = () => {
       ></div>
 
       {/* Main Content Area */}
-      <main className={`relative z-10 w-[95%] max-w-[95%] mx-auto md:pt-[12vh] pt-[5vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh] transition-all duration-300`}>
+      <main
+        className={`relative z-10 w-[95%] max-w-[95%] mx-auto md:pt-[12vh] pt-[5vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh] transition-all duration-300`}
+      >
         <h1 className="text-2xl md:text-3xl font-bold mt-[10vh] mb-[2vh] md:my-[2vh] tracking-wide text-center md:text-left flex flex-col items-center md:items-start">
           Create 3D Image
         </h1>
@@ -527,7 +541,9 @@ const DepthFlowWorkspace = () => {
                 {activeMode === "basic" ? (
                   <div className="flex flex-col gap-4 animate-in fade-in">
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-5 text-white">Render</h3>
+                      <h3 className="text-sm font-semibold mb-5 text-white">
+                        Render
+                      </h3>
                       <div className="space-y-6">
                         <SliderControl
                           label="Motion Amplitude"
@@ -535,7 +551,9 @@ const DepthFlowWorkspace = () => {
                           min={0.1}
                           max={3.0}
                           step={0.1}
-                          onChange={(v) => setMotion({ ...motion, amplitude: v })}
+                          onChange={(v) =>
+                            setMotion({ ...motion, amplitude: v })
+                          }
                         />
                         <SliderControl
                           label="Motion Speed"
@@ -552,50 +570,66 @@ const DepthFlowWorkspace = () => {
                           min={1}
                           max={15}
                           step={1}
-                          onChange={(v) => setRender({ ...render, duration: v })}
+                          onChange={(v) =>
+                            setRender({ ...render, duration: v })
+                          }
                           unit="s"
                         />
                       </div>
                     </div>
 
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-4 text-white">Camera Motion</h3>
+                      <h3 className="text-sm font-semibold mb-4 text-white">
+                        Camera Motion
+                      </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         <MotionButton
                           icon={<ArrowRight size={14} />}
                           label="Dolly"
                           active={motion.style === "dolly"}
-                          onClick={() => setMotion({ ...motion, style: "dolly" })}
+                          onClick={() =>
+                            setMotion({ ...motion, style: "dolly" })
+                          }
                         />
                         <MotionButton
                           icon={<Orbit size={14} />}
                           label="Orbit"
                           active={motion.style === "orbit"}
-                          onClick={() => setMotion({ ...motion, style: "orbit" })}
+                          onClick={() =>
+                            setMotion({ ...motion, style: "orbit" })
+                          }
                         />
                         <MotionButton
                           icon={<ZoomIn size={14} />}
                           label="Zoom"
                           active={motion.style === "zoom"}
-                          onClick={() => setMotion({ ...motion, style: "zoom" })}
+                          onClick={() =>
+                            setMotion({ ...motion, style: "zoom" })
+                          }
                         />
                         <MotionButton
                           icon={<MoveHorizontal size={14} />}
                           label="Horizontal"
                           active={motion.style === "horizontal"}
-                          onClick={() => setMotion({ ...motion, style: "horizontal" })}
+                          onClick={() =>
+                            setMotion({ ...motion, style: "horizontal" })
+                          }
                         />
                         <MotionButton
                           icon={<MoveVertical size={14} />}
                           label="Vertical"
                           active={motion.style === "vertical"}
-                          onClick={() => setMotion({ ...motion, style: "vertical" })}
+                          onClick={() =>
+                            setMotion({ ...motion, style: "vertical" })
+                          }
                         />
                         <MotionButton
                           icon={<Circle size={14} />}
                           label="Circle"
                           active={motion.style === "circle"}
-                          onClick={() => setMotion({ ...motion, style: "circle" })}
+                          onClick={() =>
+                            setMotion({ ...motion, style: "circle" })
+                          }
                         />
                       </div>
                     </div>
@@ -603,7 +637,9 @@ const DepthFlowWorkspace = () => {
                 ) : (
                   <div className="flex flex-col gap-4 animate-in fade-in">
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-4 text-white">Render</h3>
+                      <h3 className="text-sm font-semibold mb-4 text-white">
+                        Render
+                      </h3>
                       <div className="space-y-5">
                         <SliderControl
                           label="Duration"
@@ -611,7 +647,9 @@ const DepthFlowWorkspace = () => {
                           min={1}
                           max={30}
                           step={1}
-                          onChange={(v) => setRender({ ...render, duration: v })}
+                          onChange={(v) =>
+                            setRender({ ...render, duration: v })
+                          }
                           unit="s"
                         />
                         <SelectControl
@@ -622,7 +660,9 @@ const DepthFlowWorkspace = () => {
                             { label: "1.5x", value: 1.5 },
                             { label: "2.0x", value: 2.0 },
                           ]}
-                          onChange={(v) => setRender({ ...render, ssaa: parseFloat(v) })}
+                          onChange={(v) =>
+                            setRender({ ...render, ssaa: parseFloat(v) })
+                          }
                         />
                         <SelectControl
                           label="FPS"
@@ -632,13 +672,17 @@ const DepthFlowWorkspace = () => {
                             { label: "30p", value: 30 },
                             { label: "60p", value: 60 },
                           ]}
-                          onChange={(v) => setRender({ ...render, fps: parseInt(v) })}
+                          onChange={(v) =>
+                            setRender({ ...render, fps: parseInt(v) })
+                          }
                         />
                       </div>
                     </div>
 
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-4 text-white">Camera & Motions</h3>
+                      <h3 className="text-sm font-semibold mb-4 text-white">
+                        Camera & Motions
+                      </h3>
                       <div className="space-y-5">
                         <SelectControl
                           label="Style"
@@ -657,19 +701,25 @@ const DepthFlowWorkspace = () => {
 
                         <div className="flex gap-2 w-full">
                           <button
-                            onClick={() => setMotion({ ...motion, reverse: !motion.reverse })}
+                            onClick={() =>
+                              setMotion({ ...motion, reverse: !motion.reverse })
+                            }
                             className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors truncate ${motion.reverse ? "bg-purple-600/80 border border-purple-500 text-white" : "bg-white/5 border border-white/10 text-gray-300"}`}
                           >
                             Reverse
                           </button>
                           <button
-                            onClick={() => setMotion({ ...motion, smooth: !motion.smooth })}
+                            onClick={() =>
+                              setMotion({ ...motion, smooth: !motion.smooth })
+                            }
                             className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors truncate ${motion.smooth ? "bg-purple-600/80 border border-purple-500 text-white" : "bg-white/5 border border-white/10 text-gray-300"}`}
                           >
                             Smooth
                           </button>
                           <button
-                            onClick={() => setMotion({ ...motion, loop: !motion.loop })}
+                            onClick={() =>
+                              setMotion({ ...motion, loop: !motion.loop })
+                            }
                             className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors truncate ${motion.loop ? "bg-purple-600/80 border border-purple-500 text-white" : "bg-white/5 border border-white/10 text-gray-300"}`}
                           >
                             Loop
@@ -682,7 +732,9 @@ const DepthFlowWorkspace = () => {
                           min={0.5}
                           max={3}
                           step={0.1}
-                          onChange={(v) => setMotion({ ...motion, speed: parseFloat(v) })}
+                          onChange={(v) =>
+                            setMotion({ ...motion, speed: parseFloat(v) })
+                          }
                         />
 
                         <SliderControl
@@ -697,7 +749,9 @@ const DepthFlowWorkspace = () => {
                     </div>
 
                     <div className="bg-[#151029]/60 border border-white/5 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold mb-4 text-white">Cinematic Effects</h3>
+                      <h3 className="text-sm font-semibold mb-4 text-white">
+                        Cinematic Effects
+                      </h3>
                       <div className="space-y-5">
                         <SliderControl
                           label="Intensity"
@@ -705,7 +759,12 @@ const DepthFlowWorkspace = () => {
                           min={0}
                           max={2}
                           step={0.1}
-                          onChange={(v) => setEffects({ ...effects, dof: { ...effects.dof, intensity: v } })}
+                          onChange={(v) =>
+                            setEffects({
+                              ...effects,
+                              dof: { ...effects.dof, intensity: v },
+                            })
+                          }
                         />
                         <SelectControl
                           label="Bokeh Quality"
@@ -715,7 +774,9 @@ const DepthFlowWorkspace = () => {
                             { label: "Medium (80)", value: 80 },
                             { label: "Low (50)", value: 50 },
                           ]}
-                          onChange={(v) => setRender({ ...render, quality: parseInt(v) })}
+                          onChange={(v) =>
+                            setRender({ ...render, quality: parseInt(v) })
+                          }
                         />
                       </div>
                     </div>
@@ -773,7 +834,9 @@ const DepthFlowWorkspace = () => {
                   <button
                     onClick={() => resultVideoUrl && setActiveTab("result")}
                     disabled={!resultVideoUrl}
-                    title={!resultVideoUrl ? "Generate an image to view results" : ""}
+                    title={
+                      !resultVideoUrl ? "Generate an image to view results" : ""
+                    }
                     className={`px-8 py-2 rounded-md text-sm font-semibold transition-all ${activeTab === "result" ? "bg-[#3b1d75] text-purple-100 shadow-[0_2px_10px_rgba(88,33,167,0.4)]" : "text-gray-400 hover:text-white"} ${!resultVideoUrl ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Result
@@ -850,7 +913,7 @@ const DepthFlowWorkspace = () => {
                         </div>
 
                         <p className="text-xs lg:text-sm text-gray-300 font-medium bg-white/5 border border-white/10 px-6 py-2 rounded-full text-center shadow-inner">
-                          Supports: JPG, PNG, WebP (Max 20MB)
+                          Supports: JPG, PNG, WebP (Max 10MB)
                         </p>
                       </div>
                     )}
@@ -905,7 +968,7 @@ const DepthFlowWorkspace = () => {
             </div>
           </section>
         </div>
-        
+
         {/* History Section */}
         {history.length > 0 && (
           <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[87%] mx-auto flex flex-col gap-4">
