@@ -139,6 +139,13 @@ function App() {
             }
           />
 
+          {/* ADD THIS NEW REDIRECT ROUTE FOR OLD WORKSPACE LINKS */}
+          <Route 
+            path="/workspace" 
+            element={<Navigate to="/workspace-2_0" replace />} 
+          />
+
+          {/* Existing 2.0 Workspace Route */}
           <Route
             path="/workspace-2_0"
             element={
