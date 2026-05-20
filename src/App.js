@@ -46,7 +46,7 @@ const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 // ==========================================
 // MAINTENANCE MODE TOGGLE
 // ==========================================
-const MAINTENANCE_MODE = false; // Set to 'true' to activate maintenance mode for non-admin users
+const MAINTENANCE_MODE = true; // Set to 'true' to activate maintenance mode for non-admin users
 
 function App() {
   const location = useLocation();
