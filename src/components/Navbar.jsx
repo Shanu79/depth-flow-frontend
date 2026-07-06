@@ -80,6 +80,50 @@ const Navbar = ({ onOpenWhatsNew }) => {
 
       {/* Right Side Actions - Removed the unified background/shadow to separate elements */}
       <div className="flex items-center gap-4">
+        <a
+          href="/#app-banner"
+          onClick={(e) => {
+            // If you are already on the homepage, smoothly scroll to the element
+            if (window.location.pathname === "/") {
+              e.preventDefault();
+              document
+                .getElementById("app-banner")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
+          className="flex items-center gap-2 bg-[#050511]/40 border border-slate-700/80 hover:border-slate-500 rounded-lg px-3 py-1.5 transition-all duration-200 cursor-pointer"
+        >
+          {/* Google Play Triangle Logo */}
+          <svg viewBox="0 0 512 512" className="w-6 h-6">
+            <path
+              fill="#4285f4"
+              d="M32.6 15.6c-4.4 4.6-6.6 11.2-6.6 19.3v442.2c0 8.1 2.2 14.7 6.6 19.3l1.1 1.1 247-247v-2.1l-247-247-1.1 1.2z"
+            />
+            <path
+              fill="#ea4335"
+              d="M362.4 345l-81.7-81.7v-2.1l81.7-81.7 1.2.7 97 55.1c27.6 15.7 27.6 41.4 0 57.1l-97 55.1-1.2-2.5z"
+            />
+            <path
+              fill="#fbbc04"
+              d="M280.7 261.2l-248 248.1c8.4 9 22.8 10.3 40.5 0l207.5-118 81.7-81.7-81.7-81.7z"
+            />
+            <path
+              fill="#34a853"
+              d="M321.2 131.2l-207.5-118c-17.7-10.3-32.1-9-40.5 0l248 248.1 81.7-81.7-81.7-48.4z"
+            />
+          </svg>
+
+          {/* Badge Text */}
+          <div className="flex flex-col justify-center">
+            <span className="text-[9px] text-slate-200 font-medium tracking-wide uppercase leading-[1]">
+              Get it on
+            </span>
+            <span className="text-[15px] text-white font-semibold tracking-tight leading-[1.1] mt-[2px]">
+              Google Play
+            </span>
+          </div>
+        </a>
+
         {/* --- DESKTOP VIEW --- */}
         {user ? (
           <div className="hidden md:flex items-center gap-4">
@@ -102,7 +146,9 @@ const Navbar = ({ onOpenWhatsNew }) => {
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center border border-cyan-500/40 text-white font-bold text-sm shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                    {user.full_name ? user.full_name.charAt(0).toUpperCase() : "U"}
+                    {user.full_name
+                      ? user.full_name.charAt(0).toUpperCase()
+                      : "U"}
                   </div>
                 )}
               </div>
@@ -111,8 +157,8 @@ const Navbar = ({ onOpenWhatsNew }) => {
               <div className="absolute top-full right-0 mt-3 w-48 bg-slate-900 border border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
                 <button
                   onClick={() => {
-                  navigate("/workspace-2_0");
-                }}
+                    navigate("/workspace-2_0");
+                  }}
                   className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 border-b border-slate-800"
                 >
                   <LayoutGrid className="w-3.5 h-3.5" /> Workspace
