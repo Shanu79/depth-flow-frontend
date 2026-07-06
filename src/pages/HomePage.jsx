@@ -4,7 +4,7 @@ import HomeGallery from "../components/HomeGallery";
 import FAQ from "../components/Faq";
 import ComparisonTable from "../components/Comparision";
 
-import AppBannerImage from "../assets/DepthflowAI App Banner (1).png";
+import AppBannerImage from "../assets/DepthflowAI App Banner Phone.png";
 import AppBannerImagePhone from "../assets/DepthflowAI App Banner.png";
 
 const HomePage = () => (
