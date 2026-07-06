@@ -189,7 +189,7 @@ const WhatsNewModal = ({ isOpen = true, onClose }) => {
 
               <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
                 <a
-                  href="YOUR_APP_LINK_HERE"
+                  href="https://play.google.com/store/apps/details?id=com.shin.depthflow"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-3 rounded-full text-slate-900 bg-white shadow-[0_0_30px_-5px_rgba(34,211,238,0.5),0_0_30px_-5px_rgba(168,85,247,0.5)] hover:shadow-[0_0_40px_-5px_rgba(34,211,238,0.7),0_0_40px_-5px_rgba(168,85,247,0.7)] hover:scale-105 transition-all duration-300"

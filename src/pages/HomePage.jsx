@@ -3,8 +3,9 @@ import Features from "../components/Features";
 import HomeGallery from "../components/HomeGallery";
 import FAQ from "../components/Faq";
 import ComparisonTable from "../components/Comparision";
-// Make sure this points to your new image file
-import AppBannerImage from "../assets/DepthflowAI App Banner.png"; 
+
+import AppBannerImage from "../assets/DepthflowAI App Banner (1).png";
+import AppBannerImagePhone from "../assets/DepthflowAI App Banner.png";
 
 const HomePage = () => (
   <>
@@ -13,14 +14,33 @@ const HomePage = () => (
     <HomeGallery />
     <ComparisonTable />
     <FAQ />
-    
-    {/* ID added for Navbar scrolling, scroll-mt-24 prevents navbar overlap */}
-    <div id="app-banner" className="flex items-center justify-center w-full max-w-[1400px] mx-auto px-4 my-20 scroll-mt-24">
-        <img 
-          alt="DepthFlow AI App Banner" 
-          src={AppBannerImage} 
-          className="w-full h-auto object-contain" 
+
+    {/* 
+      Edge-to-Edge Full Width Banner 
+      - bg-[#f4f5f9] ensures the light background stretches indefinitely on ultrawide screens.
+      - Centered using flexbox (flex justify-center) on the inner wrapper.
+    */}
+    <div
+      id="app-banner"
+      className="w-full scroll-mt-24 bg-[#f4f5f9] flex justify-center"
+    >
+      <div className="w-full max-w-[1920px] flex justify-center items-center">
+        
+        {/* MOBILE IMAGE: Shows by default, hides on medium (md) screens and up */}
+        <img
+          alt="DepthFlow AI App Banner Mobile"
+          src={AppBannerImagePhone}
+          className="block md:hidden w-full h-auto object-contain"
         />
+
+        {/* DESKTOP IMAGE: Hidden by default, shows on medium (md) screens and up */}
+        <img
+          alt="DepthFlow AI App Banner Desktop"
+          src={AppBannerImage}
+          className="hidden md:block w-full lg:w-[57%] h-auto object-contain"
+        />
+
+      </div>
     </div>
   </>
 );

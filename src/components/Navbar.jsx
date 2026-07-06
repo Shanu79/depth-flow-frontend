@@ -91,10 +91,10 @@ const Navbar = ({ onOpenWhatsNew }) => {
                 ?.scrollIntoView({ behavior: "smooth" });
             }
           }}
-          className="flex items-center gap-2 bg-[#050511]/40 border border-slate-700/80 hover:border-slate-500 rounded-lg px-3 py-1.5 transition-all duration-200 cursor-pointer"
+          className="flex items-center gap-1.5 md:gap-2 bg-[#050511]/40 border border-slate-700/80 hover:border-slate-500 rounded-lg px-2.5 py-1.5 md:px-3 transition-all duration-200 cursor-pointer"
         >
-          {/* Google Play Triangle Logo */}
-          <svg viewBox="0 0 512 512" className="w-6 h-6">
+          {/* Google Play Triangle Logo - Scaled down for mobile using w-4 h-4 md:w-6 md:h-6 */}
+          <svg viewBox="0 0 512 512" className="w-4 h-4 md:w-6 md:h-6">
             <path
               fill="#4285f4"
               d="M32.6 15.6c-4.4 4.6-6.6 11.2-6.6 19.3v442.2c0 8.1 2.2 14.7 6.6 19.3l1.1 1.1 247-247v-2.1l-247-247-1.1 1.2z"
@@ -115,10 +115,10 @@ const Navbar = ({ onOpenWhatsNew }) => {
 
           {/* Badge Text */}
           <div className="flex flex-col justify-center">
-            <span className="text-[9px] text-slate-200 font-medium tracking-wide uppercase leading-[1]">
+            <span className="text-[8px] md:text-[9px] text-slate-200 font-medium tracking-wide uppercase leading-[1]">
               Get it on
             </span>
-            <span className="text-[15px] text-white font-semibold tracking-tight leading-[1.1] mt-[2px]">
+            <span className="text-[13px] md:text-[15px] text-white font-semibold tracking-tight leading-[1.1] mt-[2px]">
               Google Play
             </span>
           </div>
