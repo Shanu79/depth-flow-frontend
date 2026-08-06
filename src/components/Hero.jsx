@@ -56,13 +56,15 @@ const Hero = () => {
           </button>
 
           {/* Secondary Outline Button */}
-          <button
-            className="px-8 py-3.5 rounded-full text-white font-medium text-sm md:text-base 
-                             border border-gray-600 hover:bg-white/10 
-                             transition-colors duration-300"
-          >
-            Watch Demo
-          </button>
+<a
+  href="https://youtu.be/fuwROu3577k"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="px-8 py-3.5 rounded-full text-white font-medium text-sm md:text-base border border-gray-600 hover:bg-white/10 transition-colors duration-300 inline-block text-center"
+>
+  Watch Demo
+</a>
+
         </div>
       </div>
 
