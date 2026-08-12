@@ -55,14 +55,24 @@ const Hero = () => {
             {user ? "Continue to Workspace" : "Generate 3D Image Now"}
           </button>
 
-          {/* Secondary Outline Button */}
-          <button
-            className="px-8 py-3.5 rounded-full text-white font-medium text-sm md:text-base 
-                             border border-gray-600 hover:bg-white/10 
-                             transition-colors duration-300"
-          >
-            Watch Demo
-          </button>
+          {/* Gradient Pulse Button */}
+<div className="relative inline-block group">
+  {/* Continuous Pulse Glow Behind the Button */}
+  <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-30 blur-md group-hover:opacity-60 transition duration-500 animate-pulse"></div>
+  
+  <a
+    href="https://youtu.be/fuwROu3577k"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="relative px-8 py-3.5 rounded-full text-white font-medium text-sm md:text-base 
+               bg-black/50 border border-gray-600 group-hover:border-transparent
+               transition-all duration-300 inline-block text-center"
+  >
+    Watch Demo
+  </a>
+</div>
+
+
         </div>
       </div>
 
