@@ -20,8 +20,6 @@ import { useNavigate } from "react-router-dom";
 // Ensure these point to your actual config and store
 import { API_BASE_URL } from "../config.js";
 import useAuthStore from "../stores/authStore.js";
-import * as nsfwjs from "nsfwjs";
-import "@tensorflow/tfjs";
 
 const GENERATION_COST = 20;
 
@@ -229,7 +227,6 @@ const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
 // ==========================================
 
 const DepthFlowWorkspace = () => {
-
   // --- NSFW Moderation State ---
   const nsfwModelRef = useRef(null);
   const [isCheckingNsfw, setIsCheckingNsfw] = useState(false);
@@ -238,7 +235,8 @@ const DepthFlowWorkspace = () => {
   useEffect(() => {
     const loadNsfwModel = async () => {
       try {
-        nsfwModelRef.current = await nsfwjs.load();
+        // Use window.nsfwjs here
+        nsfwModelRef.current = await window.nsfwjs.load();
       } catch (error) {
         console.error("Failed to preload NSFW model:", error);
       }
@@ -393,7 +391,12 @@ const DepthFlowWorkspace = () => {
 
       // 2. Ensure model is loaded (fallback if it didn't finish preloading)
       if (!nsfwModelRef.current) {
-        nsfwModelRef.current = await nsfwjs.load();
+        // FIX: Ensure window.nsfwjs exists (CDN loaded) before trying to call it
+        if (!window.nsfwjs) {
+          throw new Error("Security filters are still loading. Please try again in a few seconds.");
+        }
+        // FIX: Added 'window.' to the fallback loader!
+        nsfwModelRef.current = await window.nsfwjs.load();
       }
 
       // 3. Scan the image
@@ -402,12 +405,16 @@ const DepthFlowWorkspace = () => {
       // 4. Enforce threshold (>60% Porn/Hentai/Sexy)
       const isExplicit = predictions.find(
         (p) =>
-          (p.className === "Porn" || p.className === "Hentai" || p.className === "Sexy") &&
-          p.probability > 0.60
+          (p.className === "Porn" ||
+            p.className === "Hentai" ||
+            p.className === "Sexy") &&
+          p.probability > 0.6,
       );
 
       if (isExplicit) {
-        alert("Policy Violation: Image contains inappropriate content and cannot be uploaded.");
+        alert(
+          "Policy Violation: Image contains inappropriate content and cannot be uploaded.",
+        );
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsCheckingNsfw(false);
         return; // BLOCK UPLOAD
@@ -429,10 +436,9 @@ const DepthFlowWorkspace = () => {
         } catch (e) {}
       };
       reader.readAsDataURL(file);
-      
     } catch (error) {
       console.error("NSFW check failed:", error);
-      alert("Failed to verify image safety. Please try again.");
+      alert(error.message || "Failed to verify image safety. Please try again.");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
       setIsCheckingNsfw(false);
@@ -920,7 +926,9 @@ const DepthFlowWorkspace = () => {
                         <Loader2 className="w-12 h-12 text-purple-400 animate-spin drop-shadow-[0_0_15px_rgba(168,85,247,0.8)]" />
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-purple-300 font-mono text-xs lg:text-sm uppercase tracking-widest text-center px-4">
-                            {isCheckingNsfw ? "Scanning Image..." : "Raymarching Shaders..."}
+                            {isCheckingNsfw
+                              ? "Scanning Image..."
+                              : "Raymarching Shaders..."}
                           </span>
                           {isCheckingNsfw && (
                             <span className="text-purple-400/70 font-mono text-[10px] uppercase tracking-widest text-center">
