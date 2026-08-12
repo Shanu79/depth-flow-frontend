@@ -16,6 +16,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config.js";
 import useAuthStore from "../stores/authStore.js";
+import * as nsfwjs from "nsfwjs";
+import "@tensorflow/tfjs"; // Required peer dependency for nsfwjs
 
 const GENERATION_COST = 20;
 
@@ -148,6 +150,22 @@ const Workspace = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  // --- NSFW Moderation State ---
+  const nsfwModelRef = useRef(null);
+  const [isCheckingNsfw, setIsCheckingNsfw] = useState(false);
+
+  // Preload the NSFW model in the background when the workspace loads
+  useEffect(() => {
+    const loadNsfwModel = async () => {
+      try {
+        nsfwModelRef.current = await nsfwjs.load();
+      } catch (error) {
+        console.error("Failed to preload NSFW model:", error);
+      }
+    };
+    loadNsfwModel();
+  }, []);
+
   const [activeTab, setActiveTab] = useState(() =>
     localStorage.getItem("ws_resultVideoUrl") ? "output" : "input",
   );
@@ -252,9 +270,46 @@ const Workspace = () => {
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
+    if (!file) return;
+
+    // Trigger scanning UI
+    setIsCheckingNsfw(true);
+
+    try {
       const objectUrl = URL.createObjectURL(file);
+
+      // 1. Create a temporary HTML image element in memory for the AI to read
+      const img = new Image();
+      img.src = objectUrl;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      // 2. Ensure model is loaded (fallback if it didn't finish preloading)
+      if (!nsfwModelRef.current) {
+        nsfwModelRef.current = await nsfwjs.load();
+      }
+
+      // 3. Scan the image
+      const predictions = await nsfwModelRef.current.classify(img);
+      
+      // 4. Enforce Dodo Payments compliance threshold (>60% Porn/Hentai/Sexy)
+      const isExplicit = predictions.find(
+        (p) =>
+          (p.className === "Porn" || p.className === "Hentai" || p.className === "Sexy") &&
+          p.probability > 0.60
+      );
+
+      if (isExplicit) {
+        alert("Policy Violation: Image contains inappropriate content and cannot be uploaded.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setIsCheckingNsfw(false);
+        return; // BLOCK UPLOAD
+      }
+
+      // 5. If safe, proceed with standard upload logic
+      setSelectedFile(file);
       setPreviewUrl(objectUrl);
 
       try {
@@ -268,6 +323,13 @@ const Workspace = () => {
       localStorage.removeItem("ws_resultVideoUrl");
       setActiveTab("input");
       setPreviewHeight(null);
+
+    } catch (error) {
+      console.error("NSFW check failed:", error);
+      alert("Failed to verify image safety. Please try again.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setIsCheckingNsfw(false);
     }
   };
 
@@ -522,7 +584,13 @@ const Workspace = () => {
             accept="image/png, image/jpeg"
           />
 
-          {previewUrl ? (
+          {isCheckingNsfw ? (
+            <div className="flex flex-col items-center justify-center">
+              <Loader2 className="w-10 h-10 text-purple-400 animate-spin mb-3" />
+              <p className="text-purple-300 font-medium text-sm">Scanning image...</p>
+              <p className="text-purple-400/70 text-xs mt-1">Enforcing safety policies</p>
+            </div>
+          ) : previewUrl ? (
             <div className="relative h-full w-full flex items-center justify-center">
               <img
                 src={previewUrl}
