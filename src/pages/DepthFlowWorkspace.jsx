@@ -230,8 +230,6 @@ const DepthFlowWorkspace = () => {
   // --- NSFW Moderation State ---
   const nsfwModelRef = useRef(null);
   const [isCheckingNsfw, setIsCheckingNsfw] = useState(false);
-  const [nsfwTestUrl, setNsfwTestUrl] = useState(null); // URL for the hidden image
-  const [pendingFile, setPendingFile] = useState(null); // Holds the file during the scan
 
   // Preload the NSFW model when the workspace loads
   useEffect(() => {
@@ -383,7 +381,7 @@ const DepthFlowWorkspace = () => {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -396,12 +394,61 @@ const DepthFlowWorkspace = () => {
     }
 
     setIsCheckingNsfw(true);
-    setPendingFile(file);
-
-    // FIX: Use URL.createObjectURL instead of FileReader Base64.
-    // It is synchronous, faster, and won't cause Canvas API silent failures.
+    
+    // Create the Object URL
     const objectUrl = URL.createObjectURL(file);
-    setNsfwTestUrl(objectUrl); 
+
+    try {
+      // 1. Create a native Image object purely in memory (No DOM needed!)
+      const img = new Image();
+      img.src = objectUrl;
+
+      // 2. Wait for the browser to fully decode the image into memory
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = (err) => reject(new Error("Failed to load image."));
+      });
+
+      // 3. Explicitly set dimensions (Crucial for TensorFlow)
+      img.width = img.naturalWidth || 224;
+      img.height = img.naturalHeight || 224;
+
+      // 4. Ensure the model is loaded
+      if (!nsfwModelRef.current) {
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
+      }
+
+      // 5. Classify the in-memory image
+      const predictions = await nsfwModelRef.current.classify(img);
+      console.log("Predictions from in-memory Image: ", predictions);
+
+      const explicitScore = predictions.reduce((total, p) => {
+        if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
+          return total + p.probability;
+        }
+        return total;
+      }, 0);
+
+      if (explicitScore > 0.60) {
+        alert(
+          `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
+        );
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      } else {
+        // Safe to use! Update your main state directly.
+        setSelectedFile(file);
+        setPreviewUrl(objectUrl);
+        setResultVideoUrl(null);
+        localStorage.removeItem("df_resultVideoUrl");
+        setActiveTab("input");
+      }
+    } catch (error) {
+      console.error("NSFW check failed:", error);
+      alert("Failed to verify image safety. Please try again.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setIsCheckingNsfw(false);
+    }
   };
 
   const handleGenerate = async () => {
@@ -512,65 +559,6 @@ const DepthFlowWorkspace = () => {
         onClose={() => setShowCreditModal(false)}
         currentCredits={credits}
       />
-
-      {/* Hidden Image for NSFWJS DOM Classification */}
-      {nsfwTestUrl && (
-        <img
-          src={nsfwTestUrl}
-          alt="nsfw-test"
-          width={224}
-          height={224} 
-          style={{
-            position: "absolute",
-            opacity: 0.01, 
-            pointerEvents: "none",
-            zIndex: -1,
-          }}
-          // FIX 2: Pass 'e' into the function
-          onLoad={async (e) => {
-            // FIX 3: Use the exact event target. NEVER use document.getElementById in this React context.
-            const imgNode = e.target; 
-            
-            try {
-              if (!nsfwModelRef.current) {
-                nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
-              }
-
-              // The model will now correctly read the pixel buffer of the newly loaded target
-              const predictions = await nsfwModelRef.current.classify(imgNode);
-              console.log("Predictions from real DOM node: ", predictions);
-
-              const explicitScore = predictions.reduce((total, p) => {
-                if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
-                  return total + p.probability;
-                }
-                return total;
-              }, 0);
-
-              if (explicitScore > 0.60) {
-                alert(
-                  `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
-                );
-                if (fileInputRef.current) fileInputRef.current.value = "";
-              } else {
-                setSelectedFile(pendingFile);
-                setPreviewUrl(nsfwTestUrl);
-                setResultVideoUrl(null);
-                localStorage.removeItem("df_resultVideoUrl");
-                setActiveTab("input");
-              }
-            } catch (error) {
-              console.error("NSFW check failed:", error);
-              alert("Failed to verify image safety. Please try again.");
-              if (fileInputRef.current) fileInputRef.current.value = "";
-            } finally {
-              setIsCheckingNsfw(false);
-              setNsfwTestUrl(null);
-              setPendingFile(null);
-            }
-          }}
-        />
-      )}
 
       {/* Percentage-Based Background Glows */}
       <div className="absolute top-0 left-0 lg:left-[20%] w-[80vw] lg:w-[40vw] h-[80vw] lg:h-[40vw] bg-purple-600/20 rounded-full blur-[100px] lg:blur-[120px] pointer-events-none"></div>
