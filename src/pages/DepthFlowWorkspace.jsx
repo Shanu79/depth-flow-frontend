@@ -242,7 +242,7 @@ const DepthFlowWorkspace = () => {
         window.tf.enableProdMode();
         
         // Pass the explicit path ending with model.json
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/model.json");
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
         
         console.log("NSFW model loaded successfully with local weights!");
       } catch (error) {
