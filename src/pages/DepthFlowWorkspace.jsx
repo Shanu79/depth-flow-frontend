@@ -397,38 +397,48 @@ const DepthFlowWorkspace = () => {
     setIsCheckingNsfw(true);
 
     try {
-      const objectUrl = URL.createObjectURL(file);
+      // Create a Data URL (base64) which is much safer for TFJS pixel reading than ObjectURLs
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      // 1. Create a temporary HTML image element in memory
+      // 1. Create the image and wait for it to fully decode in memory
       const img = new Image();
-      img.src = objectUrl;
+      img.crossOrigin = "anonymous"; // Prevent canvas tainting issues
+      img.src = base64Data;
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
       });
 
-      // --- THE FIX: Force the browser to decode the pixels using an invisible canvas ---
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth || img.width;
-      canvas.height = img.naturalHeight || img.height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-      // --------------------------------------------------------------------------------
+      // 2. Ensure TFJS Backend is Ready (CRUCIAL FIX per README)
+      if (!window.tf || !window.nsfwjs) {
+         throw new Error("Security libraries are still loading. Please try again.");
+      }
+      
+      // Wait for the backend to be initialized so it doesn't return empty tensors
+      await window.tf.ready();
+      window.tf.enableProdMode();
 
-      // 2. Ensure model is loaded
+      // 3. Ensure model is loaded
       if (!nsfwModelRef.current) {
-        if (!window.nsfwjs || !window.tf) {
-          throw new Error("Security filters are still loading. Please try again in a few seconds.");
-        }
-        window.tf.enableProdMode();
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
       }
 
-      // 3. Scan the CANVAS (not the raw img object)
-      const predictions = await nsfwModelRef.current.classify(canvas);
+      // 4. Convert Image to a Tensor explicitly 
+      // The classify function accepts Tensors, Image data, Image elements, video elements, or canvas elements.
+      const imageTensor = window.tf.browser.fromPixels(img);
       
-      // 4. Calculate a Combined Explicit Score for better accuracy
-      // This adds Porn + Hentai + Sexy into a single total score
+      // 5. Scan the Tensor directly
+      const predictions = await nsfwModelRef.current.classify(imageTensor);
+      
+      // 6. Explicitly dispose of the tensor to prevent memory leaks
+      imageTensor.dispose();
+
+      // 7. Calculate a Combined Explicit Score
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
           return total + p.probability;
@@ -436,11 +446,11 @@ const DepthFlowWorkspace = () => {
         return total;
       }, 0);
 
-      // Debugging: See the real numbers in your console
+      // Debugging: Verify the AI numbers are now unique
       console.log("Raw AI Predictions:", predictions);
       console.log(`Total Explicit Score: ${Math.round(explicitScore * 100)}%`);
 
-      // Enforce the 60% compliance threshold
+      // Enforce the compliance threshold
       if (explicitScore > 0.60) {
         alert(
           `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
@@ -450,22 +460,14 @@ const DepthFlowWorkspace = () => {
         return; // BLOCK UPLOAD
       }
 
-      // 5. If safe, proceed with standard upload logic
+      // 8. If safe, proceed with standard upload logic
       setSelectedFile(file);
-      setPreviewUrl(objectUrl);
-
-      // Clearing results explicitly when a new file is uploaded
+      setPreviewUrl(base64Data); // Reuse the base64 string
       setResultVideoUrl(null);
       localStorage.removeItem("df_resultVideoUrl");
-
+      localStorage.setItem("df_previewUrl", base64Data);
       setActiveTab("input");
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          localStorage.setItem("df_previewUrl", reader.result);
-        } catch (e) {}
-      };
-      reader.readAsDataURL(file);
+      
     } catch (error) {
       console.error("NSFW check failed:", error);
       alert(error.message || "Failed to verify image safety. Please try again.");
