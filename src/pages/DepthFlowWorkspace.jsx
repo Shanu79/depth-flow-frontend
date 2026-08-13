@@ -369,7 +369,7 @@ const DepthFlowWorkspace = () => {
   }, [isLoading]);
 
   // ==========================================
-  // BULLETPROOF NSFW FILE HANDLER
+  // EXACT DEMO BLUEPRINT (ImageData Pipeline)
   // ==========================================
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -383,8 +383,7 @@ const DepthFlowWorkspace = () => {
     }
 
     setIsCheckingNsfw(true);
-    let imageBitmap = null;
-    let imageTensor = null;
+    let imgBitmap = null;
 
     try {
       // 1. Ensure model is loaded
@@ -396,18 +395,23 @@ const DepthFlowWorkspace = () => {
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
       }
 
-      // 2. Directly decode the raw file into an ImageBitmap in memory (bypasses DOM paint lag)
-      imageBitmap = await createImageBitmap(file);
-      if (!imageBitmap.width || !imageBitmap.height) {
-        throw new Error("Invalid image bitmap dimensions decoded.");
+      // 2. Replicate the Demo's Worker Pattern using Offscreen/DOM Canvas & ImageBitmap[cite: 2]
+      imgBitmap = await createImageBitmap(file);
+      const canvas = document.createElement("canvas");
+      canvas.width = imgBitmap.width;
+      canvas.height = imgBitmap.height;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      
+      if (!ctx) {
+        throw new Error("2D canvas context is unavailable");
       }
 
-      // 3. Create the tensor directly from the bitmap
-      imageTensor = window.tf.browser.fromPixels(imageBitmap);
+      ctx.drawImage(imgBitmap, 0, 0);
+      const imageData = ctx.getImageData(0, 0, imgBitmap.width, imgBitmap.height);
 
-      // 4. Classify using the tensor directly
-      const predictions = await nsfwModelRef.current.classify(imageTensor);
-      console.log("Predictions from ImageBitmap Tensor: ", predictions);
+      // 3. Classify using raw ImageData bytes exactly like the demo implementation[cite: 2]
+      const predictions = await nsfwModelRef.current.classify(imageData);
+      console.log("Predictions from ImageData: ", predictions);
 
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
@@ -434,9 +438,7 @@ const DepthFlowWorkspace = () => {
       alert("Failed to verify image safety. Please try again.");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
-      // 5. Clean up tensor and bitmap memory to prevent leaks
-      if (imageTensor) imageTensor.dispose();
-      if (imageBitmap) imageBitmap.close();
+      if (imgBitmap) imgBitmap.close();
       setIsCheckingNsfw(false);
     }
   };
@@ -549,8 +551,6 @@ const DepthFlowWorkspace = () => {
         onClose={() => setShowCreditModal(false)}
         currentCredits={credits}
       />
-
-      {/* NOTE: The hidden <img> tag has been completely removed here */}
 
       {/* Percentage-Based Background Glows */}
       <div className="absolute top-0 left-0 lg:left-[20%] w-[80vw] lg:w-[40vw] h-[80vw] lg:h-[40vw] bg-purple-600/20 rounded-full blur-[100px] lg:blur-[120px] pointer-events-none"></div>
