@@ -240,8 +240,10 @@ const DepthFlowWorkspace = () => {
         }
         
         window.tf.enableProdMode();
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
-        console.log("NSFW model loaded successfully from local public folder!");
+        
+        // Use the exact load pattern from the demo codebase
+        nsfwModelRef.current = await window.nsfwjs.load();
+        console.log("NSFW model loaded successfully!");
       } catch (error) {
         console.error("Failed to preload NSFW model:", error);
       }
@@ -389,40 +391,27 @@ const DepthFlowWorkspace = () => {
     let imgBitmap = null;
 
     try {
-      // 1. Ensure model is loaded safely
       if (!nsfwModelRef.current) {
-        if (!window.nsfwjs || !window.tf) {
-          throw new Error("Security filters are still loading. Please try again in a few seconds.");
-        }
-        window.tf.enableProdMode();
-        // Fallback to loading standard model bundle if local path fails
-        nsfwModelRef.current = await window.nsfwjs.load().catch(() => window.nsfwjs.load("/nsfw_model/"));
+        nsfwModelRef.current = await window.nsfwjs.load();
       }
 
-      // 2. Exact match to the working demo's processing pipeline[cite: 2]
-      imgBitmap = await createImageBitmap(file);
+      // Replicating the exact worker prediction sequence[cite: 2]
       const offscreenCanvas = document.createElement("canvas");
-      offscreenCanvas.width = imgBitmap.width;
-      offscreenCanvas.height = imgBitmap.height;
       const ctx = offscreenCanvas.getContext("2d");
-      
       if (!ctx) {
         throw new Error("2D canvas context is unavailable");
       }
 
+      imgBitmap = await createImageBitmap(file);
+      offscreenCanvas.width = imgBitmap.width;
+      offscreenCanvas.height = imgBitmap.height;
+      
       ctx.drawImage(imgBitmap, 0, 0);
       const imageData = ctx.getImageData(0, 0, imgBitmap.width, imgBitmap.height);
 
-      // 3. Classify and validate output
       const predictions = await nsfwModelRef.current.classify(imageData);
-      
-      if (!predictions || predictions.length === 0) {
-        throw new Error("Model classification returned empty results.");
-      }
+      console.log("Demo-aligned predictions:", predictions);
 
-      console.log(`Verified Predictions for ${file.name}:`, predictions);
-
-      // 4. Calculate Combined Explicit Score
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
           return total + p.probability;
@@ -430,7 +419,6 @@ const DepthFlowWorkspace = () => {
         return total;
       }, 0);
 
-      // Enforce the 60% compliance threshold
       if (explicitScore > 0.60) {
         alert(
           `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
