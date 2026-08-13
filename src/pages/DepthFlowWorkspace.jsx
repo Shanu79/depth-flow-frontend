@@ -241,12 +241,12 @@ const DepthFlowWorkspace = () => {
         
         window.tf.enableProdMode();
         
-        // Pass the explicit path ending with model.json
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
+        // FIX: Pass the graph option because your model.json is a TensorFlow graph model structure
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { type: 'graph' });
         
-        console.log("NSFW model loaded successfully with local weights!");
+        console.log("NSFW graph model loaded successfully!");
       } catch (error) {
-        console.error("Failed to load local model weights:", error);
+        console.error("Failed to load local graph model:", error);
       }
     };
     
