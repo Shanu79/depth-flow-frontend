@@ -17,15 +17,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Ensure these point to your actual config and store
 import { API_BASE_URL } from "../config.js";
 import useAuthStore from "../stores/authStore.js";
 
 const GENERATION_COST = 20;
-
-// ==========================================
-// --- HELPER COMPONENTS ---
-// ==========================================
 
 const SliderControl = ({
   label,
@@ -222,34 +217,22 @@ const CreditAlertModal = ({ isOpen, onClose, currentCredits }) => {
   );
 };
 
-// ==========================================
-// --- MAIN WORKSPACE ---
-// ==========================================
-
 const DepthFlowWorkspace = () => {
-  // --- NSFW Moderation State ---
   const nsfwModelRef = useRef(null);
   const [isCheckingNsfw, setIsCheckingNsfw] = useState(false);
 
-  // Preload the InceptionV3 model when the workspace loads
+  // Preload the MobileNetV2 graph model safely
   useEffect(() => {
     const loadNsfwModel = async () => {
       try {
         if (!window.nsfwjs || !window.tf) {
           throw new Error("Security filters are still loading. Please try again in a few seconds.");
         }
-        
         window.tf.enableProdMode();
-        
-        // FIX: InceptionV3 requires BOTH size 299 and type 'graph'
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { 
-          size: 299, 
-          type: 'graph' 
-        });
-        
-        console.log("InceptionV3 Graph Model loaded successfully!");
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { type: 'graph' });
+        console.log("NSFW Graph Model loaded successfully!");
       } catch (error) {
-        console.error("Failed to load InceptionV3 model:", error);
+        console.error("Failed to load local model:", error);
       }
     };
     
@@ -262,12 +245,10 @@ const DepthFlowWorkspace = () => {
     };
   }, []);
 
-  // UI State
   const [activeMode, setActiveMode] = useState("basic");
   const [activeTab, setActiveTab] = useState("input");
   const [showCreditModal, setShowCreditModal] = useState(false);
 
-  // Core Engine States
   const [motion, setMotion] = useState({
     style: "dolly",
     amplitude: 0.5,
@@ -301,7 +282,6 @@ const DepthFlowWorkspace = () => {
     vignette: { enable: false, intensity: 0.4, decay: 20.0 },
   });
 
-  // File & API States
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(
     () => localStorage.getItem("df_previewUrl") || null,
@@ -389,36 +369,35 @@ const DepthFlowWorkspace = () => {
     let imgBitmap = null;
 
     try {
+      // Ensure global nsfwjs is available and model is loaded
       if (!nsfwModelRef.current) {
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { 
-          size: 299, 
-          type: 'graph' 
-        });
+        if (!window.nsfwjs) {
+          throw new Error("Security filters are still loading. Please try again in a few seconds.");
+        }
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { type: 'graph' });
       }
 
-      // Enforce InceptionV3's native 299x299 dimensions
       const offscreenCanvas = document.createElement("canvas");
-      offscreenCanvas.width = 299;
-      offscreenCanvas.height = 299;
       const ctx = offscreenCanvas.getContext("2d");
-      
       if (!ctx) {
         throw new Error("2D canvas context is unavailable");
       }
 
       imgBitmap = await createImageBitmap(file);
-      ctx.drawImage(imgBitmap, 0, 0, 299, 299);
-      const imageData = ctx.getImageData(0, 0, 299, 299);
+      offscreenCanvas.width = imgBitmap.width;
+      offscreenCanvas.height = imgBitmap.height;
+      
+      ctx.drawImage(imgBitmap, 0, 0);
+      const imageData = ctx.getImageData(0, 0, imgBitmap.width, imgBitmap.height);
 
-      // FIX: Use nsfwModelRef.current instead of uninitialized 'model' variable
       const predictions = await nsfwModelRef.current.classify(imageData);
-      console.log("InceptionV3 Predictions:", predictions);
+      console.log("Model Predictions:", predictions);
 
       const pornClass = predictions.find(p => p.className === "Porn")?.probability || 0;
       const hentaiClass = predictions.find(p => p.className === "Hentai")?.probability || 0;
       const sexyClass = predictions.find(p => p.className === "Sexy")?.probability || 0;
 
-      const isExplicit = pornClass > 0.15 || hentaiClass > 0.15 || sexyClass > 0.30;
+      const isExplicit = pornClass > 0.10 || hentaiClass > 0.10 || sexyClass > 0.15;
 
       if (isExplicit) {
         const topOffender = predictions.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
@@ -436,7 +415,7 @@ const DepthFlowWorkspace = () => {
       }
     } catch (error) {
       console.error("NSFW check failed:", error);
-      alert("Failed to verify image safety. Please try again.");
+      alert(error.message || "Failed to verify image safety. Please try again.");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
       if (imgBitmap) imgBitmap.close();
@@ -553,11 +532,9 @@ const DepthFlowWorkspace = () => {
         currentCredits={credits}
       />
 
-      {/* Percentage-Based Background Glows */}
       <div className="absolute top-0 left-0 lg:left-[20%] w-[80vw] lg:w-[40vw] h-[80vw] lg:h-[40vw] bg-purple-600/20 rounded-full blur-[100px] lg:blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-0 right-0 lg:right-[20%] w-[100vw] lg:w-[45vw] h-[100vw] lg:h-[45vw] bg-indigo-600/10 rounded-full blur-[120px] lg:blur-[150px] pointer-events-none"></div>
 
-      {/* Floor grid effect */}
       <div
         className="absolute bottom-0 left-0 w-full h-[20vh] pointer-events-none opacity-20"
         style={{
@@ -569,7 +546,6 @@ const DepthFlowWorkspace = () => {
         }}
       ></div>
 
-      {/* Main Content Area */}
       <main
         className={`relative z-10 w-[95%] max-w-[95%] mx-auto md:pt-[12vh] pt-[5vh] pb-[5vh] flex flex-col flex-1 h-auto md:min-h-[80vh] transition-all duration-300`}
       >
@@ -577,15 +553,11 @@ const DepthFlowWorkspace = () => {
           Create 3D Image
         </h1>
 
-        {/* ================= LAYOUT SPLIT WRAPPER ================= */}
         <div className="relative flex flex-col-reverse lg:flex-row gap-6 lg:gap-8 flex-1 h-full items-stretch w-full">
-          {/* ================= INVISIBLE SPACER ================= */}
           <div className="hidden lg:block lg:w-[320px] xl:w-[380px] shrink-0 pointer-events-none"></div>
 
-          {/* ================= LEFT SIDEBAR (CONTROLS) ================= */}
           <aside className="w-full lg:w-[320px] xl:w-[380px] flex flex-col shrink-0 lg:absolute lg:top-0 lg:bottom-0 lg:left-0 z-10">
             <div className="bg-[#0b081a]/90 backdrop-blur-xl border-2 border-purple-500/40 rounded-2xl p-4 flex shadow-[0_0_30px_rgba(168,85,247,0.3)] flex-col h-full">
-              {/* Basic / Advanced Toggle */}
               <div className="flex p-1 bg-[#151029] rounded-full mb-4 border border-white/5 shrink-0 shadow-inner">
                 <button
                   onClick={() => setActiveMode("basic")}
@@ -601,7 +573,6 @@ const DepthFlowWorkspace = () => {
                 </button>
               </div>
 
-              {/* Scrollable Container */}
               <div className="flex-1 min-h-0 overflow-x-hidden overflow-y-visible lg:overflow-y-auto custom-scrollbar lg:pr-2 pb-2">
                 {activeMode === "basic" ? (
                   <div className="flex flex-col gap-4 animate-in fade-in">
@@ -849,7 +820,6 @@ const DepthFlowWorkspace = () => {
                 )}
               </div>
 
-              {/* Bottom Section: Cost & Generate Button */}
               <div className="shrink-0 w-full mt-auto pt-4 flex flex-col gap-3">
                 <div className="flex justify-between items-center bg-[#151029]/80 border border-white/5 px-4 py-2.5 rounded-xl shadow-inner transition-colors duration-300">
                   <span className="text-xs text-gray-400 font-medium flex items-center gap-1.5">
@@ -883,7 +853,6 @@ const DepthFlowWorkspace = () => {
             </div>
           </aside>
 
-          {/* ================= RIGHT MAIN AREA (VIEWER) ================= */}
           <section className="flex-1 flex flex-col min-w-0 md:h-full md:min-h-0 w-full relative">
             <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-tr from-transparent via-purple-600/20 to-purple-500/50 blur-md pointer-events-none hidden md:block"></div>
 
@@ -994,7 +963,6 @@ const DepthFlowWorkspace = () => {
                   </div>
                 </div>
 
-                {/* Bottom Actions */}
                 <div className="flex flex-row gap-3 lg:gap-4 mt-5 shrink-0 w-full">
                   <button
                     onClick={() => handleDownload(resultVideoUrl)}
@@ -1043,7 +1011,6 @@ const DepthFlowWorkspace = () => {
           </section>
         </div>
 
-        {/* History Section */}
         {history.length > 0 && (
           <div className="mt-8 pt-6 border-t border-purple-500/20 w-full md:w-[87%] mx-auto flex flex-col gap-4">
             <div className="flex items-center justify-between px-1">
