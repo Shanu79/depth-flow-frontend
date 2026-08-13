@@ -396,57 +396,70 @@ const DepthFlowWorkspace = () => {
     setIsCheckingNsfw(true);
 
     try {
-      const objectUrl = URL.createObjectURL(file);
+      // 1. Use FileReader instead of ObjectURL to completely avoid CORS/Tainted Canvas blocks
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      // --- EXACT README IMPLEMENTATION ---
-      // 1. Create an actual HTMLImageElement and mount it to the DOM (hidden)
-      // This forces the browser to physically decode the pixels, exactly like getElementById("img")
-      const img = document.createElement("img");
-      img.id = "hidden-nsfw-img";
-      img.style.display = "none";
-      document.body.appendChild(img); 
-
-      // 2. Wait for the browser to finish loading the image into the DOM
+      // 2. Create the image and wait for it to decode
+      const img = new Image();
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
-        img.src = objectUrl;
+        img.src = base64Data;
       });
 
-      // 3. Ensure the model is loaded 
+      // 3. THE FIX: Extract RAW Pixel Data (Bypasses all TFJS DOM reading bugs)
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || 224;
+      canvas.height = img.naturalHeight || 224;
+      
+      // 'willReadFrequently' optimizes the canvas for pixel extraction instead of rendering
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      // Get the raw Uint8ClampedArray of pixels
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // 4. Ensure model is loaded 
       if (!nsfwModelRef.current) {
+        if (!window.nsfwjs) throw new Error("Security filters are still loading. Please try again.");
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
       }
 
-      // 4. Classify the DOM element exactly as written in the README
-      const predictions = await nsfwModelRef.current.classify(img);
+      // 5. Feed the RAW ImageData bytes directly to the AI
+      const predictions = await nsfwModelRef.current.classify(imageData);
       
-      // 5. Clean up the hidden DOM element immediately
-      document.body.removeChild(img);
-      // -----------------------------------
+      console.log("Unique AI Predictions: ", predictions);
 
-      // Log the exact predictions format from the README
-      console.log("Predictions: ", predictions);
+      // 6. Calculate a Combined Explicit Score
+      const explicitScore = predictions.reduce((total, p) => {
+        if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
+          return total + p.probability;
+        }
+        return total;
+      }, 0);
 
-      // Enforce the explicit threshold
-      const isExplicit = predictions.find(
-        (p) => ["Porn", "Hentai", "Sexy"].includes(p.className) && p.probability > 0.60
-      );
-
-      if (isExplicit) {
+      // Enforce the 60% compliance threshold
+      if (explicitScore > 0.60) {
         alert(
-          `Policy Violation: Image blocked due to ${isExplicit.className} content (${Math.round(isExplicit.probability * 100)}% certainty).`
+          `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
         );
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsCheckingNsfw(false);
         return; // BLOCK UPLOAD
       }
 
-      // If safe, proceed with standard upload logic
+      // 7. If safe, proceed with standard upload logic
       setSelectedFile(file);
+      const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       setResultVideoUrl(null);
       localStorage.removeItem("df_resultVideoUrl");
+      localStorage.setItem("df_previewUrl", base64Data);
       setActiveTab("input");
       
     } catch (error) {
