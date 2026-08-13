@@ -235,12 +235,21 @@ const DepthFlowWorkspace = () => {
   useEffect(() => {
     const loadNsfwModel = async () => {
       try {
-        // Use window.nsfwjs here
-        nsfwModelRef.current = await window.nsfwjs.load();
+        // Wait for the CDN script to be available
+        if (!window.nsfwjs) {
+          throw new Error("Security filters are still loading. Please try again in a few seconds.");
+        }
+        
+        // AS PER OFFICIAL DOCS: Pass the local path to the folder containing model.json
+        // (Make sure to include the trailing slash!)
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
+        
+        console.log("NSFW model loaded successfully from local public folder!");
       } catch (error) {
         console.error("Failed to preload NSFW model:", error);
       }
     };
+    
     loadNsfwModel();
   }, []);
 
