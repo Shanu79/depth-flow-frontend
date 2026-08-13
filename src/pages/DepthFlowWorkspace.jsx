@@ -385,6 +385,7 @@ const DepthFlowWorkspace = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // --- Check file size limit (10MB) ---
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       alert("File size exceeds the 10MB limit. Please choose a smaller image.");
@@ -396,25 +397,30 @@ const DepthFlowWorkspace = () => {
     const objectUrl = URL.createObjectURL(file);
 
     try {
+      // 1. Create an in-memory image object
       const img = new Image();
       img.src = objectUrl;
 
-      // 1. Wait for full bitmap decoding so pixels are ready in memory
+      // 2. Wait for the browser to fully decode the bitmap pixels into memory
       await img.decode();
 
       if (!img.naturalWidth || !img.naturalHeight) {
         throw new Error("Invalid image dimensions decoded.");
       }
 
-      // 2. Ensure model is loaded
+      // 3. Ensure model is loaded
       if (!nsfwModelRef.current) {
+        if (!window.nsfwjs || !window.tf) {
+          throw new Error("Security filters are still loading. Please try again in a few seconds.");
+        }
+        window.tf.enableProdMode();
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
         console.log("NSFW model loaded successfully from local public folder!");
       }
 
-      // 3. Pass the HTMLImageElement directly to nsfwjs
+      // 4. Classify the decoded image object directly
       const predictions = await nsfwModelRef.current.classify(img);
-      console.log("Predictions from Image Element: ", predictions);
+      console.log("Predictions from Memory Image: ", predictions);
 
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
