@@ -241,9 +241,9 @@ const DepthFlowWorkspace = () => {
         
         window.tf.enableProdMode();
         
-        // Use the exact load pattern from the demo codebase
-        nsfwModelRef.current = await window.nsfwjs.load();
-        console.log("NSFW model loaded successfully!");
+        // FIX: Explicitly target your local public model folder as per official README guidelines
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
+        console.log("NSFW model loaded successfully from local public folder!");
       } catch (error) {
         console.error("Failed to preload NSFW model:", error);
       }
@@ -370,12 +370,6 @@ const DepthFlowWorkspace = () => {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  // ==========================================
-  // EXACT DEMO BLUEPRINT (ImageData Pipeline)
-  // ==========================================
-  // ==========================================
-  // BULLETPROOF DEMO-ALIGNED FILE HANDLER
-  // ==========================================
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -392,25 +386,25 @@ const DepthFlowWorkspace = () => {
 
     try {
       if (!nsfwModelRef.current) {
-        nsfwModelRef.current = await window.nsfwjs.load();
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
       }
 
-      // Replicating the exact worker prediction sequence[cite: 2]
+      // Replicating the working demo bitmap extraction pattern
+      imgBitmap = await createImageBitmap(file);
       const offscreenCanvas = document.createElement("canvas");
+      offscreenCanvas.width = imgBitmap.width;
+      offscreenCanvas.height = imgBitmap.height;
       const ctx = offscreenCanvas.getContext("2d");
+      
       if (!ctx) {
         throw new Error("2D canvas context is unavailable");
       }
 
-      imgBitmap = await createImageBitmap(file);
-      offscreenCanvas.width = imgBitmap.width;
-      offscreenCanvas.height = imgBitmap.height;
-      
       ctx.drawImage(imgBitmap, 0, 0);
       const imageData = ctx.getImageData(0, 0, imgBitmap.width, imgBitmap.height);
 
       const predictions = await nsfwModelRef.current.classify(imageData);
-      console.log("Demo-aligned predictions:", predictions);
+      console.log("Live Unique Predictions:", predictions);
 
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
