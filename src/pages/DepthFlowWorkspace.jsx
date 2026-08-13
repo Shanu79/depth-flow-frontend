@@ -399,13 +399,10 @@ const DepthFlowWorkspace = () => {
       const img = new Image();
       img.src = objectUrl;
 
-      // 1. Wait for the image to decode
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = () => reject(new Error("Failed to load image."));
-      });
+      // --- THE FIX: Wait for full bitmap decoding, avoiding blank canvas races ---
+      await img.decode();
 
-      // 2. Create the Canvas
+      // Create the Canvas
       const canvas = document.createElement("canvas");
       canvas.width = img.naturalWidth || 224;
       canvas.height = img.naturalHeight || 224;
@@ -413,18 +410,20 @@ const DepthFlowWorkspace = () => {
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Now guaranteed to have fully decoded pixels to draw
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // 3. THE BYPASS: Extract raw mathematical pixel data 
-      // (This completely bypasses TensorFlow's broken DOM reader)
+      // Extract raw mathematical pixel data
       const rawImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-      // 4. Load from window (since we are back to using the CDN)
+      // Ensure model is loaded
       if (!nsfwModelRef.current) {
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
+        console.log("NSFW model loaded successfully from local public folder!");
       }
 
-      // 5. Feed the RAW PIXEL ARRAY to the model, NOT the canvas or image
+      // Classify the actual decoded pixels
       const predictions = await nsfwModelRef.current.classify(rawImageData);
       console.log("Predictions from Raw ImageData: ", predictions);
 
@@ -453,6 +452,8 @@ const DepthFlowWorkspace = () => {
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
       setIsCheckingNsfw(false);
+      // Clean up object URL memory
+      URL.revokeObjectURL(objectUrl);
     }
   };
 
