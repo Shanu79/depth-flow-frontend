@@ -398,11 +398,15 @@ const DepthFlowWorkspace = () => {
         img.onerror = reject;
       });
 
-      // FIX: Force dimensions so the browser doesn't send a blank 0x0 image to the AI
-      img.width = img.naturalWidth;
-      img.height = img.naturalHeight;
+      // --- THE FIX: Force the browser to decode the pixels using an invisible canvas ---
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      // --------------------------------------------------------------------------------
 
-      // 2. Ensure model is loaded 
+      // 2. Ensure model is loaded
       if (!nsfwModelRef.current) {
         if (!window.nsfwjs) {
           throw new Error("Security filters are still loading. Please try again in a few seconds.");
@@ -410,24 +414,26 @@ const DepthFlowWorkspace = () => {
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
       }
 
-      // 3. Scan the image
-      const predictions = await nsfwModelRef.current.classify(img);
+      // 3. Scan the CANVAS (not the raw img object)
+      const predictions = await nsfwModelRef.current.classify(canvas);
       
-      // DEBUG: Print the AI's exact scores to your browser console
-      console.log("NSFW AI Scores:", predictions);
+      // 4. Calculate a Combined Explicit Score for better accuracy
+      // This adds Porn + Hentai + Sexy into a single total score
+      const explicitScore = predictions.reduce((total, p) => {
+        if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
+          return total + p.probability;
+        }
+        return total;
+      }, 0);
 
-      // 4. Enforce threshold (Lowered temporarily to 40% for testing!)
-      const isExplicit = predictions.find(
-        (p) =>
-          (p.className === "Porn" ||
-            p.className === "Hentai" ||
-            p.className === "Sexy") &&
-          p.probability > 0.40, // Changed from 0.6 to 0.4 for testing
-      );
+      // Debugging: See the real numbers in your console
+      console.log("Raw AI Predictions:", predictions);
+      console.log(`Total Explicit Score: ${Math.round(explicitScore * 100)}%`);
 
-      if (isExplicit) {
+      // Enforce the 60% compliance threshold
+      if (explicitScore > 0.60) {
         alert(
-          `Policy Violation: Blocked because of ${isExplicit.className} content (${Math.round(isExplicit.probability * 100)}% certainty).`,
+          `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
         );
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsCheckingNsfw(false);
