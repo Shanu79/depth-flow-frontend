@@ -385,7 +385,6 @@ const DepthFlowWorkspace = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // --- Check file size limit (10MB) ---
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       alert("File size exceeds the 10MB limit. Please choose a smaller image.");
@@ -396,31 +395,42 @@ const DepthFlowWorkspace = () => {
     setIsCheckingNsfw(true);
     const objectUrl = URL.createObjectURL(file);
 
+    let imageTensor = null;
+
     try {
-      // 1. Create an in-memory image object
       const img = new Image();
       img.src = objectUrl;
 
-      // 2. Wait for the browser to fully decode the bitmap pixels into memory
+      // 1. Wait for full bitmap decoding
       await img.decode();
 
       if (!img.naturalWidth || !img.naturalHeight) {
         throw new Error("Invalid image dimensions decoded.");
       }
 
+      // 2. Draw to a temporary canvas to guarantee pixel availability
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
+
       // 3. Ensure model is loaded
       if (!nsfwModelRef.current) {
         if (!window.nsfwjs || !window.tf) {
-          throw new Error("Security filters are still loading. Please try again in a few seconds.");
+          throw new Error("TensorFlow.js or NSFWJS not found on window.");
         }
-        window.tf.enableProdMode();
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
         console.log("NSFW model loaded successfully from local public folder!");
       }
 
-      // 4. Classify the decoded image object directly
-      const predictions = await nsfwModelRef.current.classify(img);
-      console.log("Predictions from Memory Image: ", predictions);
+      // 4. Create the tensor explicitly ourselves 
+      // (This prevents nsfwjs from running its own fragile fromPixels on a DOM element)
+      imageTensor = window.tf.browser.fromPixels(canvas);
+
+      // 5. Pass the Tensor directly to classify
+      const predictions = await nsfwModelRef.current.classify(imageTensor);
+      console.log("Predictions from Tensor: ", predictions);
 
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
@@ -448,6 +458,10 @@ const DepthFlowWorkspace = () => {
       URL.revokeObjectURL(objectUrl);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
+      // 6. Clean up the tensor memory to avoid WebGL memory leaks
+      if (imageTensor) {
+        imageTensor.dispose();
+      }
       setIsCheckingNsfw(false);
     }
   };
