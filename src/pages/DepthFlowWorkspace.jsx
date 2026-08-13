@@ -396,8 +396,14 @@ const DepthFlowWorkspace = () => {
     }
 
     setIsCheckingNsfw(true);
-    setPendingFile(file); // Save file temporarily
-    setNsfwTestUrl(URL.createObjectURL(file)); // Triggers the hidden <img> to render
+    setPendingFile(file);
+
+    // FIX: Use FileReader to create a Base64 string. It completely bypasses CORS issues.
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setNsfwTestUrl(event.target.result); // Triggers the hidden <img> to render
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleGenerate = async () => {
@@ -515,10 +521,10 @@ const DepthFlowWorkspace = () => {
           id="img"
           src={nsfwTestUrl}
           alt="nsfw-test"
-          crossOrigin="anonymous"
+          // CRUCIAL: No crossOrigin attribute here!
           style={{
             position: "absolute",
-            opacity: 0,
+            opacity: 0.01, // FIX: 0.01 forces the browser to actually paint the pixels
             width: 224,
             height: 224,
             pointerEvents: "none",
@@ -526,7 +532,6 @@ const DepthFlowWorkspace = () => {
           }}
           onLoad={async () => {
             try {
-              // EXACT CODE FROM THE README:
               const imgNode = document.getElementById("img");
               
               if (!nsfwModelRef.current) {
@@ -536,7 +541,6 @@ const DepthFlowWorkspace = () => {
               const predictions = await nsfwModelRef.current.classify(imgNode);
               console.log("Predictions from real DOM node: ", predictions);
 
-              // Calculate explicit score
               const explicitScore = predictions.reduce((total, p) => {
                 if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
                   return total + p.probability;
@@ -550,7 +554,6 @@ const DepthFlowWorkspace = () => {
                 );
                 if (fileInputRef.current) fileInputRef.current.value = "";
               } else {
-                // If safe, finalize the upload!
                 setSelectedFile(pendingFile);
                 setPreviewUrl(nsfwTestUrl);
                 setResultVideoUrl(null);
@@ -562,7 +565,6 @@ const DepthFlowWorkspace = () => {
               alert("Failed to verify image safety. Please try again.");
               if (fileInputRef.current) fileInputRef.current.value = "";
             } finally {
-              // Clean up the temporary scan state
               setIsCheckingNsfw(false);
               setNsfwTestUrl(null);
               setPendingFile(null);
