@@ -241,11 +241,12 @@ const DepthFlowWorkspace = () => {
         
         window.tf.enableProdMode();
         
-        // FIX: Explicitly target your local public model folder as per official README guidelines
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
-        console.log("NSFW model loaded successfully from local public folder!");
+        // Pass the explicit path ending with model.json
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/model.json");
+        
+        console.log("NSFW model loaded successfully with local weights!");
       } catch (error) {
-        console.error("Failed to preload NSFW model:", error);
+        console.error("Failed to load local model weights:", error);
       }
     };
     
