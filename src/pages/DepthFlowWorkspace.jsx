@@ -371,6 +371,9 @@ const DepthFlowWorkspace = () => {
   // ==========================================
   // EXACT DEMO BLUEPRINT (ImageData Pipeline)
   // ==========================================
+  // ==========================================
+  // BULLETPROOF DEMO-ALIGNED FILE HANDLER
+  // ==========================================
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -386,16 +389,17 @@ const DepthFlowWorkspace = () => {
     let imgBitmap = null;
 
     try {
-      // 1. Ensure model is loaded
+      // 1. Ensure model is loaded safely
       if (!nsfwModelRef.current) {
         if (!window.nsfwjs || !window.tf) {
           throw new Error("Security filters are still loading. Please try again in a few seconds.");
         }
         window.tf.enableProdMode();
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
+        // Fallback to loading standard model bundle if local path fails
+        nsfwModelRef.current = await window.nsfwjs.load().catch(() => window.nsfwjs.load("/nsfw_model/"));
       }
 
-      // 2. Decode file into ImageBitmap using the exact demo blueprint[cite: 2]
+      // 2. Exact match to the working demo's processing pipeline[cite: 2]
       imgBitmap = await createImageBitmap(file);
       const offscreenCanvas = document.createElement("canvas");
       offscreenCanvas.width = imgBitmap.width;
@@ -407,12 +411,16 @@ const DepthFlowWorkspace = () => {
       }
 
       ctx.drawImage(imgBitmap, 0, 0);
-      
-      // 3. Extract ImageData and pass it directly to the model[cite: 2]
       const imageData = ctx.getImageData(0, 0, imgBitmap.width, imgBitmap.height);
+
+      // 3. Classify and validate output
       const predictions = await nsfwModelRef.current.classify(imageData);
       
-      console.log(`Unique Predictions for ${file.name}:`, predictions);
+      if (!predictions || predictions.length === 0) {
+        throw new Error("Model classification returned empty results.");
+      }
+
+      console.log(`Verified Predictions for ${file.name}:`, predictions);
 
       // 4. Calculate Combined Explicit Score
       const explicitScore = predictions.reduce((total, p) => {
