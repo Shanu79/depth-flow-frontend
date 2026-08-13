@@ -235,17 +235,12 @@ const DepthFlowWorkspace = () => {
   useEffect(() => {
     const loadNsfwModel = async () => {
       try {
-        // Wait for the CDN scripts to be available
         if (!window.nsfwjs || !window.tf) {
           throw new Error("Security filters are still loading. Please try again in a few seconds.");
         }
         
-        // Optimize TFJS for production performance before loading
         window.tf.enableProdMode();
-        
-        // Pass the local path to the folder containing model.json
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
-        
         console.log("NSFW model loaded successfully from local public folder!");
       } catch (error) {
         console.error("Failed to preload NSFW model:", error);
@@ -254,7 +249,6 @@ const DepthFlowWorkspace = () => {
     
     loadNsfwModel();
 
-    // Memory Cleanup: Dispose of the model and clear tensors when the component unmounts
     return () => {
       if (nsfwModelRef.current && typeof nsfwModelRef.current.dispose === 'function') {
         nsfwModelRef.current.dispose();
@@ -264,10 +258,7 @@ const DepthFlowWorkspace = () => {
 
   // UI State
   const [activeMode, setActiveMode] = useState("basic");
-
-  // FIX: Force the active tab to be "input" by default on page load.
   const [activeTab, setActiveTab] = useState("input");
-
   const [showCreditModal, setShowCreditModal] = useState(false);
 
   // Core Engine States
@@ -309,10 +300,7 @@ const DepthFlowWorkspace = () => {
   const [previewUrl, setPreviewUrl] = useState(
     () => localStorage.getItem("df_previewUrl") || null,
   );
-
-  // FIX: Set resultVideoUrl to null initially so the result tab is disabled until a new video is made
   const [resultVideoUrl, setResultVideoUrl] = useState(null);
-
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -343,7 +331,6 @@ const DepthFlowWorkspace = () => {
     fetchHistory();
   }, [fetchHistory]);
 
-  // Dynamic History Limit based on screen size
   const [historyLimit, setHistoryLimit] = useState(5);
 
   useEffect(() => {
@@ -381,6 +368,9 @@ const DepthFlowWorkspace = () => {
     return () => clearInterval(interval);
   }, [isLoading]);
 
+  // ==========================================
+  // BULLETPROOF NSFW FILE HANDLER
+  // ==========================================
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -395,29 +385,27 @@ const DepthFlowWorkspace = () => {
     setIsCheckingNsfw(true);
     let imageBitmap = null;
     let imageTensor = null;
-    let objectUrl = null;
 
     try {
-      // 1. Directly decode the raw file into an ImageBitmap in memory
-      imageBitmap = await createImageBitmap(file);
+      // 1. Ensure model is loaded
+      if (!nsfwModelRef.current) {
+        if (!window.nsfwjs || !window.tf) {
+          throw new Error("Security filters are still loading. Please try again in a few seconds.");
+        }
+        window.tf.enableProdMode();
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
+      }
 
+      // 2. Directly decode the raw file into an ImageBitmap in memory (bypasses DOM paint lag)
+      imageBitmap = await createImageBitmap(file);
       if (!imageBitmap.width || !imageBitmap.height) {
         throw new Error("Invalid image bitmap dimensions decoded.");
       }
 
-      // 2. Ensure model is loaded
-      if (!nsfwModelRef.current) {
-        if (!window.nsfwjs || !window.tf) {
-          throw new Error("TensorFlow.js or NSFWJS not found on window.");
-        }
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
-        console.log("NSFW model loaded successfully from local public folder!");
-      }
-
-      // 3. Convert the ImageBitmap directly into a TensorFlow tensor
+      // 3. Create the tensor directly from the bitmap
       imageTensor = window.tf.browser.fromPixels(imageBitmap);
 
-      // 4. Classify the tensor
+      // 4. Classify using the tensor directly
       const predictions = await nsfwModelRef.current.classify(imageTensor);
       console.log("Predictions from ImageBitmap Tensor: ", predictions);
 
@@ -434,8 +422,7 @@ const DepthFlowWorkspace = () => {
         );
         if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
-        // Safe! Create the objectUrl only now for UI previewing
-        objectUrl = URL.createObjectURL(file);
+        const objectUrl = URL.createObjectURL(file);
         setSelectedFile(file);
         setPreviewUrl(objectUrl);
         setResultVideoUrl(null);
@@ -447,7 +434,7 @@ const DepthFlowWorkspace = () => {
       alert("Failed to verify image safety. Please try again.");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
-      // 5. Clean up tensor and bitmap memory to prevent WebGL/CPU memory leaks
+      // 5. Clean up tensor and bitmap memory to prevent leaks
       if (imageTensor) imageTensor.dispose();
       if (imageBitmap) imageBitmap.close();
       setIsCheckingNsfw(false);
@@ -562,6 +549,8 @@ const DepthFlowWorkspace = () => {
         onClose={() => setShowCreditModal(false)}
         currentCredits={credits}
       />
+
+      {/* NOTE: The hidden <img> tag has been completely removed here */}
 
       {/* Percentage-Based Background Glows */}
       <div className="absolute top-0 left-0 lg:left-[20%] w-[80vw] lg:w-[40vw] h-[80vw] lg:h-[40vw] bg-purple-600/20 rounded-full blur-[100px] lg:blur-[120px] pointer-events-none"></div>
