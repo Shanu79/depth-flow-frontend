@@ -409,21 +409,12 @@ const DepthFlowWorkspace = () => {
       // --- ROBUST THRESHOLD ENFORCEMENT ---
       const pornClass = predictions.find(p => p.className === "Porn")?.probability || 0;
       const hentaiClass = predictions.find(p => p.className === "Hentai")?.probability || 0;
-      
-      // Calculate total combined explicit score
-      const explicitScore = predictions.reduce((total, p) => {
-        if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
-          return total + p.probability;
-        }
-        return total;
-      }, 0);
+      const sexyClass = predictions.find(p => p.className === "Sexy")?.probability || 0;
 
-      // Rule 1: High single-class certainty for hard porn/hentai (>50%)
-      // Rule 2: High cumulative explicit score (>60%)
-      const isPornOrHentaiSingle = pornClass > 0.50 || hentaiClass > 0.50;
-      const isCumulativeExplicit = explicitScore > 0.60;
+      // Stricter check for illustrated/anime NSFW (Hentai) and live-action (Porn/Sexy)
+      const isExplicit = pornClass > 0.10 || hentaiClass > 0.15 || sexyClass > 0.30;
 
-      if (isPornOrHentaiSingle || isCumulativeExplicit) {
+      if (isExplicit) {
         const topOffender = predictions.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
         alert(
           `Policy Violation: Image blocked due to explicit content (${topOffender.className} at ${Math.round(topOffender.probability * 100)}% certainty).`
