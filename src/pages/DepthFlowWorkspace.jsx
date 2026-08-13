@@ -395,24 +395,26 @@ const DepthFlowWorkspace = () => {
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
       }
 
-      // 2. Replicate the Demo's Worker Pattern using Offscreen/DOM Canvas & ImageBitmap[cite: 2]
+      // 2. Decode file into ImageBitmap using the exact demo blueprint[cite: 2]
       imgBitmap = await createImageBitmap(file);
-      const canvas = document.createElement("canvas");
-      canvas.width = imgBitmap.width;
-      canvas.height = imgBitmap.height;
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      const offscreenCanvas = document.createElement("canvas");
+      offscreenCanvas.width = imgBitmap.width;
+      offscreenCanvas.height = imgBitmap.height;
+      const ctx = offscreenCanvas.getContext("2d");
       
       if (!ctx) {
         throw new Error("2D canvas context is unavailable");
       }
 
       ctx.drawImage(imgBitmap, 0, 0);
+      
+      // 3. Extract ImageData and pass it directly to the model[cite: 2]
       const imageData = ctx.getImageData(0, 0, imgBitmap.width, imgBitmap.height);
-
-      // 3. Classify using raw ImageData bytes exactly like the demo implementation[cite: 2]
       const predictions = await nsfwModelRef.current.classify(imageData);
-      console.log("Predictions from ImageData: ", predictions);
+      
+      console.log(`Unique Predictions for ${file.name}:`, predictions);
 
+      // 4. Calculate Combined Explicit Score
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
           return total + p.probability;
@@ -420,6 +422,7 @@ const DepthFlowWorkspace = () => {
         return total;
       }, 0);
 
+      // Enforce the 60% compliance threshold
       if (explicitScore > 0.60) {
         alert(
           `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
