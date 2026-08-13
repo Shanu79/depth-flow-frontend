@@ -385,7 +385,6 @@ const DepthFlowWorkspace = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // --- Check file size limit (10MB) ---
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       alert("File size exceeds the 10MB limit. Please choose a smaller image.");
@@ -394,33 +393,40 @@ const DepthFlowWorkspace = () => {
     }
 
     setIsCheckingNsfw(true);
-    
-    // Create the Object URL
     const objectUrl = URL.createObjectURL(file);
 
     try {
-      // 1. Create a native Image object purely in memory (No DOM needed!)
       const img = new Image();
       img.src = objectUrl;
 
-      // 2. Wait for the browser to fully decode the image into memory
+      // 1. Wait for the image to decode
       await new Promise((resolve, reject) => {
         img.onload = resolve;
-        img.onerror = (err) => reject(new Error("Failed to load image."));
+        img.onerror = () => reject(new Error("Failed to load image."));
       });
 
-      // 3. Explicitly set dimensions (Crucial for TensorFlow)
-      img.width = img.naturalWidth || 224;
-      img.height = img.naturalHeight || 224;
+      // 2. Create the Canvas
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || 224;
+      canvas.height = img.naturalHeight || 224;
+      
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // 4. Ensure the model is loaded
+      // 3. THE BYPASS: Extract raw mathematical pixel data 
+      // (This completely bypasses TensorFlow's broken DOM reader)
+      const rawImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // 4. Load from window (since we are back to using the CDN)
       if (!nsfwModelRef.current) {
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
       }
 
-      // 5. Classify the in-memory image
-      const predictions = await nsfwModelRef.current.classify(img);
-      console.log("Predictions from in-memory Image: ", predictions);
+      // 5. Feed the RAW PIXEL ARRAY to the model, NOT the canvas or image
+      const predictions = await nsfwModelRef.current.classify(rawImageData);
+      console.log("Predictions from Raw ImageData: ", predictions);
 
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
@@ -435,7 +441,6 @@ const DepthFlowWorkspace = () => {
         );
         if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
-        // Safe to use! Update your main state directly.
         setSelectedFile(file);
         setPreviewUrl(objectUrl);
         setResultVideoUrl(null);
