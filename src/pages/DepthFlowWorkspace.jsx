@@ -399,38 +399,22 @@ const DepthFlowWorkspace = () => {
       const img = new Image();
       img.src = objectUrl;
 
-      // 1. Wait for full bitmap decoding
+      // 1. Wait for full bitmap decoding so pixels are ready in memory
       await img.decode();
 
-      // 2. Validate dimensions to ensure it's a real, loaded image
       if (!img.naturalWidth || !img.naturalHeight) {
         throw new Error("Invalid image dimensions decoded.");
       }
 
-      // 3. Create the Canvas
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw the decoded image pixels
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      // 4. Extract raw mathematical pixel data
-      const rawImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-      // 5. Ensure model is loaded
+      // 2. Ensure model is loaded
       if (!nsfwModelRef.current) {
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
         console.log("NSFW model loaded successfully from local public folder!");
       }
 
-      // 6. Classify the raw pixels
-      const predictions = await nsfwModelRef.current.classify(rawImageData);
-      console.log("Predictions from Raw ImageData: ", predictions);
+      // 3. Pass the HTMLImageElement directly to nsfwjs
+      const predictions = await nsfwModelRef.current.classify(img);
+      console.log("Predictions from Image Element: ", predictions);
 
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
@@ -443,11 +427,9 @@ const DepthFlowWorkspace = () => {
         alert(
           `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
         );
-        // Clean up the object URL since we are blocking it
         URL.revokeObjectURL(objectUrl);
         if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
-        // Safe! Set state so the UI preview can use this objectUrl safely
         setSelectedFile(file);
         setPreviewUrl(objectUrl);
         setResultVideoUrl(null);
