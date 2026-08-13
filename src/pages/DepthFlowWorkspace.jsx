@@ -393,29 +393,19 @@ const DepthFlowWorkspace = () => {
     }
 
     setIsCheckingNsfw(true);
-    const objectUrl = URL.createObjectURL(file);
-
+    let imageBitmap = null;
     let imageTensor = null;
+    let objectUrl = null;
 
     try {
-      const img = new Image();
-      img.src = objectUrl;
+      // 1. Directly decode the raw file into an ImageBitmap in memory
+      imageBitmap = await createImageBitmap(file);
 
-      // 1. Wait for full bitmap decoding
-      await img.decode();
-
-      if (!img.naturalWidth || !img.naturalHeight) {
-        throw new Error("Invalid image dimensions decoded.");
+      if (!imageBitmap.width || !imageBitmap.height) {
+        throw new Error("Invalid image bitmap dimensions decoded.");
       }
 
-      // 2. Draw to a temporary canvas to guarantee pixel availability
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      ctx.drawImage(img, 0, 0);
-
-      // 3. Ensure model is loaded
+      // 2. Ensure model is loaded
       if (!nsfwModelRef.current) {
         if (!window.nsfwjs || !window.tf) {
           throw new Error("TensorFlow.js or NSFWJS not found on window.");
@@ -424,13 +414,12 @@ const DepthFlowWorkspace = () => {
         console.log("NSFW model loaded successfully from local public folder!");
       }
 
-      // 4. Create the tensor explicitly ourselves 
-      // (This prevents nsfwjs from running its own fragile fromPixels on a DOM element)
-      imageTensor = window.tf.browser.fromPixels(canvas);
+      // 3. Convert the ImageBitmap directly into a TensorFlow tensor
+      imageTensor = window.tf.browser.fromPixels(imageBitmap);
 
-      // 5. Pass the Tensor directly to classify
+      // 4. Classify the tensor
       const predictions = await nsfwModelRef.current.classify(imageTensor);
-      console.log("Predictions from Tensor: ", predictions);
+      console.log("Predictions from ImageBitmap Tensor: ", predictions);
 
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
@@ -443,9 +432,10 @@ const DepthFlowWorkspace = () => {
         alert(
           `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
         );
-        URL.revokeObjectURL(objectUrl);
         if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
+        // Safe! Create the objectUrl only now for UI previewing
+        objectUrl = URL.createObjectURL(file);
         setSelectedFile(file);
         setPreviewUrl(objectUrl);
         setResultVideoUrl(null);
@@ -455,13 +445,11 @@ const DepthFlowWorkspace = () => {
     } catch (error) {
       console.error("NSFW check failed:", error);
       alert("Failed to verify image safety. Please try again.");
-      URL.revokeObjectURL(objectUrl);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
-      // 6. Clean up the tensor memory to avoid WebGL memory leaks
-      if (imageTensor) {
-        imageTensor.dispose();
-      }
+      // 5. Clean up tensor and bitmap memory to prevent WebGL/CPU memory leaks
+      if (imageTensor) imageTensor.dispose();
+      if (imageBitmap) imageBitmap.close();
       setIsCheckingNsfw(false);
     }
   };
