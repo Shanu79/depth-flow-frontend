@@ -398,12 +398,10 @@ const DepthFlowWorkspace = () => {
     setIsCheckingNsfw(true);
     setPendingFile(file);
 
-    // FIX: Use FileReader to create a Base64 string. It completely bypasses CORS issues.
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setNsfwTestUrl(event.target.result); // Triggers the hidden <img> to render
-    };
-    reader.readAsDataURL(file);
+    // FIX: Use URL.createObjectURL instead of FileReader Base64.
+    // It is synchronous, faster, and won't cause Canvas API silent failures.
+    const objectUrl = URL.createObjectURL(file);
+    setNsfwTestUrl(objectUrl); 
   };
 
   const handleGenerate = async () => {
@@ -518,26 +516,27 @@ const DepthFlowWorkspace = () => {
       {/* Hidden Image for NSFWJS DOM Classification */}
       {nsfwTestUrl && (
         <img
-          id="img"
           src={nsfwTestUrl}
           alt="nsfw-test"
-          // CRUCIAL: No crossOrigin attribute here!
+          width={224}
+          height={224} 
           style={{
             position: "absolute",
-            opacity: 0.01, // FIX: 0.01 forces the browser to actually paint the pixels
-            width: 224,
-            height: 224,
+            opacity: 0.01, 
             pointerEvents: "none",
             zIndex: -1,
           }}
-          onLoad={async () => {
+          // FIX 2: Pass 'e' into the function
+          onLoad={async (e) => {
+            // FIX 3: Use the exact event target. NEVER use document.getElementById in this React context.
+            const imgNode = e.target; 
+            
             try {
-              const imgNode = document.getElementById("img");
-              
               if (!nsfwModelRef.current) {
                 nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
               }
 
+              // The model will now correctly read the pixel buffer of the newly loaded target
               const predictions = await nsfwModelRef.current.classify(imgNode);
               console.log("Predictions from real DOM node: ", predictions);
 
