@@ -241,10 +241,13 @@ const DepthFlowWorkspace = () => {
         
         window.tf.enableProdMode();
         
-        // FIX: InceptionV3 requires the size: 299 option parameter
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { size: 299 });
+        // FIX: InceptionV3 requires BOTH size 299 and type 'graph'
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { 
+          size: 299, 
+          type: 'graph' 
+        });
         
-        console.log("InceptionV3 NSFW model loaded successfully!");
+        console.log("InceptionV3 Graph Model loaded successfully!");
       } catch (error) {
         console.error("Failed to load InceptionV3 model:", error);
       }
@@ -387,10 +390,13 @@ const DepthFlowWorkspace = () => {
 
     try {
       if (!nsfwModelRef.current) {
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { size: 299 });
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { 
+          size: 299, 
+          type: 'graph' 
+        });
       }
 
-      // InceptionV3 requires 299x299 sizing context
+      // Enforce InceptionV3's native 299x299 dimensions
       const offscreenCanvas = document.createElement("canvas");
       offscreenCanvas.width = 299;
       offscreenCanvas.height = 299;
@@ -401,10 +407,10 @@ const DepthFlowWorkspace = () => {
       }
 
       imgBitmap = await createImageBitmap(file);
-      // Draw and scale to fit InceptionV3's exact 299x299 requirement
       ctx.drawImage(imgBitmap, 0, 0, 299, 299);
       const imageData = ctx.getImageData(0, 0, 299, 299);
 
+      // FIX: Use nsfwModelRef.current instead of uninitialized 'model' variable
       const predictions = await nsfwModelRef.current.classify(imageData);
       console.log("InceptionV3 Predictions:", predictions);
 
@@ -412,7 +418,6 @@ const DepthFlowWorkspace = () => {
       const hentaiClass = predictions.find(p => p.className === "Hentai")?.probability || 0;
       const sexyClass = predictions.find(p => p.className === "Sexy")?.probability || 0;
 
-      // Robust threshold for InceptionV3's higher accuracy
       const isExplicit = pornClass > 0.15 || hentaiClass > 0.15 || sexyClass > 0.30;
 
       if (isExplicit) {
