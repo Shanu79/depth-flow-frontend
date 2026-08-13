@@ -387,26 +387,30 @@ const DepthFlowWorkspace = () => {
 
     try {
       if (!nsfwModelRef.current) {
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { type: 'graph' });
       }
 
-      // Replicating the working demo bitmap extraction pattern
-      imgBitmap = await createImageBitmap(file);
       const offscreenCanvas = document.createElement("canvas");
-      offscreenCanvas.width = imgBitmap.width;
-      offscreenCanvas.height = imgBitmap.height;
       const ctx = offscreenCanvas.getContext("2d");
-      
       if (!ctx) {
         throw new Error("2D canvas context is unavailable");
       }
 
+      imgBitmap = await createImageBitmap(file);
+      offscreenCanvas.width = imgBitmap.width;
+      offscreenCanvas.height = imgBitmap.height;
+      
       ctx.drawImage(imgBitmap, 0, 0);
       const imageData = ctx.getImageData(0, 0, imgBitmap.width, imgBitmap.height);
 
       const predictions = await nsfwModelRef.current.classify(imageData);
-      console.log("Live Unique Predictions:", predictions);
+      console.log("Robust Check Predictions:", predictions);
 
+      // --- ROBUST THRESHOLD ENFORCEMENT ---
+      const pornClass = predictions.find(p => p.className === "Porn")?.probability || 0;
+      const hentaiClass = predictions.find(p => p.className === "Hentai")?.probability || 0;
+      
+      // Calculate total combined explicit score
       const explicitScore = predictions.reduce((total, p) => {
         if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
           return total + p.probability;
@@ -414,9 +418,15 @@ const DepthFlowWorkspace = () => {
         return total;
       }, 0);
 
-      if (explicitScore > 0.60) {
+      // Rule 1: High single-class certainty for hard porn/hentai (>50%)
+      // Rule 2: High cumulative explicit score (>60%)
+      const isPornOrHentaiSingle = pornClass > 0.50 || hentaiClass > 0.50;
+      const isCumulativeExplicit = explicitScore > 0.60;
+
+      if (isPornOrHentaiSingle || isCumulativeExplicit) {
+        const topOffender = predictions.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
         alert(
-          `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
+          `Policy Violation: Image blocked due to explicit content (${topOffender.className} at ${Math.round(topOffender.probability * 100)}% certainty).`
         );
         if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
