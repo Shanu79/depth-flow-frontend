@@ -231,7 +231,7 @@ const DepthFlowWorkspace = () => {
   const nsfwModelRef = useRef(null);
   const [isCheckingNsfw, setIsCheckingNsfw] = useState(false);
 
-  // Preload the NSFW model when the workspace loads
+  // Preload the InceptionV3 model when the workspace loads
   useEffect(() => {
     const loadNsfwModel = async () => {
       try {
@@ -241,12 +241,12 @@ const DepthFlowWorkspace = () => {
         
         window.tf.enableProdMode();
         
-        // FIX: Pass the graph option because your model.json is a TensorFlow graph model structure
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { type: 'graph' });
+        // FIX: InceptionV3 requires the size: 299 option parameter
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { size: 299 });
         
-        console.log("NSFW graph model loaded successfully!");
+        console.log("InceptionV3 NSFW model loaded successfully!");
       } catch (error) {
-        console.error("Failed to load local graph model:", error);
+        console.error("Failed to load InceptionV3 model:", error);
       }
     };
     
@@ -387,32 +387,33 @@ const DepthFlowWorkspace = () => {
 
     try {
       if (!nsfwModelRef.current) {
-        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { type: 'graph' });
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/", { size: 299 });
       }
 
+      // InceptionV3 requires 299x299 sizing context
       const offscreenCanvas = document.createElement("canvas");
+      offscreenCanvas.width = 299;
+      offscreenCanvas.height = 299;
       const ctx = offscreenCanvas.getContext("2d");
+      
       if (!ctx) {
         throw new Error("2D canvas context is unavailable");
       }
 
       imgBitmap = await createImageBitmap(file);
-      offscreenCanvas.width = imgBitmap.width;
-      offscreenCanvas.height = imgBitmap.height;
-      
-      ctx.drawImage(imgBitmap, 0, 0);
-      const imageData = ctx.getImageData(0, 0, imgBitmap.width, imgBitmap.height);
+      // Draw and scale to fit InceptionV3's exact 299x299 requirement
+      ctx.drawImage(imgBitmap, 0, 0, 299, 299);
+      const imageData = ctx.getImageData(0, 0, 299, 299);
 
       const predictions = await nsfwModelRef.current.classify(imageData);
-      console.log("Robust Check Predictions:", predictions);
+      console.log("InceptionV3 Predictions:", predictions);
 
-      // --- ROBUST THRESHOLD ENFORCEMENT ---
       const pornClass = predictions.find(p => p.className === "Porn")?.probability || 0;
       const hentaiClass = predictions.find(p => p.className === "Hentai")?.probability || 0;
       const sexyClass = predictions.find(p => p.className === "Sexy")?.probability || 0;
 
-      // Stricter check for illustrated/anime NSFW (Hentai) and live-action (Porn/Sexy)
-      const isExplicit = pornClass > 0.10 || hentaiClass > 0.15 || sexyClass > 0.30;
+      // Robust threshold for InceptionV3's higher accuracy
+      const isExplicit = pornClass > 0.15 || hentaiClass > 0.15 || sexyClass > 0.30;
 
       if (isExplicit) {
         const topOffender = predictions.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
