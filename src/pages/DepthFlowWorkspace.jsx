@@ -390,7 +390,7 @@ const DepthFlowWorkspace = () => {
     try {
       const objectUrl = URL.createObjectURL(file);
 
-      // 1. Create a temporary HTML image element in memory for the AI
+      // 1. Create a temporary HTML image element in memory
       const img = new Image();
       img.src = objectUrl;
       await new Promise((resolve, reject) => {
@@ -398,31 +398,36 @@ const DepthFlowWorkspace = () => {
         img.onerror = reject;
       });
 
-      // 2. Ensure model is loaded (fallback if it didn't finish preloading)
+      // FIX: Force dimensions so the browser doesn't send a blank 0x0 image to the AI
+      img.width = img.naturalWidth;
+      img.height = img.naturalHeight;
+
+      // 2. Ensure model is loaded 
       if (!nsfwModelRef.current) {
-        // FIX: Ensure window.nsfwjs exists (CDN loaded) before trying to call it
         if (!window.nsfwjs) {
           throw new Error("Security filters are still loading. Please try again in a few seconds.");
         }
-        // FIX: Added 'window.' to the fallback loader!
-        nsfwModelRef.current = await window.nsfwjs.load();
+        nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
       }
 
       // 3. Scan the image
       const predictions = await nsfwModelRef.current.classify(img);
+      
+      // DEBUG: Print the AI's exact scores to your browser console
+      console.log("NSFW AI Scores:", predictions);
 
-      // 4. Enforce threshold (>60% Porn/Hentai/Sexy)
+      // 4. Enforce threshold (Lowered temporarily to 40% for testing!)
       const isExplicit = predictions.find(
         (p) =>
           (p.className === "Porn" ||
             p.className === "Hentai" ||
             p.className === "Sexy") &&
-          p.probability > 0.6,
+          p.probability > 0.40, // Changed from 0.6 to 0.4 for testing
       );
 
       if (isExplicit) {
         alert(
-          "Policy Violation: Image contains inappropriate content and cannot be uploaded.",
+          `Policy Violation: Blocked because of ${isExplicit.className} content (${Math.round(isExplicit.probability * 100)}% certainty).`,
         );
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsCheckingNsfw(false);
