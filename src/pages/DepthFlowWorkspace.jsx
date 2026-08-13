@@ -393,79 +393,60 @@ const DepthFlowWorkspace = () => {
       return;
     }
 
-    // --- Trigger scanning UI ---
     setIsCheckingNsfw(true);
 
     try {
-      // Create a Data URL (base64) which is much safer for TFJS pixel reading than ObjectURLs
-      const base64Data = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      const objectUrl = URL.createObjectURL(file);
 
-      // 1. Create the image and wait for it to fully decode in memory
-      const img = new Image();
-      img.crossOrigin = "anonymous"; // Prevent canvas tainting issues
-      img.src = base64Data;
+      // --- EXACT README IMPLEMENTATION ---
+      // 1. Create an actual HTMLImageElement and mount it to the DOM (hidden)
+      // This forces the browser to physically decode the pixels, exactly like getElementById("img")
+      const img = document.createElement("img");
+      img.id = "hidden-nsfw-img";
+      img.style.display = "none";
+      document.body.appendChild(img); 
+
+      // 2. Wait for the browser to finish loading the image into the DOM
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
+        img.src = objectUrl;
       });
 
-      // 2. Ensure TFJS Backend is Ready (CRUCIAL FIX per README)
-      if (!window.tf || !window.nsfwjs) {
-         throw new Error("Security libraries are still loading. Please try again.");
-      }
-      
-      // Wait for the backend to be initialized so it doesn't return empty tensors
-      await window.tf.ready();
-      window.tf.enableProdMode();
-
-      // 3. Ensure model is loaded
+      // 3. Ensure the model is loaded 
       if (!nsfwModelRef.current) {
         nsfwModelRef.current = await window.nsfwjs.load("/nsfw_model/");
       }
 
-      // 4. Convert Image to a Tensor explicitly 
-      // The classify function accepts Tensors, Image data, Image elements, video elements, or canvas elements.
-      const imageTensor = window.tf.browser.fromPixels(img);
+      // 4. Classify the DOM element exactly as written in the README
+      const predictions = await nsfwModelRef.current.classify(img);
       
-      // 5. Scan the Tensor directly
-      const predictions = await nsfwModelRef.current.classify(imageTensor);
-      
-      // 6. Explicitly dispose of the tensor to prevent memory leaks
-      imageTensor.dispose();
+      // 5. Clean up the hidden DOM element immediately
+      document.body.removeChild(img);
+      // -----------------------------------
 
-      // 7. Calculate a Combined Explicit Score
-      const explicitScore = predictions.reduce((total, p) => {
-        if (["Porn", "Hentai", "Sexy"].includes(p.className)) {
-          return total + p.probability;
-        }
-        return total;
-      }, 0);
+      // Log the exact predictions format from the README
+      console.log("Predictions: ", predictions);
 
-      // Debugging: Verify the AI numbers are now unique
-      console.log("Raw AI Predictions:", predictions);
-      console.log(`Total Explicit Score: ${Math.round(explicitScore * 100)}%`);
+      // Enforce the explicit threshold
+      const isExplicit = predictions.find(
+        (p) => ["Porn", "Hentai", "Sexy"].includes(p.className) && p.probability > 0.60
+      );
 
-      // Enforce the compliance threshold
-      if (explicitScore > 0.60) {
+      if (isExplicit) {
         alert(
-          `Policy Violation: Image blocked due to explicit content (${Math.round(explicitScore * 100)}% certainty).`
+          `Policy Violation: Image blocked due to ${isExplicit.className} content (${Math.round(isExplicit.probability * 100)}% certainty).`
         );
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsCheckingNsfw(false);
         return; // BLOCK UPLOAD
       }
 
-      // 8. If safe, proceed with standard upload logic
+      // If safe, proceed with standard upload logic
       setSelectedFile(file);
-      setPreviewUrl(base64Data); // Reuse the base64 string
+      setPreviewUrl(objectUrl);
       setResultVideoUrl(null);
       localStorage.removeItem("df_resultVideoUrl");
-      localStorage.setItem("df_previewUrl", base64Data);
       setActiveTab("input");
       
     } catch (error) {
